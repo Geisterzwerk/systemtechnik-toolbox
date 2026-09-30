@@ -8,6 +8,7 @@
 #   spule_rechner.py         ... "Spule"         (inkl. interaktive RL-Kurve)
 #   trafo_rechner.py         ... "Transformator" (inkl. Animation)
 #   halbleiter_rechner.py    ... Diode, Z-Diode, LED, Transistor, MOSFET (Etappe 3)
+#   messtechnik/rechner.py   ... Bereich Messtechnik (liegt im Ordner messtechnik/)
 #
 # Eine Themen-Datei (bauteile/inhalte/...) nennt ihre Rechner per ID:
 #     "rechner": ["ohm_leistung", "spannungsteiler"]
@@ -23,10 +24,16 @@ from bauteile.rechner import (halbleiter_rechner,    # -> rechner/halbleiter_rec
                               trafo_rechner,         # -> rechner/trafo_rechner.py
                               widerstand_rechner)    # -> rechner/widerstand_rechner.py
 
-_MODULE = [widerstand_rechner, kondensator_rechner, spule_rechner, trafo_rechner, halbleiter_rechner]
+from messtechnik import rechner as messtechnik_rechner   # -> messtechnik/rechner.py
+
+_MODULE = [widerstand_rechner, kondensator_rechner, spule_rechner, trafo_rechner, halbleiter_rechner,
+           messtechnik_rechner]
 
 REGISTRY = {}
 for _modul in _MODULE:
+    for _id in _modul.RECHNER:
+        if _id in REGISTRY:                            # gleiche ID zweimal -> sofort sichtbar machen
+            print(f"[rechner] WARNUNG: Rechner-ID '{_id}' ist doppelt vergeben ({_modul.__name__})")
     REGISTRY.update(_modul.RECHNER)
 
 
