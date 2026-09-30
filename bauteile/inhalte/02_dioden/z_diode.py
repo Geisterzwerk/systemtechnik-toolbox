@@ -16,6 +16,7 @@ THEMA = {
         "symbol": "diode",
         "zeilen": [
             ("Betrieb", "in **Sperrrichtung** (Kathode an Plus) – anders als eine normale Diode"),
+            ("Kennlinie", "Durchlass bei ca. **+0.7 V**, Z-Durchbruch bei **U_AK = −Uz** (3. Quadrant)"),
             ("Z-Spannung", "Uz, erhältlich ca. 2.4 V … 200 V (E24-Reihe: 3.3, 3.9, 4.7, 5.1, 5.6, 6.2, 6.8 …)"),
             ("Differenzieller Widerstand", "rz: je kleiner, desto besser die Stabilisierung (Datenblatt)"),
             ("Immer nötig", "ein **Vorwiderstand Rv** zur Strombegrenzung"),
@@ -24,9 +25,13 @@ THEMA = {
         ],
     },
 
+    "grafiken": ["zdiode_kennlinie"],
+
     "erklaerung": """
 ## Was macht eine Z-Diode?
 In Durchlassrichtung verhält sie sich wie eine normale Diode. Interessant ist die **Sperrrichtung**: Bis zur **Z-Spannung Uz** sperrt sie, danach leitet sie – und die Spannung bleibt dabei **fast konstant**, auch wenn sich der Strom stark ändert. Dieser Durchbruch ist **nicht zerstörend**, solange die maximale Verlustleistung eingehalten wird.
+## Die Kennlinie – warum −Uz?
+In der Kennlinie wird die Spannung immer **von Anode zu Kathode (U_AK)** gezählt. Der Z-Durchbruch liegt deshalb im **negativen Bereich bei −Uz** (links unten, 3. Quadrant), der normale Durchlassbereich bei ca. **+0.7 V** (rechts oben). In der Schaltung baut man die Z-Diode **mit der Kathode an Plus** ein – gegen Masse gemessen zeigt das Multimeter dann **+Uz**. Beides beschreibt denselben Zustand, nur aus zwei Blickrichtungen (siehe Grafik oben).
 ## Die Grundschaltung: Stabilisierung mit Vorwiderstand
 Die Z-Diode liegt parallel zur Last, davor sitzt ein Vorwiderstand **Rv**. Die Eingangsspannung teilt sich auf: **Ue = U_Rv + Uz**. Steigt Ue, nimmt die Z-Diode mehr Strom auf, und der zusätzliche Spannungsabfall landet am Rv – am Ausgang bleibt Uz.
 - **Rv zu gross:** Bei kleiner Eingangsspannung und grosser Last reicht der Strom nicht mehr für die Z-Diode (unter Iz,min) → sie hört auf zu stabilisieren.
@@ -75,5 +80,5 @@ Zastrow, *Elektronik*: Kapitel 3 (Spannungsstabilisierung, Z-Diode, Analyse der 
     ],
     "siehe_auch": ["diode", "led", "bipolartransistor", "widerstand"],
 
-    "rechner": ["zdiode_stabi", "diode_kennlinie", "kuehlkoerper"],
+    "rechner": ["zdiode_stabi", "zdiode_kennlinie", "kuehlkoerper"],
 }

@@ -4,6 +4,7 @@
 # RECHNER für Diode, Z-Diode, LED, Bipolartransistor und MOSFET (Etappe 3).
 #
 #   diode_kennlinie       INTERAKTIV: Kennlinie + Arbeitsgerade (grafiken/halbleiter_grafiken.py)
+#   zdiode_kennlinie      wie oben, startet mit der Z-Diode (volle Kennlinie, −Uz)
 #   transistor_simulator  INTERAKTIV: Transistor als Schalter (NPN / N-MOSFET)
 #   mosfet_simulator      wie oben, startet im MOSFET-Modus
 #   diode_temperatur      Uf bei anderer Temperatur (−2 mV/K)
@@ -366,6 +367,7 @@ def kuehlkoerper(master):
 # =============================================================================
 RECHNER = {
     "diode_kennlinie": DiodenKennlinie,
+    "zdiode_kennlinie": lambda master: DiodenKennlinie(master, start_typ="Z-Diode 5.1 V"),
     "transistor_simulator": lambda master: TransistorSchalter(master, modus="NPN"),
     "mosfet_simulator": lambda master: TransistorSchalter(master, modus="MOSFET"),
     "diode_temperatur": diode_temperatur,

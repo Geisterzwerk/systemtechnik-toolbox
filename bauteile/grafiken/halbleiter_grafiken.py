@@ -4,6 +4,8 @@
 # INTERAKTIVE GRAFIKEN + SCHALTZEICHEN für Dioden und Transistoren (Etappe 3).
 #
 #   DiodenKennlinie      Kennlinie I(U) + Arbeitsgerade von Ub und R.
+#                        Z-Dioden: VOLLE Kennlinie mit Durchlass (+0.7 V) und
+#                        Z-Durchbruch bei −Uz; Arbeitsgerade im 3. Quadranten.
 #                        Der Schnittpunkt ist der Arbeitspunkt ("Arbeiten mit
 #                        Kennlinien", vgl. Zastrow Kap. 2).
 #   TransistorSchalter   Transistor als Schalter: Ansteuerspannung am Regler,
@@ -64,8 +66,16 @@ DIODEN = {
     "Germanium":                {"u": 0.30, "m": 0.050, "farbe": "#A16207"},
     "LED rot":                  {"u": 1.90, "m": 0.060, "farbe": ROT},
     "LED blau / weiss":         {"u": 3.00, "m": 0.080, "farbe": "#60A5FA"},
-    "Z-Diode 5.1 V (Sperrrichtung)": {"u": 5.10, "m": 0.030, "farbe": ORANGE},
+    # Z-Dioden: "u" = Z-Spannung Uz (Durchbruch in SPERRRICHTUNG bei U_AK = −Uz)
+    "Z-Diode 3.3 V":            {"u": 3.30, "m": 0.090, "farbe": ORANGE, "z": True},
+    "Z-Diode 5.1 V":            {"u": 5.10, "m": 0.040, "farbe": ORANGE, "z": True},
+    "Z-Diode 6.8 V":            {"u": 6.80, "m": 0.030, "farbe": ORANGE, "z": True},
 }
+SI_VORWAERTS = {"u": 0.70, "m": 0.045}      # Durchlassbereich der Z-Diode (wie eine Si-Diode)
+
+
+def ist_z(typ):
+    return DIODEN[typ].get("z", False)
 I_REF = 0.010
 
 
@@ -92,7 +102,7 @@ def arbeitspunkt(ub, r, typ):
 
 class DiodenKennlinie(Karte):
 
-    def __init__(self, master):
+    def __init__(self, master, start_typ=None):
         super().__init__(master, titel="📈 Kennlinie & Arbeitspunkt (interaktiv)",
                          untertitel="Die Diode stellt sich dort ein, wo Kennlinie und Arbeitsgerade sich schneiden")
         b = self.body
@@ -105,7 +115,7 @@ class DiodenKennlinie(Karte):
         ctk.CTkLabel(oben, text="Bauteil", anchor="w").grid(row=0, column=0, padx=(0, 8))
         self.dk_typ = ctk.CTkOptionMenu(oben, values=list(DIODEN), width=240, dynamic_resizing=False,
                                         command=lambda _v: self.dk_neu())
-        self.dk_typ.set(list(DIODEN)[0])
+        self.dk_typ.set(start_typ if start_typ in DIODEN else list(DIODEN)[0])
         self.dk_typ.grid(row=0, column=1)
 
         self.dk_regler = {}
@@ -138,12 +148,31 @@ class DiodenKennlinie(Karte):
         self.dk_regler["ub"][1].configure(text=fmt(ub, "spannung", 3))
         self.dk_regler["r"][1].configure(text=fmt(r, "widerstand", 3))
         u, i = arbeitspunkt(ub, r, typ)
+        if ist_z(typ):
+            uz = DIODEN[typ]["u"]
+            if i < 1e-7:                               # praktisch kein Strom -> nicht "1e-14 A" anzeigen
+                i, u = 0.0, ub
+            minus = "−" if i > 0 else ""
+            zeilen = [f"Arbeitspunkt (Kennlinie): U_AK = −{fmt(u, 'spannung')}   I_AK = {minus}{fmt(i, 'strom')}",
+                      f"In der Schaltung (Kathode an +, gegen Masse gemessen): U_Z = +{fmt(u, 'spannung')}   "
+                      f"I_Z = {fmt(i, 'strom')}   P_Z = {fmt(u * i, 'leistung')}",
+                      f"Am Vorwiderstand: {fmt(ub - u, 'spannung')}"]
+            if ub < uz * 0.97:
+                zeilen.append(f"Ue liegt unter Uz = {fmt(uz, 'spannung')} → Z-Diode sperrt noch, sie stabilisiert NICHT")
+            else:
+                zeilen.append("Die Spannung bleibt fast bei Uz, auch wenn Ue oder R sich ändern → Stabilisierung")
+            self.dk_info.configure(text="\n".join(zeilen))
+            self._dk_neu_zeichnen()
+            return
         zeilen = [f"Arbeitspunkt: U_D = {fmt(u, 'spannung')}   I = {fmt(i, 'strom')}   "
                   f"P_D = {fmt(u * i, 'leistung')}",
                   f"Am Widerstand: {fmt(ub - u, 'spannung')}   P_R = {fmt((ub - u) * i, 'leistung')}"]
         if ub < DIODEN[typ]["u"] * 0.9:
             zeilen.append("Ub liegt unter der Schwellspannung → es fliesst fast kein Strom")
         self.dk_info.configure(text="\n".join(zeilen))
+        self._dk_neu_zeichnen()
+
+    def _dk_neu_zeichnen(self):
         w, h = self.dk_groesse
         if self.dk_canvas is not None and w > 1:
             self.dk_canvas.delete("all")
@@ -154,6 +183,9 @@ class DiodenKennlinie(Karte):
         if len(self.dk_regler) < 2:
             return
         ub, r, typ = self._dk_werte()
+        if ist_z(typ):
+            self._dk_zeichnen_z(c, w, h, ub, r, typ)
+            return
         u_ap, i_ap = arbeitspunkt(ub, r, typ)
         d = DIODEN[typ]
         text = _farbe(config.FARBEN["text_leise"])
@@ -209,6 +241,103 @@ class DiodenKennlinie(Karte):
             c.create_line(links, py, px, py, fill=GRUEN, dash=(2, 3))
             c.create_oval(px - 7, py - 7, px + 7, py + 7, fill=GRUEN, outline="white", width=2)
             c.create_text(px + 10, py - 12, anchor="w", text="Arbeitspunkt", fill=GRUEN, font=schrift)
+
+    def _dk_zeichnen_z(self, c, w, h, ub, r, typ):
+        """
+        Volle Z-Dioden-Kennlinie mit Achsenkreuz im Ursprung:
+          rechts oben (1. Quadrant): Durchlassbereich bei ca. +0.7 V
+          links unten (3. Quadrant): Z-Durchbruch bei U_AK = −Uz
+        Arbeitsgerade der Stabilisierungsschaltung (Ue, Rv) im 3. Quadranten:
+          von (0 | −Ue/Rv) nach (−Ue | 0).
+        """
+        d = DIODEN[typ]
+        uz = d["u"]
+        text = _farbe(config.FARBEN["text_leise"])
+        linie = _farbe(config.FARBEN["rahmen"])
+        schrift = (config.SCHRIFT, max(8, int(h / 26)))
+        klein = (config.SCHRIFT, max(7, int(h / 32)))
+        links, rechts, oben, unten = 0.06 * w, 0.96 * w, 0.07 * h, 0.90 * h
+
+        # Wertebereich: links bis über Uz bzw. Ue hinaus, rechts bis 1.2 V
+        u_min = -max(uz * 1.3, ub * 1.08, 2.0)
+        u_max = 1.2
+        i_unten = -max(ub / r, 0.005) * 1.15            # Sperrbereich (negativ)
+        i_oben = -i_unten * 0.55                        # Durchlassbereich (kleiner dargestellt)
+
+        def x(u):
+            return links + (rechts - links) * (u - u_min) / (u_max - u_min)
+
+        def y(i):
+            return oben + (unten - oben) * (i_oben - i) / (i_oben - i_unten)
+
+        # ---- Raster + Beschriftung ----
+        schritt = 1.0 if -u_min <= 8 else 2.0
+        k = -schritt
+        while k > u_min:
+            c.create_line(x(k), oben, x(k), unten, fill=linie, dash=(2, 4))
+            c.create_text(x(k), y(0) + 0.045 * h, text=f"{k:g} V", fill=text, font=klein)
+            k -= schritt
+        for anteil in (0.5, 1.0):
+            iy = i_unten * anteil
+            c.create_line(links, y(iy), rechts, y(iy), fill=linie, dash=(2, 4))
+            c.create_text(x(0) + 4, y(iy), anchor="w", text=f"−{fmt(-iy, 'strom', 2)}", fill=text, font=klein)
+
+        # ---- Achsenkreuz im Ursprung ----
+        c.create_line(links, y(0), rechts, y(0), fill=text, width=2, arrow="last")
+        c.create_line(x(0), unten, x(0), oben - 0.02 * h, fill=text, width=2, arrow="last")
+        c.create_text(rechts, y(0) - 0.04 * h, anchor="e", text="U_AK", fill=text, font=schrift)
+        c.create_text(x(0) + 6, oben, anchor="w", text="I_AK", fill=text, font=schrift)
+
+        # ---- Bereichsbeschriftungen ----
+        c.create_text(x(0.6), oben + 0.03 * h, text="Durchlass", fill=text, font=klein)
+        c.create_text(x(-uz / 2), y(0) - 0.05 * h, text="Sperrbereich (fast kein Strom)", fill=text, font=klein)
+        c.create_line(x(-uz), oben, x(-uz), unten, fill=d["farbe"], dash=(4, 3))
+        c.create_text(x(-uz) - 4, oben + 0.03 * h, anchor="e", fill=d["farbe"], font=schrift,
+                      text=f"−Uz = −{fmt(uz, 'spannung', 3)}")
+        c.create_text(x(-uz) - 4, y(i_unten * 0.75), anchor="e", fill=d["farbe"], font=klein,
+                      text="Z-Durchbruch\n(hier arbeitet sie)")
+
+        # ---- Kennlinie: Durchlassbereich (wie Si-Diode) ----
+        punkte = []
+        for n in range(61):
+            u = u_max * n / 60
+            i = I_REF * math.exp(min((u - SI_VORWAERTS["u"]) / SI_VORWAERTS["m"], 50))
+            if i > i_oben:
+                punkte += [x(u), y(i_oben)]
+                break
+            punkte += [x(u), y(i)]
+        if len(punkte) >= 4:
+            c.create_line(*punkte, fill=d["farbe"], width=3)
+
+        # ---- Kennlinie: Sperr- und Durchbruchbereich (gespiegelt) ----
+        punkte = []
+        for n in range(201):
+            u = u_min * n / 200                         # 0 ... u_min (negativ)
+            i = -_strom(-u, typ)                        # Durchbruch-Modell, gespiegelt
+            if i < i_unten:
+                punkte += [x(u), y(i_unten)]
+                break
+            punkte += [x(u), y(i)]
+        if len(punkte) >= 4:
+            c.create_line(*punkte, fill=d["farbe"], width=3)
+
+        # ---- Arbeitsgerade im 3. Quadranten: (0 | −Ue/Rv) bis (−Ue | 0) ----
+        c.create_line(x(0), y(-ub / r), x(-ub), y(0), fill=ORANGE, width=2, dash=(6, 4))
+        c.create_text(x(-ub) + 6, y(0) + 0.09 * h, anchor="w", fill=ORANGE, font=klein,
+                      text=f"Arbeitsgerade (Ue = {fmt(ub, 'spannung', 3)}, Rv = {fmt(r, 'widerstand', 3)})")
+
+        # ---- Arbeitspunkt (gespiegelt) ----
+        u_ap, i_ap = arbeitspunkt(ub, r, typ)
+        px, py = x(-u_ap), y(-i_ap)
+        c.create_line(px, py, px, y(0), fill=GRUEN, dash=(2, 3))
+        c.create_line(x(0), py, px, py, fill=GRUEN, dash=(2, 3))
+        c.create_oval(px - 7, py - 7, px + 7, py + 7, fill=GRUEN, outline="white", width=2)
+        c.create_text(px + 10, py + 14, anchor="w", text="Arbeitspunkt", fill=GRUEN, font=schrift)
+
+        # ---- Hinweis Schaltungssicht ----
+        c.create_text(links, unten, anchor="sw", fill=text, font=klein,
+                      text="In der Schaltung ist die Kathode an Plus → gemessen wird +Uz")
+
 
 
 # =============================================================================
