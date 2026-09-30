@@ -7,23 +7,23 @@
 #   kondensator_rechner.py   ... "Kondensator"   (inkl. interaktive Ladekurve)
 #   spule_rechner.py         ... "Spule"         (inkl. interaktive RL-Kurve)
 #   trafo_rechner.py         ... "Transformator" (inkl. Animation)
-#
-# Auch interaktive Grafiken sind hier registriert und können im Wissen-Teil
-# über  "grafiken": ["trafo_animation"]  eingebunden werden.
+#   halbleiter_rechner.py    ... Diode, Z-Diode, LED, Transistor, MOSFET (Etappe 3)
 #
 # Eine Themen-Datei (bauteile/inhalte/...) nennt ihre Rechner per ID:
 #     "rechner": ["ohm_leistung", "spannungsteiler"]
-# erstellen(master, "ohm_leistung") baut dann die passende Karte.
+# Auch interaktive Grafiken sind hier registriert und können im Wissen-Teil
+# über  "grafiken": ["trafo_animation"]  eingebunden werden.
 #
 # NEUE RECHNER-DATEI? Unten importieren und in _MODULE eintragen.
 # =============================================================================
 
-from bauteile.rechner import (kondensator_rechner,   # -> rechner/kondensator_rechner.py
+from bauteile.rechner import (halbleiter_rechner,    # -> rechner/halbleiter_rechner.py
+                              kondensator_rechner,   # -> rechner/kondensator_rechner.py
                               spule_rechner,         # -> rechner/spule_rechner.py
                               trafo_rechner,         # -> rechner/trafo_rechner.py
                               widerstand_rechner)    # -> rechner/widerstand_rechner.py
 
-_MODULE = [widerstand_rechner, kondensator_rechner, spule_rechner, trafo_rechner]
+_MODULE = [widerstand_rechner, kondensator_rechner, spule_rechner, trafo_rechner, halbleiter_rechner]
 
 REGISTRY = {}
 for _modul in _MODULE:
