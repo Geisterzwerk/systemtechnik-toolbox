@@ -19,6 +19,7 @@ import math
 import customtkinter as ctk
 
 import config                                               # -> config.py
+from bauteile.rechner.basis import WertRegler               # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel  # -> core/layout.py
 
 BLAU = "#3B82F6"
@@ -48,17 +49,16 @@ class AbtastGrafik(Karte):
 
         regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         regler.grid(row=1, column=0, sticky="ew", pady=(6, 0))
-        regler.grid_columnconfigure(1, weight=1)
-        for zeile, (name, text, von, bis, start) in enumerate([("f", "Signalfrequenz f", 1, 45, 3),
-                                                                ("fs", "Abtastrate fs", 4, 60, 20)]):
-            ctk.CTkLabel(regler, text=text, anchor="w", width=130).grid(row=zeile, column=0, sticky="w")
-            slider = ctk.CTkSlider(regler, from_=von, to=bis, number_of_steps=(bis - von) * 2,
-                                   command=lambda _v: self.ag_neu())
-            slider.set(start)
-            slider.grid(row=zeile, column=1, sticky="ew", padx=8, pady=2)
-            anzeige = ctk.CTkLabel(regler, text="", width=70, anchor="e", font=(config.SCHRIFT_CODE, 12, "bold"))
-            anzeige.grid(row=zeile, column=2)
-            self.ag_regler[name] = (slider, anzeige)
+        regler.grid_columnconfigure(0, weight=1)
+        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
+        self.ag_regler = {
+            "f": WertRegler(regler, "Signalfrequenz f", "frequenz", 1, 45, 3, einheit="Hz", grenzen=(0.1, 200),
+                            schritte=88, bei_aenderung=self.ag_neu, text_breite=130),
+            "fs": WertRegler(regler, "Abtastrate fs", "frequenz", 4, 60, 20, einheit="Hz", grenzen=(1, 400),
+                             schritte=112, bei_aenderung=self.ag_neu, text_breite=130),
+        }
+        for zeile, eintrag in enumerate(self.ag_regler.values()):
+            eintrag.grid(row=zeile, column=0, sticky="ew")
 
         self.ag_canvas = ResponsiveCanvas(b, self._ag_zeichnen, seitenverhaeltnis=0.42, max_hoehe=340)
         self.ag_canvas.grid(row=0, column=0, sticky="ew")
@@ -67,14 +67,12 @@ class AbtastGrafik(Karte):
         self.ag_neu()
 
     def _ag_werte(self):
-        return float(self.ag_regler["f"][0].get()), float(self.ag_regler["fs"][0].get())
+        return self.ag_regler["f"].wert(), self.ag_regler["fs"].wert()
 
     def ag_neu(self):
         if len(self.ag_regler) < 2:
             return
         f, fs = self._ag_werte()
-        self.ag_regler["f"][1].configure(text=f"{f:.1f} Hz")
-        self.ag_regler["fs"][1].configure(text=f"{fs:.1f} Hz")
         fa = abs(alias_frequenz(f, fs))
         zeilen = [f"Nyquist-Frequenz fs/2 = {fs / 2:.1f} Hz   ·   Signal f = {f:.1f} Hz"]
         if f < fs / 2 - 1e-9:

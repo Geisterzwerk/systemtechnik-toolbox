@@ -28,7 +28,7 @@ import customtkinter as ctk
 import config                                                    # -> config.py
 from bauteile.einheiten import formatieren as fmt                # -> bauteile/einheiten.py
 from bauteile.grafiken.symbole import SYMBOLE, _beschriftung     # -> bauteile/grafiken/symbole.py
-from bauteile.rechner.basis import EinheitenEingabe              # -> bauteile/rechner/basis.py
+from bauteile.rechner.basis import EinheitenEingabe, WertRegler  # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel       # -> core/layout.py
 
 BLAU = "#3B82F6"
@@ -121,16 +121,16 @@ class DiodenKennlinie(Karte):
         self.dk_regler = {}
         regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         regler.grid(row=2, column=0, sticky="ew", pady=(6, 0))
-        regler.grid_columnconfigure(1, weight=1)
-        for zeile, (name, text, von, bis, start) in enumerate([("ub", "Versorgung Ub", 0.5, 12.0, 5.0),
-                                                                ("r", "Vorwiderstand R", 10, 2000, 330)]):
-            ctk.CTkLabel(regler, text=text, anchor="w", width=130).grid(row=zeile, column=0, sticky="w")
-            slider = ctk.CTkSlider(regler, from_=von, to=bis, command=lambda _v: self.dk_neu())
-            slider.set(start)
-            slider.grid(row=zeile, column=1, sticky="ew", padx=8, pady=2)
-            anzeige = ctk.CTkLabel(regler, text="", width=80, anchor="e", font=(config.SCHRIFT_CODE, 12, "bold"))
-            anzeige.grid(row=zeile, column=2)
-            self.dk_regler[name] = (slider, anzeige)
+        regler.grid_columnconfigure(0, weight=1)
+        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
+        self.dk_regler = {
+            "ub": WertRegler(regler, "Versorgung Ub", "spannung", 0.5, 12.0, 5.0, einheit="V", grenzen=(0.1, 50),
+                             bei_aenderung=self.dk_neu, text_breite=130),
+            "r": WertRegler(regler, "Vorwiderstand R", "widerstand", 10, 2000, 330, einheit="Ω",
+                            grenzen=(1, 1e6), bei_aenderung=self.dk_neu, text_breite=130),
+        }
+        for zeile, eintrag in enumerate(self.dk_regler.values()):
+            eintrag.grid(row=zeile, column=0, sticky="ew")
 
         self.dk_canvas = ResponsiveCanvas(b, self._dk_zeichnen, seitenverhaeltnis=0.5, max_hoehe=380)
         self.dk_canvas.grid(row=1, column=0, sticky="ew", pady=(8, 0))
@@ -139,14 +139,12 @@ class DiodenKennlinie(Karte):
         self.dk_neu()
 
     def _dk_werte(self):
-        ub = float(self.dk_regler["ub"][0].get())
-        r = float(self.dk_regler["r"][0].get())
+        ub = self.dk_regler["ub"].wert()
+        r = self.dk_regler["r"].wert()
         return ub, r, self.dk_typ.get()
 
     def dk_neu(self):
         ub, r, typ = self._dk_werte()
-        self.dk_regler["ub"][1].configure(text=fmt(ub, "spannung", 3))
-        self.dk_regler["r"][1].configure(text=fmt(r, "widerstand", 3))
         u, i = arbeitspunkt(ub, r, typ)
         if ist_z(typ):
             uz = DIODEN[typ]["u"]
@@ -375,13 +373,11 @@ class TransistorSchalter(Karte):
         # ---- Regler für die Ansteuerspannung ----
         regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         regler.grid(row=3, column=0, sticky="ew", pady=(6, 0))
-        regler.grid_columnconfigure(1, weight=1)
-        ctk.CTkLabel(regler, text="Ansteuerspannung Ue", anchor="w", width=150).grid(row=0, column=0, sticky="w")
-        self.ts_ue = ctk.CTkSlider(regler, from_=0, to=12, number_of_steps=240, command=lambda _v: self.ts_neu())
-        self.ts_ue.set(0)
-        self.ts_ue.grid(row=0, column=1, sticky="ew", padx=8)
-        self.ts_ue_text = ctk.CTkLabel(regler, text="", width=70, anchor="e", font=(config.SCHRIFT_CODE, 12, "bold"))
-        self.ts_ue_text.grid(row=0, column=2)
+        regler.grid_columnconfigure(0, weight=1)
+        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
+        self.ts_ue = WertRegler(regler, "Ansteuerspannung Ue", "spannung", 0, 12, 0, einheit="V", grenzen=(0, 30),
+                                schritte=240, bei_aenderung=self.ts_neu)
+        self.ts_ue.grid(row=0, column=0, sticky="ew")
 
         self.ts_info = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"), text_color=config.FARBEN["akzent"])
         self.ts_info.grid(row=4, column=0, sticky="ew", pady=(8, 0))
@@ -421,7 +417,7 @@ class TransistorSchalter(Karte):
     # -------------------------------------------------------------------------
     def ts_berechnen(self):
         """Gibt ein Dictionary mit allen Werten des aktuellen Zustands zurück."""
-        ue = float(self.ts_ue.get())
+        ue = self.ts_ue.wert()
         ub = self._ts_param("Ub", 12.0)
         rl = self._ts_param("RL", 24.0)
         i_max = ub / rl                                          # Strom bei ideal geschlossenem Schalter
@@ -461,7 +457,6 @@ class TransistorSchalter(Karte):
         if self.ts_ue is None:
             return
         z = self.ts_berechnen()
-        self.ts_ue_text.configure(text=fmt(z["ue"], "spannung", 3))
         mosfet = self._ts_ist_mosfet()
         texte = {
             "sperrt": ("SPERRT – Schalter offen", "Ugs unter der Schwellspannung" if mosfet else "Ube < 0.7 V → kein Basisstrom"),

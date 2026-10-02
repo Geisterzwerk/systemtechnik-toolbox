@@ -10,6 +10,8 @@
 #                      Man beschreibt nur die Felder und schreibt eine Funktion,
 #                      die rechnet - die Oberfläche entsteht automatisch.
 #   RechnerFehler      Für verständliche Fehlermeldungen: raise RechnerFehler("...")
+#   WertRegler         Slider + Zahlenfeld + Einheit, immer synchron (für interaktive Grafiken)
+#                      [U1      ═══════●═══════  [ 230 ][V ▾]]
 #
 # BEISPIEL (so entsteht ein neuer Rechner):
 #
@@ -217,3 +219,154 @@ class FormelRechner(Karte):
 def anzahl_gegeben(werte, *schluessel):
     """Wie viele der genannten Felder sind ausgefüllt?"""
     return sum(werte[s] is not None for s in schluessel)
+
+
+# =============================================================================
+# WERT-REGLER: Slider + Zahlenfeld + Einheit (für interaktive Grafiken)
+# =============================================================================
+class WertRegler(ctk.CTkFrame):
+    """
+    [Beschriftung]  ═══════●═══════  [ 230 ][V ▾]
+                                     ⚠ Meldung (nur bei ungültiger Eingabe)
+
+    - Slider bewegen  -> Zahlenfeld zeigt den Wert sofort an
+    - Zahl eintippen  -> Enter oder Feld verlassen übernimmt, Slider springt mit
+    - Einheit wählen  -> derselbe Wert wird in der neuen Einheit angezeigt
+    - Ungültig        -> Feld rot + Erklärung, der alte Wert bleibt (nie still korrigieren)
+
+    text           Beschriftung links
+    typ            Einheiten-Typ aus bauteile/einheiten.py ("spannung", "widerstand", "zahl" ...)
+    von, bis       Bereich des Sliders (in Basiseinheit: V, Ω, A, s ...)
+    start          Startwert
+    einheit        Startauswahl im Dropdown (z.B. "kΩ"), None = Standard des Typs
+    grenzen        (min, max) für das Zahlenfeld. Liegt ein Wert ausserhalb des Sliders,
+                   aber innerhalb der Grenzen, wird er angenommen und der Slider wächst mit.
+                   Standard: (von, bis)
+    ganzzahl       True -> nur ganze Zahlen (z.B. Windungen)
+    schritte       Raststufen des Sliders (None = stufenlos, bei ganzzahl automatisch)
+    bei_aenderung  Funktion ohne Argumente, wird nach jeder GÜLTIGEN Änderung aufgerufen
+
+    wert()                       -> aktueller Wert (Basiseinheit)
+    setzen(wert)                 -> Wert von aussen setzen (ruft bei_aenderung NICHT auf)
+    bereich_setzen(von, bis, w)  -> neuer Slider-Bereich (z.B. Zeitachse 0 … 5τ)
+
+    NAMEN: eigene Attribute beginnen mit wr_ (keine Kollision mit tkinter).
+    """
+
+    ROT = ("#DC2626", "#F87171")
+
+    def __init__(self, master, text, typ, von, bis, start, einheit=None, grenzen=None, ganzzahl=False,
+                 schritte=None, bei_aenderung=None, text_breite=150):
+        super().__init__(master, fg_color="transparent", corner_radius=0)
+        self.wr_typ = typ
+        self.wr_von, self.wr_bis = von, bis
+        self.wr_grenzen = grenzen or (von, bis)
+        self.wr_ganzzahl = ganzzahl
+        self.wr_schritte = schritte
+        self.wr_funktion = bei_aenderung
+        self.wr_wert = start
+        self.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(self, text=text, anchor="w", width=text_breite).grid(row=0, column=0, sticky="w")
+        self.wr_slider = ctk.CTkSlider(self, from_=von, to=bis, number_of_steps=self._wr_stufen(),
+                                       command=self._wr_slider_bewegt)
+        self.wr_slider.grid(row=0, column=1, sticky="ew", padx=8, pady=3)
+
+        self.wr_feld = EinheitenEingabe(self, typ, "", einheit, breite=72)      # -> Klasse oben
+        self.wr_feld.grid(row=0, column=2, sticky="e")
+        self.wr_feld.bei_enter(self._wr_feld_uebernehmen)
+        self.wr_feld.ee_feld.bind("<FocusOut>", lambda _e: self._wr_feld_uebernehmen(), add="+")
+        if self.wr_feld.ee_menue is not None:
+            self.wr_feld.ee_menue.configure(command=lambda _v: self._wr_feld_schreiben())
+        self.wr_rand = self.wr_feld.ee_feld.cget("border_color")
+
+        self.wr_meldung = WrapLabel(self, text="", font=config.FONT_KLEIN, text_color=self.ROT)
+
+        self.wr_slider.set(self._wr_im_slider(start))
+        self._wr_feld_schreiben()
+
+    # ---- von aussen ---------------------------------------------------------
+    def wert(self):
+        return self.wr_wert
+
+    def setzen(self, wert):
+        self._wr_bereich_erweitern(wert)
+        self.wr_wert = wert
+        self.wr_slider.set(wert)
+        self._wr_feld_schreiben()
+        self._wr_ok()
+
+    def bereich_setzen(self, von, bis, wert=None):
+        """Slider-Bereich und Grenzen neu setzen, z.B. wenn sich τ ändert."""
+        self.wr_von, self.wr_bis = von, bis
+        self.wr_grenzen = (von, bis)
+        self.wr_slider.configure(from_=von, to=bis, number_of_steps=self._wr_stufen())
+        if self.wr_feld.ee_menue is not None and bis > 0:      # Einheit passend zum Bereich (5 s statt 5000 ms)
+            self.wr_feld.ee_menue.set(einheiten.stufe_waehlen(bis, self.wr_typ)[0])
+        self.setzen(min(max(self.wr_wert if wert is None else wert, von), bis))
+
+    # ---- intern -------------------------------------------------------------
+    def _wr_stufen(self):
+        if self.wr_ganzzahl:
+            return max(1, int(round(self.wr_bis - self.wr_von)))
+        return self.wr_schritte
+
+    def _wr_im_slider(self, wert):
+        return min(max(wert, self.wr_von), self.wr_bis)
+
+    def _wr_bereich_erweitern(self, wert):
+        """Wert ausserhalb des Sliders (aber erlaubt) -> Slider-Bereich wächst mit."""
+        if wert < self.wr_von or wert > self.wr_bis:
+            self.wr_von, self.wr_bis = min(self.wr_von, wert), max(self.wr_bis, wert)
+            self.wr_slider.configure(from_=self.wr_von, to=self.wr_bis, number_of_steps=self._wr_stufen())
+
+    def _wr_slider_bewegt(self, wert):
+        wert = float(wert)
+        if self.wr_ganzzahl:
+            wert = float(round(wert))
+        self.wr_wert = wert
+        self._wr_feld_schreiben()
+        self._wr_ok()
+        if self.wr_funktion:
+            self.wr_funktion()
+
+    def _wr_feld_schreiben(self):
+        """Aktuellen Wert in der gerade gewählten Einheit ins Feld schreiben."""
+        zahl = self.wr_wert / self.wr_feld._faktor()
+        text = f"{zahl:.0f}" if self.wr_ganzzahl else f"{zahl:.4g}"
+        self.wr_feld.leeren()
+        self.wr_feld.ee_feld.insert(0, text)
+        self.wr_text = text                      # merken: unverändert -> nichts übernehmen
+
+    def _wr_feld_uebernehmen(self):
+        if self.wr_feld.ee_feld.get() == self.wr_text:      # nur angeklickt, nichts geändert
+            self._wr_ok()
+            return
+        try:
+            wert = self.wr_feld.wert()
+        except ValueError as fehler:
+            self._wr_fehler(str(fehler))
+            return
+        if wert is None:
+            self._wr_fehler("Bitte einen Wert eingeben")
+            return
+        unten, oben = self.wr_grenzen
+        if not unten <= wert <= oben:
+            self._wr_fehler(f"Erlaubt: {fmt(unten, self.wr_typ)} … {fmt(oben, self.wr_typ)}")
+            return
+        if self.wr_ganzzahl and abs(wert - round(wert)) > 1e-9:
+            self._wr_fehler("Nur ganze Zahlen erlaubt")
+            return
+        geaendert = abs(wert - self.wr_wert) > 1e-12 * max(1.0, abs(wert))
+        self.setzen(wert)
+        if geaendert and self.wr_funktion:
+            self.wr_funktion()
+
+    def _wr_fehler(self, text):
+        self.wr_feld.ee_feld.configure(border_color=self.ROT)
+        self.wr_meldung.configure(text=f"⚠ {text}")
+        self.wr_meldung.grid(row=1, column=1, columnspan=2, sticky="ew", padx=8)
+
+    def _wr_ok(self):
+        self.wr_feld.ee_feld.configure(border_color=self.wr_rand)
+        self.wr_meldung.grid_remove()

@@ -929,7 +929,7 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | # | Schritt | Status |
 |---|---|---|
 | 0 | Alte Übergangsdateien entfernen, README aktualisieren | ✅ erledigt |
-| 1 | Gemeinsame Komponente **Slider + Zahlenfeld + Einheit** (betrifft RC/RL-Kurve, Trafo-Animation, Diodenkennlinie, Transistor-Schalter, Messtechnik-Grafiken) | offen |
+| 1 | Gemeinsame Komponente **Slider + Zahlenfeld + Einheit** (`WertRegler` in `bauteile/rechner/basis.py`, eingebaut in RC/RL-Kurve, Trafo-Animation, Diodenkennlinie, Transistor-Schalter, Abtast-Grafik) | ✅ erledigt |
 | 2 | Gemeinsame Komponente **Schaltzeichen-Reihe** (eigene Zelle pro Symbol, Beschriftung darunter, Umbruch bei schmalem Fenster) | offen |
 | 3 | Simulator Bipolartransistor (NPN/PNP) und MOSFET (N-/P-Kanal) trennen | offen |
 | 4 | RC- und RL-Lernansicht: Spannung und Strom, zwei Diagramme, `τ_ein` / `τ_aus` | offen |

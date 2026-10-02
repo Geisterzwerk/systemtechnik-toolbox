@@ -10,7 +10,7 @@
 #   │    │   ╱     ┊   63 %  86 %  95 %             │
 #   │    │ ╱       ┊                                │
 #   │    └────────τ────2τ────3τ────4τ────5τ── t      │
-#   │  Zeit: ────────●──────────────   (Schieberegler)
+#   │  Zeit t: ──────●────────  [ 1 ][s ▾]  (Regler + Zahlenfeld, 0 … 5τ)
 #   │  t = 1.00 s (1.0 τ)  →  u = 3.16 V (63.2 %)   │
 #   └───────────────────────────────────────────────┘
 #
@@ -27,7 +27,7 @@ import customtkinter as ctk
 
 import config                                                   # -> config.py
 from bauteile.einheiten import formatieren as fmt               # -> bauteile/einheiten.py
-from bauteile.rechner.basis import EinheitenEingabe             # -> rechner/basis.py
+from bauteile.rechner.basis import EinheitenEingabe, WertRegler # -> rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel      # -> core/layout.py
 
 PUNKTE = 120          # Stützpunkte der Kurve
@@ -78,15 +78,11 @@ class KurvenKarte(Karte):
         self.ku_canvas = ResponsiveCanvas(b, self._zeichnen, seitenverhaeltnis=0.45, max_hoehe=360)
         self.ku_canvas.grid(row=2, column=0, sticky="ew", pady=(4, 4))
 
-        # ---- Zeit-Regler ----
-        regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        regler.grid(row=3, column=0, sticky="ew")
-        regler.grid_columnconfigure(1, weight=1)
-        ctk.CTkLabel(regler, text="Zeit  ", anchor="w").grid(row=0, column=0)
-        self.ku_regler = ctk.CTkSlider(regler, from_=0, to=T_MAX, number_of_steps=500,
-                                       command=lambda _v: self._marker())
-        self.ku_regler.set(1.0)
-        self.ku_regler.grid(row=0, column=1, sticky="ew")
+        # ---- Zeit-Regler: echte Zeit (s, ms, µs), Bereich 0 … 5τ ----
+        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
+        self.ku_regler = WertRegler(b, "Zeit t", "zeit", 0, T_MAX * self.ku_tau, self.ku_tau,
+                                    schritte=500, bei_aenderung=self._marker, text_breite=60)
+        self.ku_regler.grid(row=3, column=0, sticky="ew")
 
         self.ku_anzeige = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"),
                                     text_color=config.FARBEN["akzent"])
@@ -113,6 +109,7 @@ class KurvenKarte(Karte):
             self.ku_anzeige.configure(text=f"⚠ {fehler}", text_color=("#B45309", "#F59E0B"))
             return
         self.ku_R = R
+        tau_alt = self.ku_tau
         if self.ku_modus == "RC":
             self.ku_tau = R * X
             self.ku_end = U                          # Endspannung
@@ -120,10 +117,15 @@ class KurvenKarte(Karte):
             self.ku_tau = X / R
             self.ku_end = U / R                      # Endstrom
         self.ku_U = U
+        # Zeit-Regler auf 0 … 5τ einstellen, an derselben Stelle (gleiches Vielfaches von τ) bleiben
+        n_tau = self.ku_regler.wert() / tau_alt if tau_alt > 0 else 1.0
+        self.ku_regler.bereich_setzen(0, T_MAX * self.ku_tau, n_tau * self.ku_tau)
         breite, hoehe = self.ku_groesse
         if breite > 1:
             self.ku_canvas.delete("all")
             self._zeichnen(self.ku_canvas, breite, hoehe)
+        else:
+            self._marker()
 
     def _steigend(self):
         return self.ku_art.get() == self.MODI[self.ku_modus]["schalter"][0]
@@ -198,7 +200,7 @@ class KurvenKarte(Karte):
         c = self.ku_canvas
         c.delete("marker")
         links, rechts, oben, unten = self._koord()
-        n = float(self.ku_regler.get())
+        n = self.ku_regler.wert() / self.ku_tau             # Zeit in Vielfachen von τ
         v = self._wert(n)
         px = links + (rechts - links) * n / T_MAX
         py = unten - (unten - oben) * v

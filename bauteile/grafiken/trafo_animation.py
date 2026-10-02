@@ -34,6 +34,7 @@ import time
 import customtkinter as ctk
 
 import config                                                   # -> config.py
+from bauteile.rechner.basis import WertRegler                   # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel      # -> core/layout.py
 
 F_ANIM = 0.4            # Animationsfrequenz in Hz (stark verlangsamt, echt 50 Hz)
@@ -109,19 +110,18 @@ class TrafoAnimation(Karte):
         regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         regler.grid(row=1, column=0, sticky="ew", pady=(10, 0))
         regler.grid_columnconfigure(1, weight=1)
-        self.ta_regler = {}
-        for zeile, (name, text, von, bis, start) in enumerate([
-                ("U1", "Primärspannung U1", 0, 400, self.ta_U1),
-                ("N1", "Windungen primär N1", 10, 1000, self.ta_N1),
-                ("N2", "Windungen sekundär N2", 10, 1000, self.ta_N2)]):
-            ctk.CTkLabel(regler, text=text, anchor="w", width=170).grid(row=zeile, column=0, sticky="w", pady=2)
-            slider = ctk.CTkSlider(regler, from_=von, to=bis, number_of_steps=bis - von,
-                                   command=lambda _v: self._ta_regler_geaendert())
-            slider.set(start)
-            slider.grid(row=zeile, column=1, sticky="ew", padx=8)
-            wert = ctk.CTkLabel(regler, text="", width=70, anchor="e", font=(config.SCHRIFT_CODE, 12, "bold"))
-            wert.grid(row=zeile, column=2, sticky="e")
-            self.ta_regler[name] = (slider, wert)
+        regler.grid_columnconfigure(0, weight=1)
+        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
+        self.ta_regler = {
+            "U1": WertRegler(regler, "Primärspannung U1", "spannung", 0, 400, self.ta_U1, einheit="V",
+                             grenzen=(0, 1000), schritte=400, bei_aenderung=self._ta_regler_geaendert, text_breite=170),
+            "N1": WertRegler(regler, "Windungen primär N1", "zahl", 10, 1000, self.ta_N1, grenzen=(1, 100000),
+                             ganzzahl=True, bei_aenderung=self._ta_regler_geaendert, text_breite=170),
+            "N2": WertRegler(regler, "Windungen sekundär N2", "zahl", 10, 1000, self.ta_N2, grenzen=(1, 100000),
+                             ganzzahl=True, bei_aenderung=self._ta_regler_geaendert, text_breite=170),
+        }
+        for zeile, eintrag in enumerate(self.ta_regler.values()):
+            eintrag.grid(row=zeile, column=0, sticky="ew")
 
         knoepfe = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         knoepfe.grid(row=2, column=0, sticky="w", pady=(8, 0))
@@ -151,12 +151,9 @@ class TrafoAnimation(Karte):
     # =========================================================================
     def _ta_regler_geaendert(self):
         alt_n = (round(self.ta_N1), round(self.ta_N2))
-        self.ta_U1 = float(self.ta_regler["U1"][0].get())
-        self.ta_N1 = max(1.0, float(self.ta_regler["N1"][0].get()))
-        self.ta_N2 = max(1.0, float(self.ta_regler["N2"][0].get()))
-        self.ta_regler["U1"][1].configure(text=f"{self.ta_U1:.0f} V")
-        self.ta_regler["N1"][1].configure(text=f"{self.ta_N1:.0f}")
-        self.ta_regler["N2"][1].configure(text=f"{self.ta_N2:.0f}")
+        self.ta_U1 = self.ta_regler["U1"].wert()
+        self.ta_N1 = max(1.0, self.ta_regler["N1"].wert())
+        self.ta_N2 = max(1.0, self.ta_regler["N2"].wert())
         if alt_n != (round(self.ta_N1), round(self.ta_N2)):
             self._ta_neu_zeichnen()               # Anzahl gezeichneter Windungen ändert sich
         self._ta_info_setzen()
