@@ -20,12 +20,11 @@
 # Grundlagen u.a. nach: Zastrow, Elektronik (Kap. 2 Diode, 3 Z-Diode, 5 Transistor)
 # =============================================================================
 
-import math
-
 from bauteile.grafiken.halbleiter_grafiken import DiodenKennlinie                       # -> grafiken/halbleiter_grafiken.py
 from bauteile.grafiken.schalter_simulator import BjtSchalter, MosfetSchalter            # -> grafiken/schalter_simulator.py
 from bauteile.rechner import normreihen                                                 # -> rechner/normreihen.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt                   # -> rechner/basis.py
+from schaltungen import dioden_mathe as dm                                             # -> schaltungen/dioden_mathe.py
 
 
 def _standard(wert, standard):
@@ -87,29 +86,21 @@ def _gleichrichter(w):
     U2, art = w["U2"], w["art"]
     if U2 is None:
         raise RechnerFehler("Trafospannung U2 (Effektivwert) eingeben")
-    uf = _standard(w["uf"], 0.7)
-    f = _standard(w["f"], 50.0)
-    u_spitze = U2 * math.sqrt(2)
-    if art.startswith("Brücke"):
-        u_dc, f_ripple, u_sperr, dioden_anteil = u_spitze - 2 * uf, 2 * f, u_spitze, 0.5
-    elif art.startswith("Einweg"):
-        u_dc, f_ripple, u_sperr, dioden_anteil = u_spitze - uf, f, 2 * u_spitze, 1.0
-    else:   # Mittelpunkt: U2 = Spannung EINER Wicklungshälfte
-        u_dc, f_ripple, u_sperr, dioden_anteil = u_spitze - uf, 2 * f, 2 * u_spitze, 0.5
-    if u_dc <= 0:
-        raise RechnerFehler(f"U2 zu klein: Der Spitzenwert {fmt(u_spitze, 'spannung')} reicht nicht "
-                            "für die Durchlassspannung der Dioden")
-    zeilen = [f"Û = U2 · √2 = {fmt(u_spitze, 'spannung')}",
-              f"Gleichspannung (Leerlauf, mit Elko): ≈ {fmt(u_dc, 'spannung')}",
-              f"Brummfrequenz: {fmt(f_ripple, 'frequenz')}",
-              f"Diode muss sperren können: mind. {fmt(u_sperr, 'spannung')} → mit Reserve ≥ {fmt(u_sperr * 1.5, 'spannung')}"]
-    if w["I"] is not None:
-        zeilen.append(f"Mittlerer Strom pro Diode: {fmt(w['I'] * dioden_anteil, 'strom')}  "
+    try:                                                      # Rechnung: schaltungen/dioden_mathe.py
+        e = dm.gleichrichter(art.split()[0], U2, w["I"], w["C"], _standard(w["f"], 50.0), _standard(w["uf"], 0.7))
+    except ValueError as fehler:
+        raise RechnerFehler(str(fehler)) from None
+    zeilen = [f"Û = U2 · √2 = {fmt(e['u_spitze'], 'spannung')}",
+              f"Gleichspannung (Leerlauf, mit Elko): ≈ {fmt(e['u_dc'], 'spannung')}",
+              f"Brummfrequenz: {fmt(e['f_brumm'], 'frequenz')}",
+              f"Diode muss sperren können: mind. {fmt(e['u_sperr'], 'spannung')} → mit Reserve ≥ "
+              f"{fmt(e['u_sperr'] * 1.5, 'spannung')}"]
+    if e["i_diode"] is not None:
+        zeilen.append(f"Mittlerer Strom pro Diode: {fmt(e['i_diode'], 'strom')}  "
                       f"(Spitzenstrom beim Nachladen ein Vielfaches davon!)")
-        if w["C"] is not None:
-            ripple = w["I"] / (f_ripple * w["C"])
-            zeilen.append(f"Welligkeit ΔU ≈ I / (f_Brumm · C) = {fmt(ripple, 'spannung')}  "
-                          f"→ Minimum ≈ {fmt(u_dc - ripple, 'spannung')}")
+        if e["ripple"] is not None:
+            zeilen.append(f"Welligkeit ΔU ≈ I / (f_Brumm · C) = {fmt(e['ripple'], 'spannung')}  "
+                          f"→ Minimum ≈ {fmt(e['u_min'], 'spannung')}")
     return zeilen
 
 

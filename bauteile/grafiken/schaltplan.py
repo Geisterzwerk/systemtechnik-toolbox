@@ -25,6 +25,8 @@
 # WER RUFT DAS AUF?  schaltungen/grafiken.py (alle interaktiven Schaltungen)
 # =============================================================================
 
+import math
+
 import customtkinter as ctk
 
 import config                                                            # -> config.py
@@ -81,15 +83,21 @@ class Schaltplan:
         """Name (fett) + Wert neben einem Bauteil. seite: 'rechts', 'links', 'oben', 'unten'."""
         if seite in ("rechts", "links"):
             anker = "w" if seite == "rechts" else "e"
-            self.text(x, y - 0.2, name, anker, fett=True, farbe=farbe)
+            # halber Zeilenabstand: mind. 0.2 Raster, bei kleinem Plan nach der Schriftgrösse (Pixel ≈ pt · 1.33)
+            halb = max(0.2, 0.62 * self.schrift[1] * 1.33 / self.u)
+            self.text(x, y - halb, name, anker, fett=True, farbe=farbe)
             if wert:
-                self.text(x, y + 0.2, wert, anker, farbe=farbe or self.leise)
+                self.text(x, y + halb, wert, anker, farbe=farbe or self.leise)
         else:
-            dy = -1 if seite == "oben" else 1
-            self.text(x, y + dy * 0.62, name, "center", fett=True, farbe=farbe)
-            if wert:
-                self.text(x, y + dy * 0.28 if seite == "oben" else y + 0.95, wert, "center",
-                          farbe=farbe or self.leise)
+            zeile = max(0.36, 1.2 * self.schrift[1] * 1.33 / self.u)     # Zeilenhöhe in Raster-Einheiten
+            if seite == "oben":                               # Name über dem Wert, beides über dem Bauteil
+                self.text(x, y - 0.4, wert or name, "s", fett=not wert, farbe=farbe or (self.leise if wert else None))
+                if wert:
+                    self.text(x, y - 0.4 - zeile, name, "s", fett=True, farbe=farbe)
+            else:                                             # unten: Name, darunter der Wert
+                self.text(x, y + 0.4, name, "n", fett=True, farbe=farbe)
+                if wert:
+                    self.text(x, y + 0.4 + zeile, wert, "n", farbe=farbe or self.leise)
 
     # ---- Bauteile ------------------------------------------------------------
     def widerstand(self, x1, y1, x2, y2, name="", wert="", seite=None, farbe=None, laenge=1.4):
@@ -128,15 +136,19 @@ class Schaltplan:
                            arrowshape=(self.u * 0.28, self.u * 0.32, self.u * 0.12))
         return xs, y_s
 
-    def quelle(self, x, y1, y2, name="", wert="", seite="links"):
-        """Gleichspannungsquelle senkrecht von (x,y1) [+] nach (x,y2) [−] (Kreis mit Linie, IEC)."""
+    def quelle(self, x, y1, y2, name="", wert="", seite="links", plus_oben=True):
+        """Gleichspannungsquelle senkrecht von (x,y1) [+] nach (x,y2) [−] (Kreis mit Linie, IEC).
+        plus_oben=False: Pluspol unten (z.B. verpolte Batterie)."""
         ym, r = (y1 + y2) / 2, 0.45
         self.leitung((x, y1), (x, ym - r))
         self.leitung((x, ym + r), (x, y2))
         (ax, ay), (bx, by) = self.p(x - r, ym - r), self.p(x + r, ym + r)
         self.c.create_oval(ax, ay, bx, by, outline=self.linie, width=self.dick, fill=self.bg)
         self.leitung((x, ym - r), (x, ym + r))
-        self.text(x + 0.3, ym - r - 0.05, "+", "sw", fett=True)
+        if plus_oben:
+            self.text(x + 0.3, ym - r - 0.05, "+", "sw", fett=True)
+        else:
+            self.text(x + 0.3, ym + r + 0.05, "+", "nw", fett=True)
         if name or wert:
             self._beschriftung(x - r - 0.25 if seite == "links" else x + r + 0.25, ym, name, wert, seite)
 
@@ -201,6 +213,163 @@ class Schaltplan:
                 self.text(x1 + 0.6, (y1 + y2) / 2, name, "w", fett=True)
             else:
                 self.text((x1 + x2) / 2, y1 - 0.7, name, "center", fett=True)
+
+    # ---- Halbleiter -----------------------------------------------------------
+    def diode(self, x1, y1, x2, y2, name="", wert="", art="normal", seite=None, farbe=None, groesse=0.34):
+        """
+        Diode von ANODE (x1,y1) nach KATHODE (x2,y2) - Strom fliesst in Richtung der Dreieckspitze.
+        art: "normal", "schottky", "z" (Z-Diode), "tvs" (bidirektional: zwei Dreiecke gegeneinander)
+        Waagrecht oder senkrecht. Gibt die Mitte zurück.
+        """
+        farbe = farbe or self.linie
+        dx, dy = x2 - x1, y2 - y1
+        laenge = (dx * dx + dy * dy) ** 0.5
+        ux, uy = dx / laenge, dy / laenge                 # Richtung Anode -> Kathode
+        nx, ny = -uy, ux                                  # quer dazu
+        xm, ym, g = (x1 + x2) / 2, (y1 + y2) / 2, groesse
+        halb = g * (2 if art == "tvs" else 1)             # halbe Baulänge des Symbols
+        self.leitung((x1, y1), (xm - ux * halb, ym - uy * halb), farbe=farbe)
+        self.leitung((xm + ux * halb, ym + uy * halb), (x2, y2), farbe=farbe)
+        if art == "tvs":                                  # zwei Dreiecke, Spitzen zur Mitte
+            dreiecke = [(xm - ux * g, ym - uy * g, 1), (xm + ux * g, ym + uy * g, -1)]
+        else:
+            dreiecke = [(xm, ym, 1)]
+        for cx, cy, r in dreiecke:
+            basis = (cx - ux * g * r, cy - uy * g * r)
+            spitze = (cx + ux * g * r, cy + uy * g * r)
+            ecken = [self.p(basis[0] + nx * g, basis[1] + ny * g), self.p(basis[0] - nx * g, basis[1] - ny * g),
+                     self.p(*spitze)]
+            self.c.create_polygon(*[k for e in ecken for k in e], outline=farbe, fill=self.bg, width=self.dick)
+        # Kathodenstrich (bei TVS in der Mitte, gemeinsam für beide Dreiecke)
+        kx, ky = (xm, ym) if art == "tvs" else (xm + ux * g, ym + uy * g)
+        a, b = (kx + nx * g, ky + ny * g), (kx - nx * g, ky - ny * g)
+        self.leitung(a, b, farbe=farbe)
+        haken = 0.13
+        if art in ("z", "tvs"):                           # Z: abgeknickte Enden
+            self.leitung(a, (a[0] - ux * haken, a[1] - uy * haken), farbe=farbe)
+            self.leitung(b, (b[0] + ux * haken, b[1] + uy * haken), farbe=farbe)
+        elif art == "schottky":                           # Schottky: S-förmige Enden
+            self.leitung(a, (a[0] + ux * haken, a[1] + uy * haken),
+                         (a[0] + ux * haken - nx * haken, a[1] + uy * haken - ny * haken), farbe=farbe)
+            self.leitung(b, (b[0] - ux * haken, b[1] - uy * haken),
+                         (b[0] - ux * haken + nx * haken, b[1] - uy * haken + ny * haken), farbe=farbe)
+        if name or wert:
+            senkrecht = abs(dy) > abs(dx)
+            seite = seite or ("rechts" if senkrecht else "oben")
+            if senkrecht:
+                self._beschriftung(xm + (g + 0.25 if seite == "rechts" else -g - 0.25), ym, name, wert, seite)
+            else:
+                self._beschriftung(xm, ym, name, wert, seite)
+        return xm, ym
+
+    def npn(self, x, y, name="", seite="rechts"):
+        """NPN-Transistor: Basis links bei (x - 0.9, y), Kollektor oben (x, y - 1), Emitter unten (x, y + 1)."""
+        self.leitung((x - 0.9, y), (x - 0.3, y))
+        self.leitung((x - 0.3, y - 0.45), (x - 0.3, y + 0.45), dick=self.dick + 2)      # Basis-Balken
+        self.leitung((x - 0.3, y - 0.2), (x, y - 0.55), (x, y - 1))                       # Kollektor
+        (a, b), (c, d) = self.p(x - 0.3, y + 0.2), self.p(x, y + 0.55)
+        self.c.create_line(a, b, c, d, fill=self.linie, width=self.dick, arrow="last",
+                           arrowshape=(self.u * 0.22, self.u * 0.26, self.u * 0.1))        # Emitter-Pfeil nach aussen
+        self.leitung((x, y + 0.55), (x, y + 1))
+        if name:
+            self.text(x + (0.3 if seite == "rechts" else -1.2), y, name, "w" if seite == "rechts" else "e", fett=True)
+
+    def pmosfet(self, x, y, name="", gate_unten=1.4):
+        """
+        P-MOSFET waagrecht in einer Leitung: DRAIN links (x - 1, y), SOURCE rechts (x + 1, y),
+        Gate unten bei (x, y + gate_unten). Die Body-Diode (Anode = Drain, Kathode = Source) ist darüber
+        eingezeichnet - über sie fliesst beim Einschalten zuerst der Strom.
+        """
+        yk = y + 0.45                                     # Kanal liegt unter der Leitung
+        self.leitung((x - 1, y), (x - 0.5, y), (x - 0.5, yk))
+        self.leitung((x + 1, y), (x + 0.5, y), (x + 0.5, yk))
+        for x0, x1 in ((-0.55, -0.2), (-0.12, 0.12), (0.2, 0.55)):                      # Anreicherung: unterbrochen
+            self.leitung((x + x0, yk), (x + x1, yk), dick=self.dick + 1)
+        (a, b), (c, d) = self.p(x, yk), self.p(x, yk + 0.3)
+        self.c.create_line(a, b, c, d, fill=self.linie, width=self.dick, arrow="last",       # P-Kanal: Pfeil nach aussen
+                           arrowshape=(self.u * 0.16, self.u * 0.2, self.u * 0.08))
+        self.leitung((x - 0.5, yk + 0.32), (x + 0.5, yk + 0.32), dick=self.dick + 1)    # Gate-Platte
+        self.leitung((x, yk + 0.32), (x, y + gate_unten))
+        self.leitung((x - 0.5, y), (x - 0.5, y - 0.55))
+        self.leitung((x + 0.5, y), (x + 0.5, y - 0.55))
+        self.diode(x - 0.5, y - 0.55, x + 0.5, y - 0.55, groesse=0.17)                   # Body-Diode
+        self.text(x - 0.95, y + 0.25, "D", "nw", klein=True, farbe=self.leise)
+        self.text(x + 0.95, y + 0.25, "S", "ne", klein=True, farbe=self.leise)
+        self.text(x + 0.15, y + gate_unten - 0.3, "G", "w", klein=True, farbe=self.leise)
+        if name:
+            self.text(x, y - 0.95, name, "s", fett=True)
+
+    def wechselquelle(self, x, y1, y2, name="", wert="", seite="links"):
+        """Wechselspannungsquelle senkrecht (Kreis mit Sinus)."""
+        ym, r = (y1 + y2) / 2, 0.45
+        self.leitung((x, y1), (x, ym - r))
+        self.leitung((x, ym + r), (x, y2))
+        (ax, ay), (bx, by) = self.p(x - r, ym - r), self.p(x + r, ym + r)
+        self.c.create_oval(ax, ay, bx, by, outline=self.linie, width=self.dick, fill=self.bg)
+        punkte = [self.p(x - 0.28 + 0.56 * k / 16, ym - 0.18 * math.sin(2 * math.pi * k / 16)) for k in range(17)]
+        self.c.create_line(*[k for pk in punkte for k in pk], fill=self.linie, width=max(1, self.dick - 1))
+        if name or wert:
+            self._beschriftung(x - r - 0.25 if seite == "links" else x + r + 0.25, ym, name, wert, seite)
+
+    def trafo(self, x, y1, y2, mittelanzapfung=False, name=""):
+        """
+        Transformator senkrecht, Wicklungen von y1 bis y2:
+          primär links bei x - 0.55, sekundär rechts bei x + 0.55
+          (Mittelanzapfung sekundär bei (x + 0.55, (y1 + y2) / 2))
+        """
+        for versatz, richtung in ((-0.55, -1), (0.55, 1)):
+            xs = x + versatz
+            n = 4
+            hoehe = (y2 - y1) / n
+            for k in range(n):
+                ya = y1 + k * hoehe
+                punkte = [self.p(xs + richtung * 0.22 * math.sin(math.pi * t / 10), ya + hoehe * t / 10)
+                          for t in range(11)]
+                self.c.create_line(*[q for pk in punkte for q in pk], fill=self.linie, width=self.dick)
+        for xk in (x - 0.08, x + 0.08):                   # Eisenkern
+            self.leitung((xk, y1), (xk, y2), dick=max(1, self.dick - 1))
+        if name:
+            self.text(x, y1 - 0.3, name, "s", fett=True)
+
+    def kasten(self, x0, y0, x1, y1, titel="", farbe=None):
+        """Gerät/IC als Rechteck mit Titel oben (z.B. µC, Last, geschütztes Gerät)."""
+        (a, b), (c, d) = self.p(x0, y0), self.p(x1, y1)
+        self.c.create_rectangle(a, b, c, d, outline=farbe or self.linie, width=self.dick, fill=self.bg)
+        if titel:
+            self.text((x0 + x1) / 2, y0 + 0.4, titel, "center", fett=True)
+
+    # ---- Zeitdiagramm ---------------------------------------------------------
+    def diagramm(self, x0, y0, x1, y1, kurven, y_min, y_max, titel="", marken=(), zeit_text="t"):
+        """
+        Kleines Zeitdiagramm im Rechteck (x0,y0)-(x1,y1), Raster-Einheiten.
+          kurven  [(punkte, farbe, dick, gestrichelt), ...]   punkte = [(t 0…1, wert), ...]
+          marken  [(wert, text), ...] waagrechte Hilfslinien mit Text links (z.B. Begrenzungspegel)
+        """
+        def pixel(t, wert):
+            anteil = (wert - y_min) / (y_max - y_min) if y_max > y_min else 0.5
+            return self.p(x0 + t * (x1 - x0), y1 - min(max(anteil, -0.02), 1.02) * (y1 - y0))
+        (a, b), (c, d) = self.p(x0, y0), self.p(x1, y1)
+        self.c.create_line(a, b, a, d, fill=self.leise, width=1)
+        null = pixel(0, 0)[1] if y_min < 0 < y_max else d
+        self.c.create_line(a, null, c, null, fill=self.leise, width=1)
+        self.text(x1, (null - self.y0) / self.u + 0.3, zeit_text, "e", klein=True, farbe=self.leise)
+        belegt = []                                       # Texthöhen der Marken (nicht übereinander schreiben)
+        for wert, text in marken:
+            _, py = pixel(0, wert)
+            self.c.create_line(a, py, c, py, fill=self.leise, width=1, dash=(3, 3))
+            zeile = (py - self.y0) / self.u
+            if all(abs(zeile - z) > 0.4 for z in belegt):
+                self.text(x0 - 0.12, zeile, text, "e", klein=True, farbe=self.leise)
+                belegt.append(zeile)
+        for punkte, farbe, dick, gestrichelt in kurven:
+            koordinaten = [k for t, wert in punkte for k in pixel(t, wert)]
+            if len(koordinaten) >= 4:
+                if gestrichelt:
+                    self.c.create_line(*koordinaten, fill=farbe, width=dick or self.dick, dash=(5, 4))
+                else:
+                    self.c.create_line(*koordinaten, fill=farbe, width=dick or self.dick)
+        if titel:
+            self.text((x0 + x1) / 2, y0 - 0.35, titel, "center", klein=True, farbe=self.leise)
 
     # ---- Messgrössen ---------------------------------------------------------
     def messpunkt(self, x, y, name, seite="rechts"):
