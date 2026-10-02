@@ -388,6 +388,32 @@ class Schaltplan:
         if titel:
             self.text((x0 + x1) / 2, y0 + 0.4, titel, "center", fett=True)
 
+    def spule(self, x1, y1, x2, y2, name="", wert="", seite=None, laenge=1.6):
+        """Spule (Induktivität) mit 4 Bögen zwischen zwei Rasterpunkten - waagrecht oder senkrecht."""
+        senkrecht = abs(x2 - x1) < abs(y2 - y1)
+        xm, ym = (x1 + x2) / 2, (y1 + y2) / 2
+        l2, bogen = laenge / 2, laenge / 4
+        if senkrecht:
+            self.leitung((x1, y1), (x1, ym - l2))
+            self.leitung((x1, ym + l2), (x2, y2))
+        else:
+            self.leitung((x1, y1), (xm - l2, y1))
+            self.leitung((xm + l2, y1), (x2, y2))
+        for k in range(4):
+            start = -l2 + k * bogen
+            punkte = []
+            for n in range(13):
+                winkel = math.pi * n / 12
+                a, b = start + bogen / 2 * (1 - math.cos(winkel)), -0.3 * math.sin(winkel)   # Halbkreis
+                punkte.append(self.p(xm - b, ym + a) if senkrecht else self.p(xm + a, ym + b))
+            self.c.create_line(*[q for pk in punkte for q in pk], fill=self.linie, width=self.dick)
+        if name or wert:
+            seite = seite or ("rechts" if senkrecht else "oben")
+            if senkrecht:
+                self._beschriftung(xm + (0.5 if seite == "rechts" else -0.5), ym, name, wert, seite)
+            else:
+                self._beschriftung(xm, ym - 0.15, name, wert, seite)
+
     def opv(self, x, y, name="", plus_oben=False, versorgung=True):
         """
         Operationsverstärker als Dreieck (Spitze rechts), Mitte bei (x, y):

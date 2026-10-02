@@ -19,6 +19,13 @@
 #   differenzverstaerker Differenz- und Instrumentenverstärker mit Gleichtaktfehler durch Toleranz
 #   schmitt_trigger      Schwellen berechnen oder Widerstände/U_ref für gewünschte Schwellen
 #   integrator           Integrator und Differenzierer: Steigung, Dreieck/Rechteck-Amplitude, Grenzfrequenzen
+#   innenwiderstand      R_i aus Leerlauf- und Lastmessung, Klemmenspannung und Leistung an einer Last
+#   netzteil_auslegen    Trafospannung, Elko, Trafoleistung für eine gewünschte Spannung nach dem Regler
+#   linearregler         Dropout im Wellental, Verlust, Wirkungsgrad, Sperrschichttemperatur
+#   lm317                Ausgangsspannung aus R1/R2 oder R2 für eine gewünschte Spannung
+#   strombegrenzung      Shunt für einen Maximalstrom, Verlust bei Kurzschluss
+#   stromquelle_opv      geregelte Stromsenke OPV + MOSFET + Shunt
+#   schaltregler         Buck / Boost: Tastgrad, Spule, Rippelstrom, Spitzenstrom, Welligkeit
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
@@ -27,7 +34,7 @@
 # Die Grenzfrequenz allein rechnet schon "rc_filter" (bauteile/rechner/kondensator_rechner.py).
 #
 # Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py, rc_mathe.py,
-#           opv_mathe.py (ohne GUI, testbar)
+#           opv_mathe.py, netzteil_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
 
@@ -36,10 +43,14 @@ import math
 from bauteile.rechner import normreihen                                          # -> bauteile/rechner/normreihen.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
+from schaltungen import netzteil_mathe as ntm                                    # -> schaltungen/netzteil_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
 from schaltungen import opv_mathe as om                                          # -> schaltungen/opv_mathe.py
 from schaltungen import rc_mathe as rm                                           # -> schaltungen/rc_mathe.py
 from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
+from schaltungen.grafiken_netzteil import (LinearreglerSchaltung, QuelleSchaltung,  # -> schaltungen/grafiken_netzteil.py
+                                           SchaltreglerSchaltung, StrombegrenzungSchaltung,
+                                           StromquelleOpvSchaltung, VirtuelleMasseSchaltung)
 from schaltungen.grafiken_opv import (AddiererSchaltung, DifferenzSchaltung,      # -> schaltungen/grafiken_opv.py
                                       IntegratorSchaltung, OpvVerstaerkerSchaltung, SchmittSchaltung)
 from schaltungen.grafiken_rc import (AntiAliasingSchaltung, EntprellSchaltung,   # -> schaltungen/grafiken_rc.py
@@ -419,7 +430,7 @@ def _entprellung(w):
         c_ab = w["tp"] / (w["R2"] * math.log(w["Ub"] / u_tm))
         c_auf = w["tp"] / ((w["R1"] + w["R2"]) * math.log(w["Ub"] / (w["Ub"] - u_tp)))
         c_min = max(c_ab, c_auf)
-        c = normreihen.naechste_werte(c_min, "E6")[2]
+        c = normreihen.naechste_werte(c_min, "E6")[1]                  # nächst GRÖSSERER: C ist ein Mindestwert
         zeilen.append(f"C ≥ t_prell / (R2 · ln(U_B / U_T−)) = {fmt(c_min, 'kapazitaet')}   →  E6: {fmt(c, 'kapazitaet')}")
     k = _fehler_umwandeln(rm.entprell_zeiten, w["Ub"], w["R1"], w["R2"], c)
     zeilen += [f"Drücken: τ = R2 · C = {fmt(k['tau_ab'], 'zeit')},  t bis U_T− = τ · ln(U_B / U_T−) = {fmt(k['t_ab'], 'zeit')}",
@@ -504,7 +515,7 @@ def _opv_verstaerker(w):
             if art == "nichtinvertierend" and vu <= 1:
                 raise RechnerFehler("Nichtinvertierend ist Vu immer ≥ 1 – für Vu = 1 den Spannungsfolger nehmen")
             r2_genau = r1 * (vu - 1) if art == "nichtinvertierend" else r1 * vu
-            r2 = normreihen.naechste_werte(r2_genau, "E24")[1]
+            r2 = normreihen.naechste_werte(r2_genau, "E24")[2]          # nächster Normwert (Verhältnis)
             zeilen.append(f"R2 = R1 · {'(Vu − 1)' if art == 'nichtinvertierend' else '|Vu|'} = "
                           f"{fmt(r2_genau, 'widerstand')}   →  E24: {fmt(r2, 'widerstand')}")
     ue = 0.0 if w["Ue"] is None else w["Ue"]
@@ -625,7 +636,7 @@ def _schmitt(w):
             raise RechnerFehler("Zum Auslegen BEIDE Schwellen U_T+ und U_T− eingeben")
         rf = 100e3 if w["Rf"] is None else w["Rf"]
         e = _fehler_umwandeln(om.schmitt_auslegen, art, w["UTp"], w["UTm"], w["Usat"], rf)
-        r1_norm = normreihen.naechste_werte(e["r1"], "E24")[1]
+        r1_norm = normreihen.naechste_werte(e["r1"], "E24")[2]          # nächster Normwert
         s = _fehler_umwandeln(om.schmitt_schwellen, art, r1_norm, rf, e["u_ref"], w["Usat"])
         return [f"Hysterese ΔU = {fmt(w['UTp'] - w['UTm'], 'spannung')}, Mitte {fmt((w['UTp'] + w['UTm']) / 2, 'spannung')}",
                 f"R1 / {'(R1 + R_f)' if art == 'invertierend' else 'R_f'} = ΔU / (2 · U_sat)  →  "
@@ -711,6 +722,248 @@ def integrator(master):
         berechnen=_integrator, formel="Integrator: Ua = −1/(R·C) · ∫Ue dt     Differenzierer: Ua = −R·C · dUe/dt")
 
 
+
+# =============================================================================
+# 17) INNENWIDERSTAND
+# =============================================================================
+def _innenwiderstand(w):
+    if w["U0"] is None:
+        raise RechnerFehler("Leerlaufspannung U0 eingeben (Messung ohne Last)")
+    zeilen = []
+    r_i = w["Ri"]
+    if w["Ulast"] is not None:
+        if w["RL"] is None and w["I"] is None:
+            raise RechnerFehler("Zur Spannung unter Last auch R_L oder den Laststrom eingeben")
+        e = _fehler_umwandeln(ntm.innenwiderstand, w["U0"], w["Ulast"], w["RL"], w["I"])
+        r_i = e["r_i"]
+        zeilen += [f"I = {'U_last / R_L' if w['I'] is None else 'gemessen'} = {fmt(e['i'], 'strom')}",
+                   f"R_i = (U0 − U_last) / I = {fmt(r_i, 'widerstand')}   ·   Kurzschlussstrom U0 / R_i = "
+                   f"{fmt(e['i_kurz'], 'strom')}"]
+    if r_i is None:
+        raise RechnerFehler("R_i eingeben – oder U_last mit R_L (bzw. I) messen, dann wird R_i berechnet")
+    if r_i <= 0:
+        raise RechnerFehler("R_i muss grösser als 0 sein")
+    zeilen.append(f"Leistungsanpassung: P_max = U0² / (4 · R_i) = {fmt(w['U0'] ** 2 / (4 * r_i), 'leistung')} bei R_L = R_i")
+    if w["RL"] is not None and w["Ulast"] is None:
+        e = _fehler_umwandeln(ntm.quelle, "Spannungsquelle", w["U0"], r_i, w["RL"])
+        zeilen.append(f"An R_L = {fmt(w['RL'], 'widerstand')}: U_K = {fmt(e['u_k'], 'spannung')}, I = "
+                      f"{fmt(e['i'], 'strom')}, P = {fmt(e['p_l'], 'leistung')}, η = {e['eta'] * 100:.1f} %")
+    return zeilen
+
+
+def innenwiderstand(master):
+    return FormelRechner(
+        master, "Innenwiderstand einer Quelle", "Aus zwei Messungen (Leerlauf + Last) – oder Last an bekannter Quelle",
+        felder=[("U0", "Leerlaufspannung U0", "spannung", {"platzhalter": "z.B. 12.6"}),
+                ("Ulast", "U unter Last (opt.)", "spannung", {"platzhalter": "z.B. 12.0"}),
+                ("RL", "Last R_L", "widerstand", {"platzhalter": "z.B. 10"}),
+                ("I", "Laststrom (opt.)", "strom", {"platzhalter": "statt R_L"}),
+                ("Ri", "R_i (opt.)", "widerstand", {"platzhalter": "falls bekannt"})],
+        berechnen=_innenwiderstand, formel="R_i = (U0 − U_last) / I     U_K = U0 · R_L / (R_i + R_L)")
+
+
+# =============================================================================
+# 18) NETZTEIL AUSLEGEN (rückwärts)
+# =============================================================================
+def _netzteil_auslegen(w):
+    if w["Ua"] is None or w["I"] is None:
+        raise RechnerFehler("Gewünschte Ausgangsspannung (nach dem Regler) und Laststrom eingeben")
+    u_drop = 2.0 if w["Ud"] is None else w["Ud"]
+    e = _fehler_umwandeln(ntm.netzteil_auslegen, w["Ua"] + u_drop, w["I"], w["dU"], w["C"])
+    c_norm = normreihen.naechste_werte(e["c"], "E6")[1]                # nächst GRÖSSERER: C ist ein Mindestwert
+    zeilen = [f"Im Wellental nötig: U_aus + Dropout = {fmt(w['Ua'] + u_drop, 'spannung')}   ·   "
+              f"Welligkeit ΔU = {fmt(e['delta_u'], 'spannung')}",
+              f"Elko: C = I / (2 · f · ΔU) = {fmt(e['c'], 'kapazitaet')}" +
+              (f"   →  E6: {fmt(c_norm, 'kapazitaet')}" if w["C"] is None else ""),
+              f"Spitze bei Netz −10 %: Û = U_Tal + ΔU + 2 · 0.7 V = {fmt(e['u_spitze_min'], 'spannung')}",
+              f"Trafo: U_sek = Û / (√2 · 0.9) = {fmt(e['u_sek'], 'spannung')} (eff)   ·   I_sek ≈ 1.8 · I = "
+              f"{fmt(e['i_sek_eff'], 'strom')}   ·   S ≈ {fmt(e['s_trafo'], 'leistung').replace('W', 'VA')}",
+              f"Elko-Spannung (Netz +10 %, Leerlauf +10 %): ≥ {fmt(e['u_elko_max'], 'spannung')} → nächste Reihe "
+              f"(16 / 25 / 35 / 50 / 63 V)",
+              f"Regler-Eingang maximal ≈ {fmt(e['u_elko_max'], 'spannung')} → Verlust im Regler beachten"]
+    return zeilen
+
+
+def netzteil_auslegen(master):
+    return FormelRechner(
+        master, "Netzteil auslegen (Trafo, Elko)", "Vom Ausgang rückwärts: Welche Trafospannung und welcher Elko?",
+        felder=[("Ua", "Ausgang nach dem Regler", "spannung", {"platzhalter": "z.B. 5"}),
+                ("I", "Laststrom", "strom", {"einheit": "A", "platzhalter": "z.B. 1"}),
+                ("Ud", "Dropout des Reglers", "spannung", {"platzhalter": "78xx: 2, LDO: 0.3"}),
+                ("dU", "Welligkeit ΔU (opt.)", "spannung", {"platzhalter": "10 % des Tals"}),
+                ("C", "Ladeelko (opt.)", "kapazitaet", {"einheit": "mF", "platzhalter": "statt ΔU"})],
+        berechnen=_netzteil_auslegen, formel="ΔU = I / (2 · f · C)     U_sek = (U_aus + U_D + ΔU + 1.4 V) / (√2 · 0.9)")
+
+
+# =============================================================================
+# 19) LINEARREGLER
+# =============================================================================
+def _linearregler(w):
+    if None in (w["Ue"], w["Ua"], w["I"]):
+        raise RechnerFehler("Eingangsspannung (Spitze am Elko), Ausgangsspannung und Laststrom eingeben")
+    du = 0.0 if w["dU"] is None else w["dU"]
+    u_drop = 2.0 if w["Ud"] is None else w["Ud"]
+    r_th = 50.0 if w["Rth"] is None else w["Rth"]
+    e = _fehler_umwandeln(ntm.linearregler, w["Ue"], du, w["Ua"], w["I"], u_drop, r_th)
+    zeilen = [f"Wellental {fmt(e['u_tal'], 'spannung')} – nötig U_aus + Dropout = {fmt(w['Ua'] + u_drop, 'spannung')}"
+              + ("   ✓" if e["regelt"] else "   ❌ Dropout: Welligkeit kommt durch"),
+              f"P = (U_ein,mittel − U_aus) · I = ({fmt(e['u_mittel'], 'spannung')} − {fmt(w['Ua'], 'spannung')}) · "
+              f"{fmt(w['I'], 'strom')} = {fmt(e['p'], 'leistung')}   ·   η = {e['eta'] * 100:.0f} %",
+              f"T_j = 25 °C + P · R_th = 25 °C + {fmt(e['p'], 'leistung')} · {r_th:g} K/W = {e['t_j']:.0f} °C"]
+    if e["t_j"] > 125:
+        zeilen.append(f"⚠ Über 125 °C: R_th gesamt ≤ (125 − 25) / P = {100 / e['p']:.1f} K/W nötig → Kühlkörper "
+                      "(Rechner „Kühlkörper“) oder Schaltregler")
+    return zeilen
+
+
+def linearregler(master):
+    return FormelRechner(
+        master, "Linearregler (78xx / LDO / LM317)", "Reicht die Spannung im Wellental? Wie heiss wird der Regler?",
+        felder=[("Ue", "Eingang: Spitze am Elko", "spannung", {"platzhalter": "z.B. 11.5"}),
+                ("dU", "Welligkeit ΔU (opt.)", "spannung", {"platzhalter": "0"}),
+                ("Ua", "Ausgang U_aus", "spannung", {"platzhalter": "z.B. 5"}),
+                ("I", "Laststrom", "strom", {"einheit": "mA"}),
+                ("Ud", "Dropout (opt.)", "spannung", {"platzhalter": "2 (78xx)"}),
+                ("Rth", "R_th J→Luft K/W (opt.)", "zahl", {"platzhalter": "50 (TO-220 frei)"})],
+        berechnen=_linearregler, formel="P = (U_ein − U_aus) · I     T_j = T_a + P · R_th     η = U_aus / U_ein")
+
+
+# =============================================================================
+# 20) LM317
+# =============================================================================
+def _lm317(w):
+    r1 = 240.0 if w["R1"] is None else w["R1"]
+    if r1 <= 0:
+        raise RechnerFehler("R1 muss grösser als 0 sein")
+    zeilen = [f"Mindestlast durch R1: 1.25 V / R1 = {fmt(1.25 / r1, 'strom')} (LM317 braucht ≥ 3.5 … 10 mA)"]
+    if w["R2"] is not None:
+        u_a = _fehler_umwandeln(ntm.lm317_spannung, r1, w["R2"])
+        zeilen.insert(0, f"U_aus = 1.25 V · (1 + R2 / R1) + 50 µA · R2 = {fmt(u_a, 'spannung')}")
+        return zeilen
+    if w["Ua"] is None:
+        raise RechnerFehler("R2 eingeben – oder die gewünschte Ausgangsspannung, dann wird R2 berechnet")
+    r2 = _fehler_umwandeln(ntm.lm317_r2, w["Ua"], r1)
+    naechster = normreihen.naechste_werte(r2, "E24")[2]                 # (unten, oben, nächster)
+    zeilen.insert(0, f"R2 = (U_aus − 1.25 V) / (1.25 V / R1 + 50 µA) = {fmt(r2, 'widerstand')}")
+    zeilen.insert(1, f"E24: {fmt(naechster, 'widerstand')} → U_aus = {fmt(ntm.lm317_spannung(r1, naechster), 'spannung')}"
+                     f"   (genauer: Poti oder zwei Widerstände in Reihe)")
+    return zeilen
+
+
+def lm317(master):
+    return FormelRechner(
+        master, "LM317 einstellen", "Ausgangsspannung aus R1/R2 – oder R2 für eine gewünschte Spannung",
+        felder=[("R1", "R1 (OUT → ADJ)", "widerstand", {"platzhalter": "240"}),
+                ("R2", "R2 (ADJ → GND)", "widerstand", {"platzhalter": "leer = berechnen"}),
+                ("Ua", "gewünschte U_aus (opt.)", "spannung", {"platzhalter": "z.B. 12"})],
+        berechnen=_lm317, formel="U_aus = 1.25 V · (1 + R2 / R1) + I_ADJ · R2     I_ADJ ≈ 50 µA")
+
+
+# =============================================================================
+# 21) STROMBEGRENZUNG
+# =============================================================================
+def _strombegrenzung(w):
+    if w["Imax"] is None:
+        raise RechnerFehler("Gewünschten Maximalstrom eingeben")
+    if w["Imax"] <= 0:
+        raise RechnerFehler("Maximalstrom muss grösser als 0 sein")
+    r_s = ntm.U_BE_BEGRENZUNG / w["Imax"]
+    r_norm = normreihen.naechste_werte(r_s, "E24")[2]                  # nächster Normwert, I_max wird neu gerechnet
+    i_echt = ntm.U_BE_BEGRENZUNG / r_norm
+    zeilen = [f"R_S = 0.6 V / I_max = {fmt(r_s, 'widerstand')}   →  E24: {fmt(r_norm, 'widerstand')} "
+              f"(I_max ≈ {fmt(i_echt, 'strom')})",
+              f"Leistung im Shunt bei I_max: 0.6 V · I_max = {fmt(0.6 * i_echt, 'leistung')}",
+              "U_BE streut und sinkt mit −2 mV/K: I_max ist nur auf ≈ ±20 % genau"]
+    if w["Ue"] is not None:
+        zeilen.append(f"Verlust im Längstransistor bei Kurzschluss ≈ (U_e − 0.6 V) · I_max = "
+                      f"{fmt((w['Ue'] - 0.6) * i_echt, 'leistung')} → Kühlkörper oder Foldback-Begrenzung")
+    return zeilen
+
+
+def strombegrenzung(master):
+    return FormelRechner(
+        master, "Strombegrenzung mit Shunt + Transistor", "Längsregler kurzschlussfest machen",
+        felder=[("Imax", "Maximalstrom I_max", "strom", {"einheit": "mA", "platzhalter": "z.B. 500"}),
+                ("Ue", "Eingang U_e (opt.)", "spannung", {"platzhalter": "für den Kurzschlussverlust"})],
+        berechnen=_strombegrenzung, formel="R_S = 0.6 V / I_max     P_T1,Kurzschluss ≈ U_e · I_max")
+
+
+# =============================================================================
+# 22) GEREGELTE STROMQUELLE
+# =============================================================================
+def _stromquelle_opv(w):
+    if w["I"] is None or w["Ub"] is None:
+        raise RechnerFehler("Gewünschten Strom und U_B eingeben")
+    if w["I"] <= 0:
+        raise RechnerFehler("Strom muss grösser als 0 sein")
+    if w["Rs"] is None and w["Us"] is None:
+        raise RechnerFehler("Shunt R_S oder Sollspannung U_soll eingeben (die andere wird berechnet)")
+    r_s = w["Rs"] if w["Rs"] is not None else w["Us"] / w["I"]
+    u_s = w["I"] * r_s
+    e = _fehler_umwandeln(ntm.stromquelle_opv, u_s, r_s, w["Ub"], w["RL"] or 0.0)
+    zeilen = [f"U_soll = I · R_S = {fmt(u_s, 'spannung')} bei R_S = {fmt(r_s, 'widerstand')}   ·   "
+              f"Shunt-Leistung {fmt(w['I'] ** 2 * r_s, 'leistung')}",
+              f"Regelt bis R_Last ≤ U_B / I − R_S = {fmt(e['r_last_max'], 'widerstand')}",
+              f"MOSFET-Verlust: max. {fmt(e['p_mos_max'], 'leistung')} (Last kurzgeschlossen)"]
+    if w["RL"] is not None:
+        zeilen.append(f"Mit R_L = {fmt(w['RL'], 'widerstand')}: I = {fmt(e['i'], 'strom')}, MOSFET {fmt(e['p_mos'], 'leistung')}"
+                      + ("" if e["regelt"] else "  ⚠ Last zu gross – Strom erreicht den Sollwert nicht"))
+    if u_s < 0.05:
+        zeilen.append("⚠ U_soll < 50 mV: Offset des OPV (mV) wird ein grosser Fehler → OPV mit kleinem Offset")
+    return zeilen
+
+
+def stromquelle_opv(master):
+    return FormelRechner(
+        master, "Geregelte Stromquelle (OPV + MOSFET)", "Low-Side-Stromsenke: I = U_soll / R_S",
+        felder=[("I", "Strom I", "strom", {"einheit": "mA", "platzhalter": "z.B. 100"}),
+                ("Rs", "Shunt R_S (opt.)", "widerstand", {"platzhalter": "z.B. 1"}),
+                ("Us", "U_soll (opt.)", "spannung", {"einheit": "mV", "platzhalter": "statt R_S"}),
+                ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+                ("RL", "Last R_L (opt.)", "widerstand", {"platzhalter": "optional"})],
+        berechnen=_stromquelle_opv, formel="I = U_soll / R_S     R_L,max = U_B / I − R_S")
+
+
+# =============================================================================
+# 23) SCHALTREGLER
+# =============================================================================
+def _schaltregler(w):
+    if None in (w["Ue"], w["Ua"], w["Ia"], w["f"]):
+        raise RechnerFehler("U_e, U_a, Ausgangsstrom und Schaltfrequenz eingeben")
+    l = w["L"]
+    if l is None:
+        # L so wählen, dass ΔI = 30 % des Spulenstroms
+        probe = _fehler_umwandeln(ntm.schaltregler, w["art"], w["Ue"], w["Ua"], w["Ia"], w["f"], 1e-6)
+        l = probe["l_30"]
+    e = _fehler_umwandeln(ntm.schaltregler, w["art"], w["Ue"], w["Ua"], w["Ia"], w["f"], l, w["C"])
+    buck = w["art"] == ntm.SCHALTREGLER_ARTEN[0]
+    zeilen = [f"D = {'U_a / U_e' if buck else '1 − U_e / U_a'} = {e['d'] * 100:.1f} %   ·   "
+              f"Spulenstrom Ø {fmt(e['i_l'], 'strom')}" + ("" if buck else " = I_a / (1 − D)")]
+    if w["L"] is None:
+        zeilen.append(f"L für ΔI = 30 %: {fmt(l, 'induktivitaet')}  →  nächster Normwert darüber")
+    zeilen += [f"ΔI = {'(U_e − U_a) · D' if buck else 'U_e · D'} / (f · L) = {fmt(e['delta_i'], 'strom')}   ·   "
+               f"Spitzenstrom {fmt(e['i_spitze'], 'strom')} (Sättigungsstrom der Spule ≥ diesem Wert)"]
+    if e["delta_u"] is not None:
+        zeilen.append(f"Ausgangswelligkeit ΔU ≈ {'ΔI / (8 · f · C)' if buck else 'I_a · D / (f · C)'} = "
+                      f"{fmt(e['delta_u'], 'spannung')} (ohne ESR)")
+    if not e["ccm"]:
+        zeilen.append("⚠ Lückbetrieb: ΔI / 2 > Ø-Strom – D stellt sich anders ein, grössere Spule für Dauerbetrieb")
+    return zeilen
+
+
+def schaltregler(master):
+    return FormelRechner(
+        master, "Schaltregler Buck / Boost", "Idealer Wandler im Dauerbetrieb – leeres L wird für 30 % Rippel berechnet",
+        felder=[("art", "Wandler", "auswahl", {"werte": ntm.SCHALTREGLER_ARTEN}),
+                ("Ue", "Eingang U_e", "spannung", {"platzhalter": "z.B. 12"}),
+                ("Ua", "Ausgang U_a", "spannung", {"platzhalter": "z.B. 5"}),
+                ("Ia", "Ausgangsstrom I_a", "strom", {"einheit": "A", "platzhalter": "z.B. 1"}),
+                ("f", "Schaltfrequenz f", "frequenz", {"einheit": "kHz", "platzhalter": "z.B. 100"}),
+                ("L", "Spule L (opt.)", "induktivitaet", {"einheit": "µH", "platzhalter": "leer = berechnen"}),
+                ("C", "Ausgangs-C (opt.)", "kapazitaet", {"einheit": "µF", "platzhalter": "optional"})],
+        berechnen=_schaltregler, formel="Buck: U_a = D · U_e     Boost: U_a = U_e / (1 − D)     ΔI = U_L · t / L")
+
+
 # =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
@@ -755,4 +1008,17 @@ RECHNER = {
     "schaltung_differenz": DifferenzSchaltung,
     "schaltung_schmitt": SchmittSchaltung,
     "schaltung_integrator": IntegratorSchaltung,
+    "innenwiderstand": innenwiderstand,
+    "netzteil_auslegen": netzteil_auslegen,
+    "linearregler": linearregler,
+    "lm317": lm317,
+    "strombegrenzung": strombegrenzung,
+    "stromquelle_opv": stromquelle_opv,
+    "schaltregler": schaltregler,
+    "schaltung_quelle": QuelleSchaltung,
+    "schaltung_linearregler": LinearreglerSchaltung,
+    "schaltung_strombegrenzung": StrombegrenzungSchaltung,
+    "schaltung_stromquelle_opv": StromquelleOpvSchaltung,
+    "schaltung_virtuelle_masse": VirtuelleMasseSchaltung,
+    "schaltung_schaltregler": SchaltreglerSchaltung,
 }

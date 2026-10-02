@@ -474,6 +474,71 @@ RECHNER_INFO = {
         "beschreibung": "Rechteck zu Dreieck und zurück, Drift durch Offset, praxisgerechte Beschaltung.",
         "stichworte": ["Integrator", "Differenzierer", "Drift", "Offset", "Zeitdiagramm"],
         "wissensseite": "integrator_differenzierer"},
+    "innenwiderstand": {
+        "titel": "Innenwiderstand einer Quelle", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "R_i aus Leerlauf- und Lastmessung, Klemmenspannung, Leistung und Wirkungsgrad an einer Last.",
+        "stichworte": ["Innenwiderstand", "Klemmenspannung", "Leistungsanpassung", "Kurzschlussstrom"],
+        "wissensseite": "quellenmodell"},
+    "schaltung_quelle": {
+        "titel": "Reale Quelle mit Innenwiderstand (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Spannungs- und Stromquellenmodell, Kennlinien über der Last, Leistungsanpassung.",
+        "stichworte": ["Innenwiderstand", "Thevenin", "Norton", "Leistungsanpassung"],
+        "wissensseite": "quellenmodell"},
+    "netzteil_auslegen": {
+        "titel": "Netzteil auslegen (Trafo, Elko)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Vom Ausgang rückwärts: Trafospannung, Elko, Trafoleistung und Elko-Spannung mit Netztoleranz.",
+        "stichworte": ["Netzteil", "Trafo", "Ladeelko", "Welligkeit", "Netztoleranz"],
+        "wissensseite": "netzteil_ungeregelt"},
+    "linearregler": {
+        "titel": "Linearregler (78xx / LDO / LM317)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Dropout im Wellental, Verlustleistung, Wirkungsgrad und Sperrschichttemperatur.",
+        "stichworte": ["Linearregler", "7805", "LDO", "Dropout", "Verlustleistung"],
+        "wissensseite": "linearregler"},
+    "schaltung_linearregler": {
+        "titel": "Linearregler hinter dem Elko (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Wellental gegen Dropout, Ausgang im Zeitdiagramm, Temperatur mit und ohne Kühlkörper.",
+        "stichworte": ["Linearregler", "Dropout", "Welligkeit", "LM317"],
+        "wissensseite": "linearregler"},
+    "lm317": {
+        "titel": "LM317 einstellen", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Ausgangsspannung aus R1/R2 oder R2 für eine gewünschte Spannung.",
+        "stichworte": ["LM317", "einstellbarer Regler", "R1", "R2", "ADJ"],
+        "wissensseite": "linearregler"},
+    "strombegrenzung": {
+        "titel": "Strombegrenzung (Shunt + Transistor)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Shunt für einen Maximalstrom und Verlust im Längstransistor bei Kurzschluss.",
+        "stichworte": ["Strombegrenzung", "Kurzschlussschutz", "Shunt", "Längsregler"],
+        "wissensseite": "strombegrenzung"},
+    "schaltung_strombegrenzung": {
+        "titel": "Längsregler mit Strombegrenzung (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Z-Diode + Transistor, Begrenzungstransistor und U-I-Kennlinie.",
+        "stichworte": ["Strombegrenzung", "Längsregler", "Kennlinie", "Kurzschluss"],
+        "wissensseite": "strombegrenzung"},
+    "stromquelle_opv": {
+        "titel": "Geregelte Stromquelle (OPV + MOSFET)", "kategorie": "Schaltungen", "unterkategorie": "Stromquellen",
+        "beschreibung": "Shunt, Sollspannung, Arbeitsbereich und MOSFET-Verlust einer Stromsenke.",
+        "stichworte": ["Stromquelle", "Stromsenke", "elektronische Last", "Shunt", "OPV"],
+        "wissensseite": "geregelte_stromquelle"},
+    "schaltung_stromquelle_opv": {
+        "titel": "Geregelte Stromquelle (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Stromquellen",
+        "beschreibung": "OPV + MOSFET + Shunt mit Kennlinie Strom über der Last.",
+        "stichworte": ["Stromquelle", "OPV", "MOSFET", "Kennlinie"],
+        "wissensseite": "geregelte_stromquelle"},
+    "schaltung_virtuelle_masse": {
+        "titel": "Virtuelle Masse / Rail-Splitter (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "±U aus einer Versorgung: Teiler mit und ohne OPV-Puffer bei ungleicher Last.",
+        "stichworte": ["virtuelle Masse", "Rail-Splitter", "bipolare Versorgung", "±U"],
+        "wissensseite": "bipolare_versorgung"},
+    "schaltregler": {
+        "titel": "Schaltregler Buck / Boost", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Tastgrad, Spule, Rippelstrom, Spitzenstrom und Ausgangswelligkeit.",
+        "stichworte": ["Schaltregler", "Buck", "Boost", "DC-DC", "Tastgrad", "Spule"],
+        "wissensseite": "schaltregler_buck_boost"},
+    "schaltung_schaltregler": {
+        "titel": "Schaltregler Buck / Boost (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Spulenstrom und Schaltknoten über zwei Perioden, Dauer- und Lückbetrieb.",
+        "stichworte": ["Schaltregler", "Buck", "Boost", "Spulenstrom", "DCM"],
+        "wissensseite": "schaltregler_buck_boost"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
@@ -489,7 +554,7 @@ RECHNER_INFO = {
         "titel": "Trafo + Gleichrichter + Elko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
         "beschreibung": "Was kommt nach Trafo und Brückengleichrichter heraus? Ladeelko dimensionieren.",
         "stichworte": ["Netzteil", "Ladeelko", "Welligkeit", "Brücke", "Spitzenwert"],
-        "wissensseite": "transformator"},
+        "wissensseite": "netzteil_ungeregelt"},
     "zdiode_stabi": {
         "titel": "Z-Dioden-Stabilisierung", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
         "beschreibung": "Vorwiderstand und Belastung der Z-Diode im ungünstigsten Fall.",
