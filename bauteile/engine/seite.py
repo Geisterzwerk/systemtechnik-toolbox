@@ -29,7 +29,8 @@ import customtkinter as ctk
 import config                                                          # -> config.py
 from bauteile import rechner                                           # -> bauteile/rechner/__init__.py
 from bauteile.grafiken.symbole import SYMBOLE                          # -> bauteile/grafiken/symbole.py
-from core.layout import (Karte, ResponsiveBild, ResponsiveCanvas,      # -> core/layout.py
+from bauteile.grafiken.symbol_reihe import SymbolReihe                 # -> bauteile/grafiken/symbol_reihe.py
+from core.layout import (Karte, ResponsiveBild,                        # -> core/layout.py
                          ResponsiveGrid, Stapel, Tabelle, WrapLabel, seiten_kopf)
 from core.widgets import FormatText, info_box                          # -> core/widgets.py
 
@@ -110,10 +111,8 @@ class BauteilSeite:
         symbol = SYMBOLE.get(brief.get("symbol", ""))
         if symbol:
             karte = grid.add(Karte(grid, titel="Schaltzeichen"))
-            hell, dunkel = config.FARBEN["text"]
-            farbe = dunkel if ctk.get_appearance_mode() == "Dark" else hell
-            ResponsiveCanvas(karte.body, lambda c, w, h: symbol(c, w, h, farbe),
-                             seitenverhaeltnis=0.32, max_hoehe=170).grid(row=0, column=0, sticky="ew")
+            # Jede Variante in eigener Zelle, Beschriftung darunter -> bauteile/grafiken/symbol_reihe.py
+            SymbolReihe(karte.body, symbol).grid(row=0, column=0, sticky="ew")
         daten = grid.add(Karte(grid, titel="Steckbrief"))
         feld = FormatText(daten.body)
         feld.setze_text("\n".join(f"- **{k}:** {v}" for k, v in brief.get("zeilen", [])))

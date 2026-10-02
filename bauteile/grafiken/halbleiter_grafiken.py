@@ -12,8 +12,7 @@
 #                        Lampe leuchtet, Zustand (sperrt / aktiv / gesättigt)
 #                        wird farbig angezeigt. Umschaltbar NPN <-> N-MOSFET.
 #
-#   Schaltzeichen: werden am Ende in bauteile/grafiken/symbole.py -> SYMBOLE
-#   eingetragen (symbole.py selbst muss dafür NICHT geändert werden).
+#   Schaltzeichen (Diode, LED, Bipolartransistor, MOSFET): bauteile/grafiken/symbole.py
 #
 # REGEL gegen Hänger: Es wird nur gezeichnet, wenn sich die Grösse ändert
 # (core/layout.py ResponsiveCanvas) oder ein Regler bewegt wird. Keine
@@ -27,7 +26,6 @@ import customtkinter as ctk
 
 import config                                                    # -> config.py
 from bauteile.einheiten import formatieren as fmt                # -> bauteile/einheiten.py
-from bauteile.grafiken.symbole import SYMBOLE, _beschriftung     # -> bauteile/grafiken/symbole.py
 from bauteile.rechner.basis import EinheitenEingabe, WertRegler  # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel       # -> core/layout.py
 
@@ -570,116 +568,3 @@ class TransistorSchalter(Karte):
         if anteil > 0.005:
             c.create_rectangle(bx0, by - 0.02 * h, bx0 + (bx1 - bx0) * anteil, by + 0.02 * h, outline="",
                                fill=_mischen(GRUEN, ROT, anteil))
-
-
-# =============================================================================
-# SCHALTZEICHEN (werden in SYMBOLE aus symbole.py eingetragen)
-# =============================================================================
-def _diodenkoerper(c, xm, m, groesse, farbe, s, strich="normal"):
-    """Dreieck (Anode links) + Kathodenstrich rechts. Gibt x der Kathode zurück."""
-    a, k = xm - groesse, xm + groesse * 0.6
-    c.create_polygon(a, m - groesse, a, m + groesse, k, m, outline=farbe, fill="", width=s)
-    c.create_line(k, m - groesse, k, m + groesse, fill=farbe, width=s)
-    if strich == "z":                                   # Z-Diode: Knick am Kathodenstrich
-        c.create_line(k, m - groesse, k - groesse * 0.35, m - groesse * 1.15, fill=farbe, width=s)
-        c.create_line(k, m + groesse, k + groesse * 0.35, m + groesse * 1.15, fill=farbe, width=s)
-    if strich == "schottky":
-        c.create_line(k, m - groesse, k + groesse * 0.3, m - groesse, k + groesse * 0.3, m - groesse * 0.7,
-                      fill=farbe, width=s)
-        c.create_line(k, m + groesse, k - groesse * 0.3, m + groesse, k - groesse * 0.3, m + groesse * 0.7,
-                      fill=farbe, width=s)
-    return a, k
-
-
-def symbol_diode(c, w, h, farbe):
-    s = max(2, int(h / 40))
-    m, g = h * 0.42, min(0.13 * h, 0.05 * w)
-    for xm, art, text in ((0.2 * w, "normal", "Diode (Si)"), (0.5 * w, "schottky", "Schottky"),
-                          (0.8 * w, "z", "Z-Diode")):
-        a, k = _diodenkoerper(c, xm, m, g, farbe, s, art)
-        c.create_line(xm - 0.13 * w, m, a, m, fill=farbe, width=s)
-        c.create_line(k, m, xm + 0.13 * w, m, fill=farbe, width=s)
-        _beschriftung(c, xm, 0.86 * h, text, farbe, h)
-    c.create_text(0.05 * w, m - g - 0.06 * h, anchor="w", text="A (Anode)", fill=farbe,
-                  font=(config.SCHRIFT, max(7, int(h / 13))))
-    c.create_text(0.35 * w, m - g - 0.06 * h, anchor="e", text="K (Kathode, Ring)", fill=farbe,
-                  font=(config.SCHRIFT, max(7, int(h / 13))))
-
-
-def symbol_led(c, w, h, farbe):
-    s = max(2, int(h / 40))
-    m, g = h * 0.48, min(0.14 * h, 0.06 * w)
-    xm = 0.42 * w
-    a, k = _diodenkoerper(c, xm, m, g, farbe, s)
-    c.create_line(0.1 * w, m, a, m, fill=farbe, width=s)
-    c.create_line(k, m, 0.74 * w, m, fill=farbe, width=s)
-    for dx in (0, 0.05 * w):                            # zwei Pfeile nach aussen = Licht
-        x0, y0 = xm + dx, m - g * 1.1
-        c.create_line(x0, y0, x0 + 0.06 * w, y0 - 0.14 * h, fill=farbe, width=s, arrow="last")
-    _beschriftung(c, 0.12 * w, m - 0.12 * h, "+ Anode (langes Bein)", farbe, h)
-    _beschriftung(c, 0.78 * w, m + 0.14 * h, "− Kathode (kurz, abgeflacht)", farbe, h)
-
-
-def _bjt(c, xm, m, g, farbe, s, npn=True):
-    xb = xm - 0.3 * g
-    c.create_oval(xm - g, m - g, xm + g, m + g, outline=farbe, width=s)
-    c.create_line(xb, m - 0.55 * g, xb, m + 0.55 * g, fill=farbe, width=s + 1)
-    c.create_line(xm - 1.7 * g, m, xb, m, fill=farbe, width=s)                      # Basis
-    c.create_line(xb, m - 0.25 * g, xm + 0.45 * g, m - 0.8 * g, xm + 0.45 * g, m - 1.5 * g, fill=farbe, width=s)
-    if npn:
-        c.create_line(xb, m + 0.25 * g, xm + 0.45 * g, m + 0.8 * g, fill=farbe, width=s, arrow="last")
-    else:
-        c.create_line(xm + 0.45 * g, m + 0.8 * g, xb, m + 0.25 * g, fill=farbe, width=s, arrow="last")
-    c.create_line(xm + 0.45 * g, m + 0.8 * g, xm + 0.45 * g, m + 1.5 * g, fill=farbe, width=s)
-
-
-def symbol_bipolar(c, w, h, farbe):
-    s = max(2, int(h / 45))
-    g = min(0.25 * h, 0.1 * w)
-    m = 0.45 * h
-    for xm, npn, text in ((0.28 * w, True, "NPN (Pfeil zeigt raus)"), (0.72 * w, False, "PNP (Pfeil zeigt rein)")):
-        _bjt(c, xm, m, g, farbe, s, npn)
-        klein = (config.SCHRIFT, max(7, int(h / 14)))
-        c.create_text(xm - 1.7 * g, m - 0.12 * h, text="B", fill=farbe, font=klein)
-        c.create_text(xm + 0.45 * g + 12, m - 1.4 * g, text="C", fill=farbe, font=klein)
-        c.create_text(xm + 0.45 * g + 12, m + 1.4 * g, text="E", fill=farbe, font=klein)
-        _beschriftung(c, xm, 0.95 * h, text, farbe, h)
-
-
-def _mos(c, xm, m, g, farbe, s, n_kanal=True):
-    xk = xm - 0.2 * g                                   # Kanal
-    xg = xk - 0.3 * g                                   # Gate-Platte
-    c.create_oval(xm - g, m - g, xm + g, m + g, outline=farbe, width=s)
-    c.create_line(xm - 1.7 * g, m + 0.45 * g, xg, m + 0.45 * g, fill=farbe, width=s)            # Gate-Anschluss
-    c.create_line(xg, m - 0.55 * g, xg, m + 0.55 * g, fill=farbe, width=s)
-    for dy in (-0.45, 0, 0.45):
-        c.create_line(xk, m + (dy - 0.17) * g, xk, m + (dy + 0.17) * g, fill=farbe, width=s + 1)
-    xr = xm + 0.4 * g
-    c.create_line(xk, m - 0.45 * g, xr, m - 0.45 * g, xr, m - 1.5 * g, fill=farbe, width=s)     # Drain
-    c.create_line(xk, m + 0.45 * g, xr, m + 0.45 * g, xr, m + 1.5 * g, fill=farbe, width=s)     # Source
-    c.create_line(xr, m, xr, m + 0.45 * g, fill=farbe, width=s)                                 # Bulk an Source
-    if n_kanal:
-        c.create_line(xr, m, xk, m, fill=farbe, width=s, arrow="last")
-    else:
-        c.create_line(xk, m, xr, m, fill=farbe, width=s, arrow="last")
-
-
-def symbol_mosfet(c, w, h, farbe):
-    s = max(2, int(h / 45))
-    g = min(0.25 * h, 0.1 * w)
-    m = 0.45 * h
-    for xm, n_kanal, text in ((0.28 * w, True, "N-Kanal (Pfeil zeigt rein)"), (0.72 * w, False, "P-Kanal (Pfeil zeigt raus)")):
-        _mos(c, xm, m, g, farbe, s, n_kanal)
-        klein = (config.SCHRIFT, max(7, int(h / 14)))
-        c.create_text(xm - 1.7 * g, m + 0.2 * g, text="G", fill=farbe, font=klein)
-        c.create_text(xm + 0.4 * g + 12, m - 1.4 * g, text="D", fill=farbe, font=klein)
-        c.create_text(xm + 0.4 * g + 12, m + 1.4 * g, text="S", fill=farbe, font=klein)
-        _beschriftung(c, xm, 0.95 * h, text, farbe, h)
-
-
-SYMBOLE.update({
-    "diode": symbol_diode,
-    "led": symbol_led,
-    "bipolartransistor": symbol_bipolar,
-    "mosfet": symbol_mosfet,
-})
