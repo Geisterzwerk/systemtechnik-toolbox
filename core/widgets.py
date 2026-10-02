@@ -7,7 +7,7 @@
 # INHALT:
 #   Tooltip             Hinweistext, wenn die Maus über einem Button ist
 #   SeitenBereich       Ein ganzer Bereich: Icon-Leiste links + Scroll-Inhalt rechts
-#                       (benutzt von Bauteile, Schaltungen, Formeln, Messwerte)
+#                       (benutzt von Schaltungen, Messwerte)
 #   FormatText          Text mit ## Überschrift, - Punkt, **fett**, `code`
 #                       Höhe passt sich automatisch an -> nie abgeschnitten
 #   karte()             Kasten mit Rahmen (Spalte 0 wächst mit)

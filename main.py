@@ -34,8 +34,8 @@ from datetime import datetime
 import customtkinter as ctk
 
 import config                                   # -> config.py
-from gui import (bauteile_gui, formel_gui, messwerte_gui, messtechnik_gui,     # -> Ordner gui/
-                 programmieren_gui, schaltungen_gui, server_gui, startseite_gui)
+from gui import (bauteile_gui, messwerte_gui, messtechnik_gui, programmieren_gui,  # -> Ordner gui/
+                 rechner_gui, schaltungen_gui, server_gui, startseite_gui)
 
 ctk.set_appearance_mode("Dark")        # "Dark", "Light" oder "System"
 ctk.set_default_color_theme("blue")
@@ -44,7 +44,7 @@ ctk.set_default_color_theme("blue")
 BEREICHE = [
     ("Bauteile",      bauteile_gui,      "🔧", "Widerstand, Kondensator, Diode, Spule, ..."),
     ("Schaltungen",   schaltungen_gui,   "🔌", "Grundschaltungen und Filter"),
-    ("Formeln",       formel_gui,        "📐", "Formelsammlung und Rechner"),
+    ("Rechner",       rechner_gui,       "🧮", "Alle Rechner an einem Ort – Suche, nach Thema oder A–Z"),
     ("Messwerte",     messwerte_gui,     "📊", "Messwerte erfassen und auswerten"),
     ("Programmieren", programmieren_gui, "💻", "Python, C++ und C# nachschlagen - mit Suche"),
     ("Messtechnik",   messtechnik_gui,   "📏", "Messgeräte, Messfehler, Sensoren, AD-Wandler"),

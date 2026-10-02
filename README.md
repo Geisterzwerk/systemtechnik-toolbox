@@ -62,7 +62,7 @@ SystemLab soll:
 | **Programmieren** | ✅ vorhanden | 31 Themen, Beispiele in Python, C++ und C# im Vergleich |
 | **Server / Linux** | ✅ vorhanden | 35 Seiten Ubuntu Server: Konsole, Dateien, Rechte, Dienste, Netzwerk, Sicherheit, Praxis; Spickzettel mit 60 Befehlen, Kopier-Knopf pro Befehl, Markierung gefährlicher Befehle |
 | **Schaltungen** | 🚧 Platzhalter | – |
-| **Formeln** | 🚧 Platzhalter | wird zum Rechner-Tab (siehe unten) |
+| **Rechner** | ✅ vorhanden | alle 65 Rechner an einem Ort: Suche, nach Thema oder A–Z, Link zur Wissensseite (`gui/rechner_gui.py`, Metadaten in `bauteile/rechner/rechner_info.py`) |
 | **Messwerte** | 🚧 Platzhalter | **offen:** mit Messtechnik zusammenlegen oder streichen |
 
 Alle Bauteil-, Messtechnik-, Programmier- und Server-Seiten sind reine Daten (`THEMA = {...}`) und werden von einer gemeinsamen Engine dargestellt. Neue Dateien erscheinen automatisch in Navigation und Suche.
@@ -796,7 +796,8 @@ config.py                   Farben, Schriften, Pfade
 core/                       Layout-Bausteine (Karte, ResponsiveGrid, Tabelle, FormatText …)
 gui/                        ein Modul pro Tab (bauteile_gui, messtechnik_gui, server_gui …)
 bauteile/inhalte/           Bauteil-Seiten (nur Daten), ein Ordner pro Kategorie
-bauteile/rechner/           Rechner + zentrale Registry (__init__.py), Mathe in *_mathe.py
+bauteile/rechner/           Rechner + zentrale Registry (__init__.py), Mathe in *_mathe.py,
+                            Metadaten für den Rechner-Tab in rechner_info.py
 bauteile/grafiken/          Schaltzeichen und interaktive Grafiken
 bauteile/engine/            zeichnet eine Bauteil-Seite
 messtechnik/                Messtechnik-Seiten, Rechner und Grafiken
@@ -937,7 +938,7 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 3 | Simulator Bipolartransistor (NPN/PNP) und MOSFET (N-/P-Kanal) trennen (`schalter_simulator.py`, Rechnung in `transistor_mathe.py` / `mosfet_mathe.py`; Low-/High-Side, Übersteuerungsfaktor, R_DS(on) bei tatsächlicher U_GS, U_GS,max, Gate-Ladung) | ✅ erledigt |
 | 4 | RC- und RL-Lernansicht: Spannung und Strom, zwei Diagramme, `τ_ein` / `τ_aus` (`kurven.py` neu, Rechnung in `schaltvorgaenge_mathe.py`; Eingang als Rechteck, Startspannung U_C0, Vorzeichen erklärt, Ausschalten ohne Freilaufdiode (Modell R_aus), mit Freilaufdiode und mit Diode + Z-Diode) | ✅ erledigt |
 | 5 | Prüfskript für alle Rechner mit bekannten Beispielwerten und Grenzfällen (`python pruefen_rechner.py`, Fälle in `pruefung/rechner_faelle.py`; zentrale Eingabeprüfung in `basis.formel_auswerten()`; dabei gefundene Fehler behoben, siehe unten) | ✅ erledigt |
-| 6 | Rechner-Tab mit `RECHNER_INFO` | offen |
+| 6 | Rechner-Tab mit `RECHNER_INFO` (Formel-Tab ersetzt; Kategorien Grundlagen/Bauteile/Schaltungen/Messtechnik/Digitaltechnik mit Unterkategorien, Suche, A–Z, Knopf zur Wissensseite + „auch auf“; Validierung in `pruefen_rechner.py`) | ✅ erledigt |
 | 7+ | Schaltungen, Operationsverstärker und Versorgung, Digitaltechnik | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
@@ -960,6 +961,11 @@ python pruefen_rechner.py --gui    # zusätzlich jede Rechner-Karte aufbauen
 | LED-Anzahl −1 oder 1.5 wurde gerechnet | `widerstand_rechner.py` | nur ganze Zahl ab 1 |
 | ADC mit 10.5 Bit wurde still abgerundet | `messtechnik/rechner.py` | nur ganze Bitzahl |
 | Netzteil/Gleichrichter mit zu kleiner Trafospannung ergab negative Gleichspannung | `trafo_rechner.py`, `halbleiter_rechner.py` | Meldung „U2 zu klein“ |
+
+### Schritt 6: Offene Punkte aus dem Rechner-Tab
+
+- **Doppelter Rechner:** `bjt_schalter` (Halbleiter, E24) und `basiswiderstand` (Transistor, NPN/PNP, E12) rechnen beide den Basiswiderstand. Vorschlag: `bjt_schalter` entfernen und überall `basiswiderstand` verwenden – noch nicht umgesetzt (Entscheid offen).
+- Favoriten, Verlauf über Programmstarts und gespeicherte Berechnungen: später.
 
 Die folgenden Phasen beschreiben die Inhalte im Detail.
 

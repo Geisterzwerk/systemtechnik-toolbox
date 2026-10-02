@@ -16,7 +16,8 @@
 #                        ein Ergebnis ODER eine verständliche Meldung.
 #                        FEHLER sind: Absturz, "nan"/"inf"/"None" im Ergebnis,
 #                        englische Python-Meldung (z.B. "math domain error").
-#   4) VERWEISE          Jede Rechner-ID in den Inhalten gibt es wirklich,
+#   4) VERWEISE          Jede Rechner-ID in den Inhalten gibt es wirklich, keine ID doppelt,
+#                        RECHNER_INFO vollständig (Kategorie, Stichworte, Wissensseite),
 #                        jeder Rechner hat mindestens einen Beispielfall.
 #
 # Die Rechner werden OHNE Fenster geprüft: FormelRechner wird beim Laden durch
@@ -287,27 +288,61 @@ def grenzfaelle_pruefen(formel, z):
 
 
 # =============================================================================
-# 4) VERWEISE
+# 4) VERWEISE & METADATEN (RECHNER_INFO)
 # =============================================================================
+PFLICHTFELDER = ("titel", "kategorie", "unterkategorie", "beschreibung", "stichworte", "wissensseite")
+
+
 def verweise_pruefen(formel, andere, z):
-    abschnitt("4) Verweise in den Inhalten")
-    from programmieren.engine import lader               # -> programmieren/engine/lader.py
+    abschnitt("4) Verweise & Metadaten (bauteile/rechner/rechner_info.py)")
+    from bauteile.rechner.rechner_info import KATEGORIEN, RECHNER_INFO, wissensseiten_laden
+
+    # ---- doppelte Rechner-IDs in verschiedenen Modulen ----
+    gesehen = {}
+    for modulname in rechner_paket._MODULE:
+        for rechner_id in importlib.import_module(modulname).RECHNER:
+            if rechner_id in gesehen:
+                z.schlecht(f"Rechner-ID „{rechner_id}“ doppelt: {gesehen[rechner_id]} und {modulname}")
+            gesehen[rechner_id] = modulname
     registry = rechner_paket.registry()
-    benutzt = set()
-    for ordner in ("bauteile/inhalte", "messtechnik/inhalte"):
-        _, themen, ladefehler = lader.alle_laden(os.path.join(basis_ordner, ordner))
-        for meldung in ladefehler:
-            z.schlecht(f"{ordner}: {meldung}")
-        for thema in (themen.values() if isinstance(themen, dict) else themen):
-            for schluessel in ("rechner", "grafiken"):
-                for rechner_id in thema.daten.get(schluessel, []):
-                    benutzt.add(rechner_id)
-                    if rechner_id in registry:
-                        z.gut(f"{thema.id}: {rechner_id}")
-                    else:
-                        z.schlecht(f"{thema.id}: „{rechner_id}“ ist in keinem Rechner-Modul registriert")
+
+    # ---- Wissensseiten: jede Rechner-ID auf einer Seite muss es geben ----
+    seiten, meldungen = wissensseiten_laden()
+    for meldung in meldungen:
+        z.schlecht(meldung)
+    for seite_id, seite in seiten.items():
+        for rechner_id in seite["rechner"]:
+            if rechner_id in registry:
+                z.gut(f"Seite {seite_id}: {rechner_id}")
+            else:
+                z.schlecht(f"Seite {seite_id}: „{rechner_id}“ ist in keinem Rechner-Modul registriert")
+
+    # ---- Metadaten ----
+    for rechner_id in sorted(set(registry) - set(RECHNER_INFO)):
+        z.schlecht(f"{rechner_id}: fehlt in RECHNER_INFO (erscheint nicht im Rechner-Tab)")
+    for rechner_id in sorted(set(RECHNER_INFO) - set(registry)):
+        z.schlecht(f"RECHNER_INFO „{rechner_id}“: diesen Rechner gibt es nicht (Tippfehler?)")
+    for rechner_id, info in RECHNER_INFO.items():
+        probleme = [f"Feld „{f}“ fehlt oder ist leer" for f in PFLICHTFELDER if not info.get(f)]
+        probleme += [f"unbekanntes Feld „{f}“" for f in info if f not in PFLICHTFELDER]
+        if info.get("kategorie") and info["kategorie"] not in KATEGORIEN:
+            probleme.append(f"Kategorie „{info['kategorie']}“ ungültig (erlaubt: {', '.join(KATEGORIEN)})")
+        if len(info.get("stichworte", [])) < 3:
+            probleme.append("mindestens 3 Stichworte für die Suche angeben")
+        seite_id = info.get("wissensseite")
+        if seite_id and seite_id not in seiten:
+            probleme.append(f"Wissensseite „{seite_id}“ gibt es nicht")
+        elif seite_id and rechner_id not in seiten[seite_id]["rechner"]:
+            probleme.append(f"Wissensseite „{seite_id}“ zeigt diesen Rechner gar nicht (dort in \"rechner\" eintragen)")
+        if probleme:
+            z.schlecht(f"RECHNER_INFO {rechner_id}", probleme)
+        else:
+            z.gut(f"RECHNER_INFO {rechner_id}")
+
+    # ---- Rechner, die nirgends gezeigt werden / ohne Beispielfall ----
+    benutzt = {rid for seite in seiten.values() for rid in seite["rechner"]}
     for rechner_id in sorted(set(registry) - benutzt):
-        print(f"  Hinweis: Rechner „{rechner_id}“ wird auf keiner Seite angezeigt")
+        print(f"  Hinweis: Rechner „{rechner_id}“ ist nur im Rechner-Tab, auf keiner Wissensseite")
     mit_fall = {f[0] for f in FAELLE}
     for rechner_id in sorted(set(formel) - mit_fall):
         z.schlecht(f"{rechner_id}: kein Beispielfall in pruefung/rechner_faelle.py")

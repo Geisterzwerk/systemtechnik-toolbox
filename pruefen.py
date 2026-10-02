@@ -23,7 +23,8 @@ for pfad in ["bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rech
              "core/layout.py", "programmieren/engine/lader.py",
              "gui/server_gui.py", "programmieren/engine/befehlsliste.py",
              "server/inhalte/00_schnellstart/spickzettel.py",
-             "pruefen_rechner.py", "pruefung/rechner_faelle.py"]:
+             "pruefen_rechner.py", "pruefung/rechner_faelle.py",
+             "gui/rechner_gui.py", "bauteile/rechner/rechner_info.py"]:
     alles &= check(pfad, os.path.exists(os.path.join(basis, pfad)))
 doppelt = os.path.join(basis, "SystemtechnikToolbox")
 if os.path.isdir(doppelt):
