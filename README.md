@@ -950,7 +950,8 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 7f | Netzteile & Quellen: 7 Seiten (Quellenmodell, Netzteil auslegen, Linearregler/LM317, Strombegrenzung, geregelte Stromquelle, bipolare Versorgung/virtuelle Masse, Buck/Boost), Spulen-Symbol `Schaltplan.spule()`, 6 interaktive Pläne, Rechnung in `schaltungen/netzteil_mathe.py`, 7 neue Rechner; Normwert-Auswahl (nächster / nächst grösserer) in den Schaltungs-Rechnern korrigiert | ✅ erledigt |
 | 8a | Digitaltechnik als eigener Tab (`digitaltechnik/`, `gui/digitaltechnik_gui.py`, Pflichtabschnitte Grundlagen/Vorgehen/Beispiel/Praxis): Zahlensysteme & Codes, Zweierkomplement & Overflow, Bitmasken, analog/digital, Logikpegel & Störabstand; 4 interaktive Werkzeuge (Bit-Umrechner, Zahlenkreis, Bitmasken, Pegelbänder), 5 Rechner | ✅ erledigt |
 | 8b | Logik: 4 Seiten (Gatter, boolesche Algebra/De Morgan, Normalformen, KV-Diagramme); Parser für boolesche Ausdrücke (viele Schreibweisen), Quine-McCluskey mit don't cares in `digitaltechnik/logik_mathe.py`; Werkzeuge Gatter-Simulator (IEC + ANSI), Ausdruck → Tabelle/Normalformen, KV-Diagramm mit Blöcken; 3 Rechner | ✅ erledigt |
-| 8c | Schaltnetze: Halb-/Volladdierer, MUX/DEMUX, Decoder/Encoder, Ausgangstypen (TTL, CMOS, Open Drain, Tri-State) | offen |
+| 8c | Schaltnetze & Ausgänge: 4 Seiten (Addierer, Multiplexer, Decoder/Encoder/7-Segment, Ausgangstypen); Werkzeuge Ripple-Carry-Addierer, MUX/DEMUX, Decoder/Prioritäts-Encoder/7-Segment, Push-Pull/Open Drain/Tri-State an einer Leitung; Rechnung in `digitaltechnik/schaltnetze_mathe.py`; 5 Rechner (Addierer-Laufzeit, MUX-Funktion, 7-Segment, Adressdecoder, I²C-Pull-up) | ✅ erledigt |
+| 8d+ | Schaltwerke (Flipflops, Zähler, Schieberegister), Speicher, Busse – nach Rückmeldung | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

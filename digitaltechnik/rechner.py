@@ -11,19 +11,27 @@
 #   wahrheitstabelle      Ausdruck -> Wahrheitstabelle, Minterme, kanonische und minimale DNF/KNF
 #   ausdruck_vergleichen  Sind zwei Ausdrücke gleich (z.B. De Morgan prüfen)? Sonst Gegenbeispiel
 #   kv_minimieren         Minterme (+ don't cares) -> minimale DNF und KNF (Quine-McCluskey)
+#   addierer_laufzeit     Ripple-Carry: Worst-Case-Laufzeit und höchste Taktfrequenz
+#   mux_funktion          Logikfunktion mit einem Multiplexer bauen (Dateneingänge D0 … Dn)
+#   siebensegment         Hex-Ziffer -> Segmente a … g und Pegel (gemeinsame Kathode / Anode)
+#   adressdecoder         Adressbereiche der Decoder-Ausgänge (Chip-Select)
+#   open_drain_pullup     Pull-up für Open-Drain/I²C: R_min, R_max, Anstiegszeit
 #   werkzeug_*            INTERAKTIVE Werkzeuge (digitaltechnik/grafiken.py)
 #
 # AD-Wandler und Abtastung gibt es schon im Bereich Messtechnik ("adc", "abtastung").
-# Rechnung: digitaltechnik/zahlen_mathe.py, pegel_mathe.py, logik_mathe.py (ohne GUI, testbar)
+# Rechnung: digitaltechnik/zahlen_mathe.py, pegel_mathe.py, logik_mathe.py, schaltnetze_mathe.py (ohne GUI)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "zahlensystem")
 # =============================================================================
 
-from bauteile.rechner.basis import FormelRechner, RechnerFehler               # -> bauteile/rechner/basis.py
+from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt          # -> bauteile/rechner/basis.py
 from digitaltechnik import logik_mathe as lm                                  # -> digitaltechnik/logik_mathe.py
 from digitaltechnik import pegel_mathe as pm                                  # -> digitaltechnik/pegel_mathe.py
+from digitaltechnik import schaltnetze_mathe as sm                            # -> digitaltechnik/schaltnetze_mathe.py
 from digitaltechnik import zahlen_mathe as zm                                 # -> digitaltechnik/zahlen_mathe.py
 from digitaltechnik.grafiken import (BitmaskenKarte, LogikpegelKarte,         # -> digitaltechnik/grafiken.py
                                      ZahlensystemKarte, ZweierkomplementKarte)
+from digitaltechnik.grafiken_schaltnetze import (AddiererKarte, AusgangKarte,    # -> digitaltechnik/grafiken_schaltnetze.py
+                                                 DecoderKarte, MuxKarte)
 from digitaltechnik.grafiken_logik import (AusdruckKarte, GatterKarte, KVKarte,  # -> digitaltechnik/grafiken_logik.py
                                            wahrheitstabelle_text)
 
@@ -298,6 +306,149 @@ def kv_minimieren(master):
 
 
 # =============================================================================
+# 9) ADDIERER-LAUFZEIT
+# =============================================================================
+def _addierer_laufzeit(w):
+    if w["n"] is None or w["tc"] is None:
+        raise RechnerFehler("Bitbreite und Laufzeit pro Stufe (Übertrag) eingeben")
+    n = w["n"]
+    if n != int(n) or not 1 <= n <= 64:
+        raise RechnerFehler("Bitbreite als ganze Zahl von 1 bis 64")
+    e = _fehler_umwandeln(sm.laufzeit, int(n), w["tc"], w["ts"])
+    return [f"Übertrag durch alle Stufen: n · t_C = {int(n)} · {fmt(w['tc'], 'zeit')} = {fmt(e['t_carry_ges'], 'zeit')}",
+            f"höchstes Summenbit: (n − 1) · t_C + t_S = {fmt(e['t_summe_ges'], 'zeit')}",
+            f"Ergebnis sicher nach {fmt(e['t_ges'], 'zeit')}  →  f_max ≈ {fmt(e['f_max'], 'frequenz')}",
+            "Schneller: Carry-Lookahead (Überträge parallel berechnen) – Laufzeit wächst nur noch mit log2(n)"]
+
+
+def addierer_laufzeit(master):
+    return FormelRechner(
+        master, "Ripple-Carry-Addierer: Laufzeit", "Wie lange läuft der Übertrag durch die Kette?",
+        felder=[("n", "Bitbreite n", "zahl", {"platzhalter": "z.B. 16"}),
+                ("tc", "Laufzeit Übertrag pro Stufe t_C", "zeit", {"einheit": "ns", "platzhalter": "z.B. 10"}),
+                ("ts", "Laufzeit Summe t_S (opt.)", "zeit", {"einheit": "ns", "platzhalter": "= t_C"})],
+        berechnen=_addierer_laufzeit, formel="t ≈ n · t_C     f_max ≈ 1 / t")
+
+
+# =============================================================================
+# 10) LOGIKFUNKTION MIT MUX
+# =============================================================================
+def _mux_funktion(w):
+    if w["ausdruck"] is None:
+        raise RechnerFehler("Ausdruck eingeben, z.B. A·B + ¬A·C")
+    k = None if w["k"] == "automatisch (n − 1)" else int(w["k"])
+    e = _fehler_umwandeln(sm.mux_funktion, w["ausdruck"], k)
+    k = len(e["auswahl"])
+    zeilen = [f"Y = {e['text']}   →   {2 ** k}:1-MUX, Auswahl {' '.join(e['auswahl'])}"
+              + (f", Rest {' '.join(e['rest'])} an die Dateneingänge" if e["rest"] else "")]
+    for i, d in enumerate(e["daten"]):
+        zeilen.append(f"  D{i} ({' '.join(e['auswahl'])} = {format(i, f'0{k}b')}):  {d}")
+    return zeilen
+
+
+def mux_funktion(master):
+    return FormelRechner(
+        master, "Logikfunktion mit Multiplexer", "Auswahl = erste Variablen, an D_i kommt die Restfunktion",
+        felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + ¬A·C"}),
+                ("k", "Auswahlleitungen", "auswahl", {"werte": ["automatisch (n − 1)", "1", "2", "3", "4"]})],
+        berechnen=_mux_funktion, formel="Y = Σ (Auswahl = i) · D_i     (Shannon-Zerlegung)")
+
+
+# =============================================================================
+# 11) 7-SEGMENT
+# =============================================================================
+def _siebensegment(w):
+    if w["ziffer"] is None:
+        raise RechnerFehler("Ziffer 0 … 9 oder A … F eingeben")
+    t = w["ziffer"].strip()
+    ziffer = _zahl(t if t.lower().startswith(("0x", "0b")) else t, "Hexadezimal" if len(t) == 1 else
+                   "automatisch (Präfix)")
+    anode = w["typ"] == "gemeinsame Anode"
+    e = _fehler_umwandeln(sm.siebensegment, ziffer, anode)
+    return [f"Ziffer {ziffer:X}: Segmente {' '.join(e['segmente'])} an ({len(e['segmente'])} von 7)",
+            "a b c d e f g = " + " ".join(str(e["pegel"][s]) for s in "abcdefg")
+            + ("   (LOW = an)" if anode else "   (HIGH = an)"),
+            f"Muster g … a = {format(e['muster'], '07b')} = 0x{e['muster']:02X}"
+            + ("" if anode else "   (gemeinsame Anode: invertieren)")]
+
+
+def siebensegment(master):
+    return FormelRechner(
+        master, "7-Segment-Code", "Welche Segmente leuchten – und welcher Pegel muss an a … g?",
+        felder=[("ziffer", "Ziffer (0 … F)", "text", {"platzhalter": "z.B. 7 oder b"}),
+                ("typ", "Anzeige", "auswahl", {"werte": ["gemeinsame Kathode", "gemeinsame Anode"]})],
+        berechnen=_siebensegment, formel="Kathode: Segment an = HIGH     Anode: Segment an = LOW")
+
+
+# =============================================================================
+# 12) ADRESSDECODER
+# =============================================================================
+def _adressdecoder(w):
+    if w["N"] is None or w["k"] is None:
+        raise RechnerFehler("Adressbreite und Anzahl Decoder-Eingänge eingeben")
+    for name in ("N", "k"):
+        if w[name] != int(w[name]):
+            raise RechnerFehler("Ganze Zahlen eingeben")
+    bereiche, block = _fehler_umwandeln(sm.adressdecoder, int(w["N"]), int(w["k"]))
+    stellen = max(4, -(-int(w["N"]) // 4))
+    groesse = fmt(block, "zahl") if block < 1024 else (f"{block // 1024} Ki" if block < 2 ** 20 else f"{block // 2 ** 20} Mi")
+    zeilen = [f"{2 ** int(w['k'])} Ausgänge, je ein Block von 2^({int(w['N'])} − {int(w['k'])}) = {block} Adressen ({groesse})",
+              f"Decoder an A{int(w['N']) - 1} … A{int(w['N']) - int(w['k'])}, der Baustein bekommt A{int(w['N']) - int(w['k']) - 1} … A0"
+              if int(w["k"]) < int(w["N"]) else "Jede Adresse hat einen eigenen Ausgang"]
+    for k, von, bis in bereiche[:16]:
+        zeilen.append(f"  ¬CS{k}:  0x{von:0{stellen}X} … 0x{bis:0{stellen}X}")
+    if len(bereiche) > 16:
+        zeilen.append(f"  … ({len(bereiche) - 16} weitere)")
+    return zeilen
+
+
+def adressdecoder(master):
+    return FormelRechner(
+        master, "Adressdecodierung (Chip-Select)", "Welcher Decoder-Ausgang ist für welchen Adressbereich zuständig?",
+        felder=[("N", "Adressbits N", "zahl", {"platzhalter": "z.B. 16 (64 Ki)"}),
+                ("k", "Decoder-Eingänge k", "zahl", {"platzhalter": "z.B. 3 (74HC138)"})],
+        berechnen=_adressdecoder, formel="Blockgrösse = 2^(N − k)     Ausgang i: i · Block … (i + 1) · Block − 1")
+
+
+# =============================================================================
+# 13) PULL-UP FÜR OPEN DRAIN / I²C
+# =============================================================================
+I2C_MODI = {"Standard-Mode (100 kHz, t_r ≤ 1000 ns)": 1000e-9, "Fast-Mode (400 kHz, t_r ≤ 300 ns)": 300e-9,
+            "Fast-Mode Plus (1 MHz, t_r ≤ 120 ns)": 120e-9}
+
+
+def _open_drain_pullup(w):
+    if w["Ub"] is None or w["C"] is None:
+        raise RechnerFehler("Versorgung U_B und Buskapazität C eingeben")
+    t_r = I2C_MODI[w["modus"]]
+    i_ol = 20e-3 if "Plus" in w["modus"] else 3e-3
+    e = _fehler_umwandeln(sm.open_drain_pullup, w["Ub"], w["C"], 0.4, i_ol, t_r, w["R"])
+    zeilen = [f"R_min = (U_B − 0.4 V) / I_OL = ({fmt(w['Ub'], 'spannung')} − 0.4 V) / {fmt(i_ol, 'strom')} = "
+              f"{fmt(e['r_min'], 'widerstand')}",
+              f"R_max = t_r / (0.847 · C) = {fmt(t_r, 'zeit')} / (0.847 · {fmt(w['C'], 'kapazitaet')}) = "
+              f"{fmt(e['r_max'], 'widerstand')}"]
+    if not e["moeglich"]:
+        zeilen.append("❌ R_max < R_min: Buskapazität zu gross für diesen Modus → langsamer Modus, Bus-Puffer "
+                      "(P82B715) oder kürzere Leitungen")
+    else:
+        zeilen.append(f"→ Pull-up zwischen {fmt(e['r_min'], 'widerstand')} und {fmt(e['r_max'], 'widerstand')} wählen")
+    if w["R"] is not None:
+        zeilen.append(f"Mit R = {fmt(w['R'], 'widerstand')}: t_r = {fmt(e['t_r'], 'zeit')}, LOW-Strom "
+                      f"{fmt(e['i_low'], 'strom')}" + ("  ✓" if e["r_min"] <= w["R"] <= e["r_max"] else "  ⚠ ausserhalb"))
+    return zeilen
+
+
+def open_drain_pullup(master):
+    return FormelRechner(
+        master, "Pull-up für Open Drain / I²C", "Nach der I²C-Spezifikation: U_OL ≤ 0.4 V, Anstieg 30 → 70 %",
+        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 3.3"}),
+                ("C", "Buskapazität C", "kapazitaet", {"einheit": "pF", "platzhalter": "z.B. 200"}),
+                ("modus", "I²C-Modus", "auswahl", {"werte": list(I2C_MODI)}),
+                ("R", "gewählter R (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
+        berechnen=_open_drain_pullup, formel="R_min = (U_B − U_OL) / I_OL     R_max = t_r / (0.847 · C_Bus)")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -316,4 +467,13 @@ RECHNER = {
     "werkzeug_gatter": GatterKarte,
     "werkzeug_ausdruck": AusdruckKarte,
     "werkzeug_kv": KVKarte,
+    "addierer_laufzeit": addierer_laufzeit,
+    "mux_funktion": mux_funktion,
+    "siebensegment": siebensegment,
+    "adressdecoder": adressdecoder,
+    "open_drain_pullup": open_drain_pullup,
+    "werkzeug_addierer": AddiererKarte,
+    "werkzeug_mux": MuxKarte,
+    "werkzeug_decoder": DecoderKarte,
+    "werkzeug_ausgang": AusgangKarte,
 }

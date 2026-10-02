@@ -32,7 +32,8 @@ for pfad in ["bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rech
              "schaltungen/netzteil_mathe.py", "schaltungen/grafiken_netzteil.py",
              "gui/digitaltechnik_gui.py", "digitaltechnik/rechner.py", "digitaltechnik/zahlen_mathe.py",
              "digitaltechnik/pegel_mathe.py", "digitaltechnik/grafiken.py", "digitaltechnik/inhalte/_vorlage.py",
-             "digitaltechnik/logik_mathe.py", "digitaltechnik/grafiken_logik.py"]:
+             "digitaltechnik/logik_mathe.py", "digitaltechnik/grafiken_logik.py",
+             "digitaltechnik/schaltnetze_mathe.py", "digitaltechnik/grafiken_schaltnetze.py"]:
     alles &= check(pfad, os.path.exists(os.path.join(basis, pfad)))
 doppelt = os.path.join(basis, "SystemtechnikToolbox")
 if os.path.isdir(doppelt):

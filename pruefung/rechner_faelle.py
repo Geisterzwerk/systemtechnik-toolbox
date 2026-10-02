@@ -28,6 +28,7 @@ from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farb
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
 from schaltungen import netzteil_mathe as ntm
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
+from digitaltechnik import schaltnetze_mathe as snm
 from schaltungen import verstaerker_mathe as vm
 
 
@@ -497,6 +498,30 @@ FAELLE = [
      "mit X: zwei Spalten zu je 4 Feldern"),
     ("kv_minimieren", {"n": "3", "m": "1 9"}, fehler("gibt es mit 3 Variablen nicht"), "9 > 7"),
     ("kv_minimieren", {"n": "3", "m": "1 2", "d": "2"}, fehler("gleichzeitig 1 und don't care"), "Widerspruch"),
+    ("addierer_laufzeit", {"n": "16", "tc": "10"},
+     ["n · t_C = 16 · 10 ns = 160 ns", "→  f_max ≈ 6.25 MHz"], "16 · 10 ns;  1 / 160 ns"),
+    ("addierer_laufzeit", {"n": "8", "tc": "10", "ts": "15"}, ["(n − 1) · t_C + t_S = 85 ns", "Ergebnis sicher nach 85 ns"],
+     "7 · 10 + 15 = 85 > 80"),
+    ("addierer_laufzeit", {"n": "2.5", "tc": "10"}, fehler("ganze Zahl"), "halbe Bits"),
+    ("mux_funktion", {"ausdruck": "A·B + ¬A·C"},
+     ["4:1-MUX, Auswahl A B, Rest C", "D0 (A B = 00):  C", "D2 (A B = 10):  0", "D3 (A B = 11):  1"],
+     "AB = 00/01: Y = C;  10: 0;  11: 1"),
+    ("mux_funktion", {"ausdruck": "A⊕B⊕C", "k": "2"}, ["D0 (A B = 00):  C", "D1 (A B = 01):  ¬C"], "XOR: Parität"),
+    ("mux_funktion", {"ausdruck": "A"}, fehler("Mindestens zwei Variablen"), "nur eine Variable"),
+    ("siebensegment", {"ziffer": "7"}, ["Segmente a b c an (3 von 7)", "a b c d e f g = 1 1 1 0 0 0 0"],
+     "7: a, b, c"),
+    ("siebensegment", {"ziffer": "b", "typ": "gemeinsame Anode"},
+     ["Ziffer B: Segmente c d e f g an", "a b c d e f g = 1 1 0 0 0 0 0   (LOW = an)"], "Anode: an = LOW"),
+    ("siebensegment", {"ziffer": "G"}, fehler("G gibt es in Basis 16 nicht"), "keine Hex-Ziffer"),
+    ("adressdecoder", {"N": "16", "k": "3"},
+     ["8 Ausgänge, je ein Block von 2^(16 − 3) = 8192 Adressen (8 Ki)", "Decoder an A15 … A13",
+      "¬CS1:  0x2000 … 0x3FFF", "¬CS7:  0xE000 … 0xFFFF"], "64 Ki / 8 = 8 Ki"),
+    ("adressdecoder", {"N": "8", "k": "10"}, fehler("Decoder-Bits ≤ Adressbits"), "k > N"),
+    ("open_drain_pullup", {"Ub": "3.3", "C": "200", "modus": "Fast-Mode (400 kHz, t_r ≤ 300 ns)", "R": "4.7"},
+     ["= 966.7 Ω", "= 1.77 kΩ", "t_r = 796.5 ns", "⚠ ausserhalb"],
+     "2.9 V / 3 mA;  300 ns / (0.847 · 200 pF);  0.847 · 4.7 kΩ · 200 pF"),
+    ("open_drain_pullup", {"Ub": "5", "C": "1000", "modus": "Fast-Mode Plus (1 MHz, t_r ≤ 120 ns)"},
+     ["❌ R_max < R_min"], "R_min = 230 Ω, R_max = 141.6 Ω"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -716,6 +741,30 @@ FUNKTIONEN = [
     ("Minimieren mit don't care", lambda: lm.minimieren([5, 6, 7, 8, 9], 4, range(10, 16)), ["1---", "-11-", "-1-1"]),
     ("KV: Minterm im Feld Zeile 0, Spalte 2 (4 Var)", lambda: lm.kv_aufbau(4)[2](0, 2), 3),
     ("KV: Ecken-Block über den Rand", lambda: lm.zusammenhaengend([0, 3], 4), [[0], [3]]),
+
+    # ---- Digitaltechnik: Schaltnetze ----
+    ("Volladdierer: 1 + 1 + 1 = 11", lambda: snm.volladdierer(1, 1, 1), (1, 1)),
+    ("Halbaddierer: 1 + 1 = 10", lambda: snm.halbaddierer(1, 1), (0, 1)),
+    ("Ripple 4 Bit: 6 + 3 = 9, signed Overflow", lambda: (snm.ripple(6, 3, 4)["summe"], snm.ripple(6, 3, 4)["overflow"]),
+     (9, 1)),
+    ("Ripple 4 Bit: 15 + 1 = 0 mit Carry", lambda: (snm.ripple(15, 1, 4)["summe"], snm.ripple(15, 1, 4)["carry"]), (0, 1)),
+    ("Subtraktion 3 − 5 = −2, C = 0 (geborgt)",
+     lambda: (snm.ripple(3, 5, 4, True)["signed"], snm.ripple(3, 5, 4, True)["carry"]), (-2, 0)),
+    ("Subtraktion 5 − 3 = 2, C = 1", lambda: (snm.ripple(5, 3, 4, True)["summe"], snm.ripple(5, 3, 4, True)["carry"]),
+     (2, 1)),
+    ("Ripple: A zu gross", lambda: snm.ripple(16, 0, 4), wirft(ValueError)),
+    ("MUX 4:1 wählt D2", lambda: snm.mux([0, 0, 1, 0], 2), 1),
+    ("DEMUX 1:4 auf Y3", lambda: snm.demux(1, 3, 4), [0, 0, 0, 1]),
+    ("5 Eingänge brauchen 3 Auswahlbits", lambda: snm.auswahl_bits(5), 3),
+    ("74HC138: Adresse 5 -> ¬Y5 = 0", lambda: snm.decoder(5), [1, 1, 1, 1, 1, 0, 1, 1]),
+    ("74HC138 gesperrt: alle 1", lambda: snm.decoder(5, freigabe=False), [1] * 8),
+    ("Prioritäts-Encoder: höchster Eingang gewinnt", lambda: snm.prioritaets_encoder([1, 0, 1, 0, 0, 1, 0, 0]), (5, 1)),
+    ("Prioritäts-Encoder: nichts aktiv", lambda: snm.prioritaets_encoder([0] * 8), (0, 0)),
+    ("7-Segment: 8 hat alle Segmente", lambda: snm.siebensegment(8)["muster"], 0x7F),
+    ("7-Segment: 1 = b, c", lambda: snm.siebensegment(1)["segmente"], "bc"),
+    ("Pull-up I²C Standard-Mode 400 pF: R_max", lambda: snm.open_drain_pullup(3.3, 400e-12, t_r_max=1e-6)["r_max"],
+     1e-6 / (0.8473 * 400e-12)),
+    ("Buskonflikt 74HC bei 5 V: 50 mA", lambda: snm.buskonflikt(5)["i"], 0.05),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

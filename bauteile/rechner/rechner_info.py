@@ -29,7 +29,7 @@ KATEGORIEN = {
     "Bauteile":       ("🔧", "Kennwerte und Codes einzelner Bauteile"),
     "Schaltungen":    ("🔌", "Netzteile, Teiler, Filter, Schalten, Verstärker"),
     "Messtechnik":    ("📏", "Messunsicherheit, Messgeräte, Sensoren"),
-    "Digitaltechnik": ("💾", "Zahlensysteme, Bitmasken, Logikpegel, Logik, AD-Wandler"),
+    "Digitaltechnik": ("💾", "Zahlen, Pegel, Logik, Schaltnetze, AD-Wandler"),
 }
 
 # Diese Bereiche enthalten Wissensseiten (Tab-Name -> Ordner mit den Seiten)
@@ -614,6 +614,51 @@ RECHNER_INFO = {
         "beschreibung": "AND bis XNOR mit 2 oder 3 Eingängen, IEC- und ANSI-Symbol, Wahrheitstabelle.",
         "stichworte": ["Gatter", "AND", "OR", "XOR", "NAND", "Symbol", "Werkzeug"],
         "wissensseite": "logikgatter"},
+    "addierer_laufzeit": {
+        "titel": "Ripple-Carry-Addierer: Laufzeit", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "Worst-Case-Laufzeit der Übertragskette und höchste Taktfrequenz.",
+        "stichworte": ["Addierer", "Ripple Carry", "Laufzeit", "Übertrag", "Taktfrequenz"],
+        "wissensseite": "addierer"},
+    "werkzeug_addierer": {
+        "titel": "Addierwerk aus Volladdierern (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "4- oder 8-Bit-Addierer/Subtrahierer, Übertragskette und Flags sichtbar.",
+        "stichworte": ["Volladdierer", "Addierer", "Subtraktion", "Carry", "Werkzeug"],
+        "wissensseite": "addierer"},
+    "mux_funktion": {
+        "titel": "Logikfunktion mit Multiplexer", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "Belegung der Dateneingänge D0 … Dn für einen beliebigen Ausdruck (Shannon-Zerlegung).",
+        "stichworte": ["Multiplexer", "MUX", "Shannon", "Logikfunktion", "Dateneingang"],
+        "wissensseite": "multiplexer"},
+    "werkzeug_mux": {
+        "titel": "Multiplexer / Demultiplexer (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "4:1-MUX und 1:4-DEMUX mit hervorgehobenem Datenweg.",
+        "stichworte": ["Multiplexer", "Demultiplexer", "Auswahl", "Select", "Werkzeug"],
+        "wissensseite": "multiplexer"},
+    "siebensegment": {
+        "titel": "7-Segment-Code", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "Segmente a … g und Pegel für eine Hex-Ziffer, gemeinsame Kathode oder Anode.",
+        "stichworte": ["7-Segment", "Siebensegment", "Anzeige", "gemeinsame Anode", "gemeinsame Kathode"],
+        "wissensseite": "decoder_encoder"},
+    "adressdecoder": {
+        "titel": "Adressdecodierung (Chip-Select)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "Adressbereiche der Decoder-Ausgänge bei N Adressbits und k Decoder-Eingängen.",
+        "stichworte": ["Adressdecoder", "Chip-Select", "74HC138", "Speicher", "Adressraum"],
+        "wissensseite": "decoder_encoder"},
+    "werkzeug_decoder": {
+        "titel": "Decoder, Encoder, 7-Segment (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "3:8-Decoder mit Freigabe, Prioritäts-Encoder und 7-Segment-Anzeige zum Anklicken.",
+        "stichworte": ["Decoder", "Encoder", "Prioritäts-Encoder", "7-Segment", "Werkzeug"],
+        "wissensseite": "decoder_encoder"},
+    "open_drain_pullup": {
+        "titel": "Pull-up für Open Drain / I²C", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "R_min aus dem LOW-Strom, R_max aus der Anstiegszeit nach I²C-Spezifikation.",
+        "stichworte": ["Open Drain", "I²C", "Pull-up", "Anstiegszeit", "Buskapazität"],
+        "wissensseite": "ausgangstypen"},
+    "werkzeug_ausgang": {
+        "titel": "Ausgangstypen an einer Leitung (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltnetze",
+        "beschreibung": "Push-Pull, Open Drain und Tri-State: Buskonflikt, Wired-AND, Anstieg mit Pull-up.",
+        "stichworte": ["Push-Pull", "Open Drain", "Tri-State", "Buskonflikt", "Werkzeug"],
+        "wissensseite": "ausgangstypen"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
