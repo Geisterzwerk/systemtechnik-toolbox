@@ -80,8 +80,8 @@ class SeitenBereich(ctk.CTkFrame):
         └────┴──────────────────────────────────┘
 
         bereich = SeitenBereich(tab, app)
-        bereich.eintrag_hinzufuegen("Widerstand", widerstand.create, icon="resistor.png")
-        bereich.seite_zeigen("Widerstand")
+        bereich.eintrag_hinzufuegen("Spannungsteiler", spannungsteiler.create, icon="resistor.png")
+        bereich.seite_zeigen("Spannungsteiler")
 
     Jede Seite ist eine Funktion  create(parent) . 'parent' ist bereits die
     scrollbare, mitwachsende Seite (Spalte 0 hat weight=1) - die Seite muss
@@ -130,7 +130,7 @@ class SeitenBereich(ctk.CTkFrame):
         for n, b in self._buttons.items():
             b.configure(fg_color=config.FARBEN["akzent"] if n == name else ("#8A94A6", "#3A3F4A"))
         body = self.scroll.neue_seite()             # alte Seite weg, neue leere Seite
-        # -> Sprung in die create()-Funktion, z.B. bauteile/widerstand.py
+        # -> Sprung in die create()-Funktion der jeweiligen Seite
         self._seiten[name](body)
 
 

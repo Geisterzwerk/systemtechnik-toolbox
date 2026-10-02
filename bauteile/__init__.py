@@ -7,6 +7,6 @@
 #   engine/      seite.py: zeichnet eine Bauteil-Seite
 #   einheiten.py Einheiten für die Rechner (mΩ, kΩ, µF ... + Eingaben wie "4k7")
 #
-#   kondensator.py, dioden.py, spule.py, relais.py, transformator.py
-#       = ALTE Seiten, werden bis zur Überarbeitung noch angezeigt ("alte_seite")
+# Die früheren Einzelseiten (bauteile/widerstand.py, dioden.py, ...) und
+# gui/responsive.py gibt es nicht mehr - alle Bauteile sind jetzt Daten in inhalte/.
 # =============================================================================

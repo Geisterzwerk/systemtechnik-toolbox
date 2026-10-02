@@ -18,13 +18,10 @@
 #   └──────────────────────────────────────────────────────┘
 #
 # Die DATEN kommen aus bauteile/inhalte/<kategorie>/<bauteil>.py (THEMA = {...}).
-# Übergangslösung: Hat ein Thema "alte_seite": "kondensator", wird die alte
-# Seite bauteile/kondensator.py angezeigt (bis sie überarbeitet ist).
 #
 # WER RUFT DAS AUF?  gui/bauteile_gui.py -> BauteilWiki.thema_oeffnen()
 # =============================================================================
 
-import importlib
 import os
 
 import customtkinter as ctk
@@ -59,12 +56,6 @@ class BauteilSeite:
         self.daten = thema.daten
         self.alle_themen = alle_themen
         self.oeffnen = oeffnen
-
-        # ---- Übergang: alte Seite anzeigen ----
-        if self.daten.get("alte_seite"):
-            modul = importlib.import_module(f"bauteile.{self.daten['alte_seite']}")
-            modul.create(master)                    # -> z.B. bauteile/kondensator.py create()
-            return
 
         self.s = Stapel(master)                     # -> core/layout.py: alles untereinander
         kat = thema.kategorie
@@ -189,7 +180,7 @@ def uebersicht_zeichnen(master, kategorien, oeffnen, ladefehler=None):
         kasten = grid.add(Karte(grid, titel=f"{kat.icon}  {kat.name}", untertitel=kat.beschreibung or None))
         for zeile, thema in enumerate(kat.themen):
             anzahl_r = len(thema.daten.get("rechner", []))
-            zusatz = f"   ·  🧮 {anzahl_r}" if anzahl_r else ("   ·  (wird überarbeitet)" if thema.daten.get("alte_seite") else "")
+            zusatz = f"   ·  🧮 {anzahl_r}" if anzahl_r else ""
             ctk.CTkButton(kasten.body, text=f"  {thema.titel}{zusatz}", anchor="w", height=28,
                           fg_color="transparent", hover_color=config.FARBEN["rahmen"],
                           text_color=config.FARBEN["akzent"],
