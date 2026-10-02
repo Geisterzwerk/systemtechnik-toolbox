@@ -96,6 +96,9 @@ def _gleichrichter(w):
         u_dc, f_ripple, u_sperr, dioden_anteil = u_spitze - uf, f, 2 * u_spitze, 1.0
     else:   # Mittelpunkt: U2 = Spannung EINER Wicklungshälfte
         u_dc, f_ripple, u_sperr, dioden_anteil = u_spitze - uf, 2 * f, 2 * u_spitze, 0.5
+    if u_dc <= 0:
+        raise RechnerFehler(f"U2 zu klein: Der Spitzenwert {fmt(u_spitze, 'spannung')} reicht nicht "
+                            "für die Durchlassspannung der Dioden")
     zeilen = [f"Û = U2 · √2 = {fmt(u_spitze, 'spannung')}",
               f"Gleichspannung (Leerlauf, mit Elko): ≈ {fmt(u_dc, 'spannung')}",
               f"Brummfrequenz: {fmt(f_ripple, 'frequenz')}",
@@ -235,7 +238,9 @@ def _bjt_arbeitspunkt(w):
     zeilen = [f"U_Basis (Thevenin) = {fmt(u_th, 'spannung')}   R_th = {fmt(r_th, 'widerstand')}",
               f"Ib = {fmt(ib, 'strom')}   Ic = {fmt(ic, 'strom')}"]
     if uce < 0.3:
-        ic_sat = (ub - 0.2) / (rc + re) if (rc + re) > 0 else float("inf")
+        if rc + re <= 0 or ub <= 0.2:
+            raise RechnerFehler("Ub zu klein für einen Arbeitspunkt (Uce,sat ≈ 0.2 V)")
+        ic_sat = (ub - 0.2) / (rc + re)
         zeilen.append(f"⚠ Rechnerisch würde Uce unter 0.3 V fallen → Transistor ist GESÄTTIGT "
                       f"(Ic wird von Rc/Re auf ca. {fmt(ic_sat, 'strom')} begrenzt). "
                       "Als Verstärker ungeeignet: Basisspannung oder Rc verkleinern")

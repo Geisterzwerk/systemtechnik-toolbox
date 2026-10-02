@@ -116,6 +116,7 @@ Dieser Abschnitt enthält die beim praktischen Test aufgefallenen Punkte. Die Be
 - Beschriftungen können Schaltzeichen, Kurven oder andere Texte überlagern.
 - Einige Regler erlauben nur eine Bedienung über Slider.
 - Die fachliche Richtigkeit muss noch systematisch kontrolliert werden.
+  → Rechner: erledigt mit `python pruefen_rechner.py` (Schritt 5). Wissenstexte sind noch nicht systematisch geprüft.
 
 ### Verbesserungsauftrag
 
@@ -804,6 +805,8 @@ programmieren/inhalte/      Programmier-Seiten (nur Daten)
 server/inhalte/             Server-/Linux-Seiten (nur Daten, gleiche Engine)
 images/                     Bilder und Icons
 pruefen.py                  prüft, ob alle wichtigen Dateien vorhanden sind
+pruefen_rechner.py          prüft alle Rechner: bekannte Werte, Grenzfälle, Verweise (-v, --gui)
+pruefung/rechner_faelle.py  Beispielwerte (von Hand gerechnet) für pruefen_rechner.py
 ```
 
 ---
@@ -933,9 +936,30 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 2 | Gemeinsame Komponente **Schaltzeichen-Reihe** (`SymbolReihe` in `bauteile/grafiken/symbol_reihe.py`; alle Schaltzeichen in `symbole.py` neu gezeichnet: eigene Zelle pro Symbol, gleiche Grösse, Beschriftung darunter, Anschlussbezeichnungen ausserhalb, Umbruch bei schmalem Fenster) | ✅ erledigt |
 | 3 | Simulator Bipolartransistor (NPN/PNP) und MOSFET (N-/P-Kanal) trennen (`schalter_simulator.py`, Rechnung in `transistor_mathe.py` / `mosfet_mathe.py`; Low-/High-Side, Übersteuerungsfaktor, R_DS(on) bei tatsächlicher U_GS, U_GS,max, Gate-Ladung) | ✅ erledigt |
 | 4 | RC- und RL-Lernansicht: Spannung und Strom, zwei Diagramme, `τ_ein` / `τ_aus` (`kurven.py` neu, Rechnung in `schaltvorgaenge_mathe.py`; Eingang als Rechteck, Startspannung U_C0, Vorzeichen erklärt, Ausschalten ohne Freilaufdiode (Modell R_aus), mit Freilaufdiode und mit Diode + Z-Diode) | ✅ erledigt |
-| 5 | Prüfskript für alle Rechner mit bekannten Beispielwerten und Grenzfällen | offen |
+| 5 | Prüfskript für alle Rechner mit bekannten Beispielwerten und Grenzfällen (`python pruefen_rechner.py`, Fälle in `pruefung/rechner_faelle.py`; zentrale Eingabeprüfung in `basis.formel_auswerten()`; dabei gefundene Fehler behoben, siehe unten) | ✅ erledigt |
 | 6 | Rechner-Tab mit `RECHNER_INFO` | offen |
 | 7+ | Schaltungen, Operationsverstärker und Versorgung, Digitaltechnik | offen |
+
+### Schritt 5: Was das Prüfskript gefunden hat (behoben)
+
+```bash
+python pruefen_rechner.py          # schnell, ohne Fenster
+python pruefen_rechner.py --gui    # zusätzlich jede Rechner-Karte aufbauen
+```
+
+| Fehler | Wo | Behebung |
+|---|---|---|
+| Normwert bei pF-Werten falsch (4.7 pF → 5 pF, unter 1 pF → Absturz) | `normreihen.py` | auf gültige Stellen statt Nachkommastellen runden |
+| „1A“ im mA-Feld ergab 1 mA | `einheiten.py` | getippte Einheit gilt vor dem Dropdown |
+| „inf“ / „nan“ als Eingabe angenommen | `einheiten.py` | wird abgelehnt |
+| Negative Widerstände, Kapazitäten, Zeiten … führten zu Unsinn oder Python-Fehlern | alle Formel-Rechner | zentrale Prüfung `NIE_NEGATIV` in `basis.py` |
+| „Division durch 0“ ohne Hinweis, welches Feld | alle Formel-Rechner | Meldung nennt jetzt die Felder mit 0 |
+| Pt100: Python-Fehler bei zu grossem R | `messtechnik/rechner.py` | Bereich −200 … 850 °C nach IEC 60751 |
+| NTC: Python-Fehler bei R = 0 oder T unter 0 K | `messtechnik/rechner.py` | verständliche Meldung |
+| Arbeitspunkt bei U_B < U_CE,sat zeigte „inf“ | `transistor_rechner.py`, `halbleiter_rechner.py` | Meldung |
+| LED-Anzahl −1 oder 1.5 wurde gerechnet | `widerstand_rechner.py` | nur ganze Zahl ab 1 |
+| ADC mit 10.5 Bit wurde still abgerundet | `messtechnik/rechner.py` | nur ganze Bitzahl |
+| Netzteil/Gleichrichter mit zu kleiner Trafospannung ergab negative Gleichspannung | `trafo_rechner.py`, `halbleiter_rechner.py` | Meldung „U2 zu klein“ |
 
 Die folgenden Phasen beschreiben die Inhalte im Detail.
 

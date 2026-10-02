@@ -96,6 +96,8 @@ ZUSTAND_TEXT = {
 def _arbeitspunkt(w):
     if None in (w["Ub"], w["Rl"], w["Us"], w["Rb"], w["B"]):
         raise RechnerFehler("Alle fünf Werte eingeben")
+    if w["Ub"] <= tm.U_CE_SAT:
+        raise RechnerFehler(f"U_B muss grösser als U_CE,sat = {tm.U_CE_SAT:g} V sein")
     a = _fehler_umwandeln(tm.arbeitspunkt, w["Ub"], w["Rl"], w["Us"], w["Rb"], w["B"])
     zeilen = [ZUSTAND_TEXT[a["zustand"]],
               f"I_B = {fmt(a['i_b'], 'strom')}   ·   I_C = {fmt(a['i_c'], 'strom')}  "

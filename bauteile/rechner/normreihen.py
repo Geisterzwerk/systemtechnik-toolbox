@@ -34,7 +34,9 @@ def naechste_werte(wert, reihe="E24"):
         raise ValueError("Wert muss grösser als 0 sein")
     werte = REIHEN[reihe]
     dekade = math.floor(math.log10(wert))
-    kandidaten = sorted(round(v * 10 ** d, 12) for d in (dekade - 1, dekade, dekade + 1) for v in werte)
+    # auf 12 GÜLTIGE Stellen runden (nicht 12 Nachkommastellen - sonst wird 4.7 pF zu 5 pF)
+    kandidaten = sorted(float(f"{v * 10.0 ** d:.12g}") for d in (dekade - 1, dekade, dekade + 1, dekade + 2)
+                        for v in werte)
     unten = max(k for k in kandidaten if k <= wert * (1 + 1e-9))
     oben = min(k for k in kandidaten if k >= wert * (1 - 1e-9))
     # "nächster" im logarithmischen Sinn (so sind die Reihen aufgebaut)

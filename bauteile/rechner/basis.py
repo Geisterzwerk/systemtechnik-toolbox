@@ -10,6 +10,8 @@
 #                      Man beschreibt nur die Felder und schreibt eine Funktion,
 #                      die rechnet - die Oberfläche entsteht automatisch.
 #   RechnerFehler      Für verständliche Fehlermeldungen: raise RechnerFehler("...")
+#   formel_auswerten() Rechnet wie der Knopf "Berechnen", aber ohne Fenster
+#                      -> benutzt von FormelRechner UND vom Prüfskript pruefen_rechner.py
 #   WertRegler         Slider + Zahlenfeld + Einheit, immer synchron (für interaktive Grafiken)
 #                      [U1      ═══════●═══════  [ 230 ][V ▾]]
 #
@@ -40,6 +42,52 @@ fmt = einheiten.formatieren                              # Kurzname für Ergebni
 
 class RechnerFehler(Exception):
     """Verständliche Meldung an den Benutzer (wird im Ergebnisfeld angezeigt)."""
+
+
+# Grössen, die physikalisch nie negativ sein können. Eine negative Eingabe wird
+# schon VOR dem Rechnen abgefangen - so muss nicht jeder Rechner das selbst prüfen.
+# (Spannung, Strom, Leistung, Temperatur und "zahl" dürfen negativ sein.)
+NIE_NEGATIV = {"widerstand", "kapazitaet", "induktivitaet", "zeit", "frequenz", "laenge",
+               "flaeche", "ladung", "energie", "flussdichte", "prozent"}
+
+
+def eingaben_pruefen(felder, werte):
+    """Prüft alle Eingaben, die für JEDEN Rechner gelten (siehe NIE_NEGATIV)."""
+    for eintrag in felder:
+        schluessel, beschriftung, typ = eintrag[:3]
+        wert = werte.get(schluessel)
+        if typ not in NIE_NEGATIV or wert is None:
+            continue
+        liste = wert if isinstance(wert, list) else [wert]
+        if any(w < 0 for w in liste):
+            raise RechnerFehler(f"{beschriftung}: darf nicht negativ sein")
+
+
+def formel_auswerten(felder, berechnen, werte):
+    """
+    Rechnet genau so wie der Knopf "Berechnen" - nur ohne Fenster.
+      felder     Felddefinitionen wie bei FormelRechner
+      berechnen  Rechenfunktion des Rechners
+      werte      {"U": 12.0, "R": None, ...} in Basiseinheiten
+    Rückgabe: (text, ok)   ok = False -> text ist eine Fehlermeldung
+    """
+    try:
+        eingaben_pruefen(felder, werte)
+        zeilen = berechnen(werte)
+    except RechnerFehler as fehler:
+        return str(fehler), False
+    except ZeroDivisionError:
+        # Welche Felder sind 0? -> konkret nennen statt nur "Division durch 0"
+        nullen = [e[1] for e in felder if werte.get(e[0]) == 0
+                  or (isinstance(werte.get(e[0]), list) and 0 in werte[e[0]])]
+        if nullen:
+            return f"Division durch 0 – darf nicht 0 sein: {', '.join(nullen)}", False
+        return "Division durch 0 – die Eingaben passen so nicht zusammen", False
+    except OverflowError:
+        return "Ergebnis ist zu gross – Eingaben prüfen (Einheit richtig?)", False
+    except ValueError as fehler:
+        return f"Ungültige Eingabe: {fehler}", False
+    return "\n".join(zeilen), True
 
 
 # =============================================================================
@@ -153,6 +201,7 @@ class FormelRechner(Karte):
     def __init__(self, master, titel, untertitel, felder, berechnen, formel=None):
         super().__init__(master, titel=titel, untertitel=untertitel)
         self.fr_funktion = berechnen
+        self.fr_definition = felder                       # für formel_auswerten()
         self.fr_felder = {}
 
         b = self.body
@@ -196,16 +245,14 @@ class FormelRechner(Karte):
     def fr_rechnen(self):
         try:
             werte = {k: f.wert() for k, f in self.fr_felder.items()}
-            zeilen = self.fr_funktion(werte)
-            self.fr_ergebnis.configure(text="\n".join(zeilen), text_color=config.FARBEN["akzent"])
-        except RechnerFehler as fehler:
-            self._fr_fehler(str(fehler))
-        except ValueError as fehler:
+        except ValueError as fehler:                      # Text im Feld nicht lesbar, z.B. "abc"
             self._fr_fehler(f"Ungültige Eingabe: {fehler}")
-        except ZeroDivisionError:
-            self._fr_fehler("Division durch 0 - ein Wert darf nicht 0 sein")
-        except OverflowError:
-            self._fr_fehler("Ergebnis ist zu gross")
+            return
+        text, ok = formel_auswerten(self.fr_definition, self.fr_funktion, werte)
+        if ok:
+            self.fr_ergebnis.configure(text=text, text_color=config.FARBEN["akzent"])
+        else:
+            self._fr_fehler(text)
 
     def _fr_fehler(self, text):
         self.fr_ergebnis.configure(text=f"⚠ {text}", text_color=("#B45309", "#F59E0B"))

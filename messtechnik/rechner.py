@@ -320,6 +320,7 @@ def oszi(master):
 # 5) TEMPERATURSENSOREN
 # =============================================================================
 _A, _B, _C = 3.9083e-3, -5.775e-7, -4.183e-12          # IEC 60751
+PT_BEREICH = (-200.0, 850.0)                           # °C, für diesen Bereich gilt die Norm
 
 
 def pt_widerstand(t, r0):
@@ -343,10 +344,17 @@ def _pt100(w):
     r0 = 1000.0 if w["typ"].startswith("Pt1000") else 100.0
     if (w["T"] is None) == (w["R"] is None):
         raise RechnerFehler("Entweder Temperatur ODER Widerstand eingeben")
+    t_min, t_max = PT_BEREICH
     if w["T"] is not None:
+        if not t_min <= w["T"] <= t_max:
+            raise RechnerFehler(f"Pt-Sensoren sind nach IEC 60751 nur für {t_min:g} … {t_max:g} °C definiert")
         t, r = w["T"], pt_widerstand(w["T"], r0)
         zeilen = [f"R({t:g} °C) = {fmt(r, 'widerstand', 5)}"]
     else:
+        r_min, r_max = pt_widerstand(t_min, r0), pt_widerstand(t_max, r0)
+        if not r_min <= w["R"] <= r_max:
+            raise RechnerFehler(f"R ausserhalb {fmt(r_min, 'widerstand')} … {fmt(r_max, 'widerstand')} "
+                                f"(= {t_min:g} … {t_max:g} °C) – Sensor defekt oder Pt100/Pt1000 verwechselt?")
         r, t = w["R"], pt_temperatur(w["R"], r0)
         zeilen = [f"T = {t:.2f} °C  bei R = {fmt(r, 'widerstand', 5)}"]
     empf = r0 * 0.00385
@@ -373,15 +381,24 @@ def _ntc(w):
     if r25 is None or b is None:
         raise RechnerFehler("R25 und B-Wert eingeben")
     t25 = 298.15
+    if r25 <= 0 or b <= 0:
+        raise RechnerFehler("R25 und B-Wert müssen grösser als 0 sein")
     if (w["T"] is None) == (w["R"] is None):
         raise RechnerFehler("Entweder Temperatur ODER Widerstand eingeben")
     if w["T"] is not None:
+        if w["T"] <= -273.15:
+            raise RechnerFehler("Temperatur muss über dem absoluten Nullpunkt (−273.15 °C) liegen")
         tk = w["T"] + 273.15
         r = r25 * math.exp(b * (1 / tk - 1 / t25))
         zeilen = [f"R({w['T']:g} °C) = {fmt(r, 'widerstand')}"]
     else:
         r = w["R"]
-        tk = 1 / (1 / t25 + math.log(r / r25) / b)
+        if r <= 0:
+            raise RechnerFehler("Widerstand muss grösser als 0 sein")
+        nenner = 1 / t25 + math.log(r / r25) / b          # = 1 / T in 1/K
+        if nenner <= 0:
+            raise RechnerFehler("Widerstand passt nicht zu R25/B (ergäbe keine gültige Temperatur)")
+        tk = 1 / nenner
         zeilen = [f"T = {tk - 273.15:.2f} °C  bei R = {fmt(r, 'widerstand')}"]
     zeilen.append(f"Empfindlichkeit: {-b / tk ** 2 * 100:.2f} %/K  (sehr gross, aber stark nichtlinear)")
     zeilen.append("B-Wert-Gleichung ist eine Näherung – ausserhalb ca. 0 … 100 °C mehrere K Abweichung möglich")
@@ -488,9 +505,9 @@ def _adc(w):
     n, uref = w["n"], w["Uref"]
     if n is None or uref is None:
         raise RechnerFehler("Auflösung in Bit und Referenzspannung eingeben")
+    if n != int(n) or not 1 <= n <= 32:
+        raise RechnerFehler("Bitzahl: ganze Zahl zwischen 1 und 32")
     n = int(n)
-    if not 1 <= n <= 32:
-        raise RechnerFehler("Bitzahl zwischen 1 und 32")
     stufen = 2 ** n
     lsb = uref / stufen
     zeilen = [f"{stufen:,} Stufen".replace(",", "'") + f"   ·   1 LSB = Uref / 2ⁿ = {fmt(lsb, 'spannung')}",

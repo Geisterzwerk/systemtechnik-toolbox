@@ -9,6 +9,8 @@
 #   "4.7k"  "4k7"  "2M2"    -> Vorsatz direkt im Text (Dropdown wird ignoriert)
 #   "470m"  "4R7"  "R47"    -> m = milli, R = Komma (wie auf Bauteilen)
 #   "1e-3"                  -> Exponent-Schreibweise
+#   "1A"  "5V"              -> Einheit mitgetippt: gilt statt Dropdown (1A im mA-Feld = 1 A)
+#   "inf"  "nan"            -> werden abgelehnt (damit kann kein Rechner rechnen)
 #
 # AUSGABE - formatieren(0.0047, "widerstand") -> "4.7 mΩ"
 #   Der Vorsatz (m, k, M ...) wird automatisch passend gewählt.
@@ -16,6 +18,7 @@
 # NEUE EINHEIT? Unten in EINHEITEN eine Zeile ergänzen - fertig.
 # =============================================================================
 
+import math
 import re
 
 # typ -> Einstellungen
@@ -65,14 +68,21 @@ def text_zu_zahl(text, typ, faktor=1.0):
 
     # 1) ganz normale Zahl (auch 1e-3) -> × Dropdown
     try:
-        return float(t) * faktor
+        zahl = float(t)
     except ValueError:
-        pass
+        zahl = None
+    if zahl is not None:
+        # float() versteht auch "inf", "nan" und "1e999" (= unendlich) - damit kann niemand rechnen
+        if not math.isfinite(zahl):
+            raise ValueError(f"„{text}“ ist keine gültige Zahl")
+        return zahl * faktor
 
     if not EINHEITEN[typ]["vorsatz"]:
         raise ValueError(f"„{text}“ ist keine gültige Zahl")
 
-    t = _EINHEIT_AM_ENDE.sub("", t)            # "4.7kΩ" -> "4.7k"
+    ohne_einheit = _EINHEIT_AM_ENDE.sub("", t)  # "4.7kΩ" -> "4.7k"
+    einheit_getippt = ohne_einheit != t
+    t = ohne_einheit
     vz = "".join(re.escape(v) for v in _VORSATZ)
 
     # 2) Zahl + Vorsatz:  4.7k   470m   10u
@@ -87,9 +97,10 @@ def text_zu_zahl(text, typ, faktor=1.0):
     m = re.fullmatch(rf"([{vz}])(\d+)", t)
     if m:
         return float(f"0.{m.group(2)}") * _VORSATZ[m.group(1)]
-    # 5) nur Zahl ohne Vorsatz, aber mit Einheit ("5V")
+    # 5) nur Zahl ohne Vorsatz, aber mit Einheit ("5V", "1A")
+    #    -> die Einheit gilt, NICHT das Dropdown: "1A" im mA-Feld ist 1 A, nicht 1 mA
     try:
-        return float(t) * faktor
+        return float(t) * (1.0 if einheit_getippt else faktor)
     except ValueError:
         raise ValueError(f"„{text}“ verstehe ich nicht (Beispiele: 4.7  4k7  2.2M  470m)") from None
 

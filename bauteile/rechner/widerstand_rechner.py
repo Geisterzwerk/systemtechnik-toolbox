@@ -388,6 +388,8 @@ def _spannungsteiler(w):
     else:
         if Ue is not None and not 0 < Ua < Ue:
             raise RechnerFehler("Ua muss zwischen 0 und Ue liegen")
+        if Ua <= 0:
+            raise RechnerFehler("Ua muss grösser als 0 sein")
         if R1 is None:
             R1 = R2 * (Ue - Ua) / Ua
             berechnet = ("R1", R1)
@@ -428,9 +430,14 @@ def spannungsteiler(master):
 # 8) LED-VORWIDERSTAND
 # =============================================================================
 def _led(w):
-    Ub, Uf, If, n = w["Ub"], w["Uf"], w["If"], w["n"] or 1
+    Ub, Uf, If, n = w["Ub"], w["Uf"], w["If"], w["n"]
     if None in (Ub, Uf, If):
         raise RechnerFehler("Ub, Uf und If eingeben")
+    n = 1 if n is None else n
+    if n < 1 or n != int(n):
+        raise RechnerFehler("LEDs in Reihe: ganze Zahl ab 1 eingeben")
+    if Uf <= 0 or If <= 0:
+        raise RechnerFehler("Uf und If müssen grösser als 0 sein")
     n = int(n)
     Ur = Ub - n * Uf
     if Ur <= 0:

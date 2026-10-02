@@ -111,6 +111,9 @@ def _netzteil(w):
     uf = w["uf"] if w["uf"] is not None else 0.7
     u_spitze = U2 * math.sqrt(2)
     u_dc = u_spitze - 2 * uf
+    if u_dc <= 0:
+        raise RechnerFehler(f"U2 zu klein: Der Spitzenwert {fmt(u_spitze, 'spannung')} reicht nicht "
+                            f"für 2 Dioden à {fmt(uf, 'spannung')}")
     zeilen = [f"Spitzenwert Û = U2 · √2 = {fmt(u_spitze, 'spannung')}",
               f"Nach Brücke (2 Dioden leiten): ≈ {fmt(u_dc, 'spannung')}  (Leerlauf, ohne Welligkeit)"]
     if C is not None:
