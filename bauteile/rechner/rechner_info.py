@@ -29,7 +29,7 @@ KATEGORIEN = {
     "Bauteile":       ("🔧", "Kennwerte und Codes einzelner Bauteile"),
     "Schaltungen":    ("🔌", "Netzteile, Teiler, Filter, Schalten, Verstärker"),
     "Messtechnik":    ("📏", "Messunsicherheit, Messgeräte, Sensoren"),
-    "Digitaltechnik": ("💾", "Zahlen, Pegel, Logik, Schaltnetze, AD-Wandler"),
+    "Digitaltechnik": ("💾", "Zahlen, Pegel, Logik, Schaltnetze, Schaltwerke, AD-Wandler"),
 }
 
 # Diese Bereiche enthalten Wissensseiten (Tab-Name -> Ordner mit den Seiten)
@@ -659,6 +659,36 @@ RECHNER_INFO = {
         "beschreibung": "Push-Pull, Open Drain und Tri-State: Buskonflikt, Wired-AND, Anstieg mit Pull-up.",
         "stichworte": ["Push-Pull", "Open Drain", "Tri-State", "Buskonflikt", "Werkzeug"],
         "wissensseite": "ausgangstypen"},
+    "zaehler_entwurf": {
+        "titel": "Synchronen Zähler entwerfen", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltwerke",
+        "beschreibung": "Zustandsfolge -> minimierte Ansteuergleichungen für D- oder JK-Flipflops, mit Selbststart-Prüfung.",
+        "stichworte": ["Zählerentwurf", "synchroner Zähler", "Ansteuergleichung", "JK-Flipflop", "D-Flipflop", "Selbststart"],
+        "wissensseite": "zaehler_entwurf"},
+    "fmax_schaltwerk": {
+        "titel": "Höchste Taktfrequenz (synchron)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltwerke",
+        "beschreibung": "T_min aus t_pd, Logik, Setup und Taktversatz; Hold-Prüfung.",
+        "stichworte": ["Taktfrequenz", "Setup", "Hold", "t_pd", "Timing", "f_max"],
+        "wissensseite": "flipflops"},
+    "frequenzteiler": {
+        "titel": "Frequenzteiler mit Flipflops", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltwerke",
+        "beschreibung": "Ausgangsfrequenz und Anzahl Flipflops für einen Teiler durch m.",
+        "stichworte": ["Frequenzteiler", "Teiler", "Flipflop", "Zähler", "Uhrenquarz"],
+        "wissensseite": "zaehler"},
+    "werkzeug_flipflop": {
+        "titel": "Flipflops und Latches (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltwerke",
+        "beschreibung": "RS, D-Latch, D, JK, T: Eingänge setzen, Takt geben, Zeitdiagramm.",
+        "stichworte": ["Flipflop", "Latch", "Takt", "Zeitdiagramm", "Werkzeug"],
+        "wissensseite": "flipflops"},
+    "werkzeug_zaehler": {
+        "titel": "Zähler asynchron/synchron (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltwerke",
+        "beschreibung": "Zeitdiagramm mit Zwischenzuständen des Ripple-Zählers, Modulo und Richtung einstellbar.",
+        "stichworte": ["Zähler", "Ripple", "Modulo", "Glitch", "Werkzeug"],
+        "wissensseite": "zaehler"},
+    "werkzeug_schieberegister": {
+        "titel": "Schieberegister (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Schaltwerke",
+        "beschreibung": "SIPO, Ring- und Johnson-Zähler Takt für Takt mit Zeitdiagramm.",
+        "stichworte": ["Schieberegister", "Ringzähler", "Johnson-Zähler", "SIPO", "Werkzeug"],
+        "wissensseite": "schieberegister"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",

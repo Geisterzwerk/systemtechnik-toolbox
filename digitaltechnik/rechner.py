@@ -16,10 +16,14 @@
 #   siebensegment         Hex-Ziffer -> Segmente a … g und Pegel (gemeinsame Kathode / Anode)
 #   adressdecoder         Adressbereiche der Decoder-Ausgänge (Chip-Select)
 #   open_drain_pullup     Pull-up für Open-Drain/I²C: R_min, R_max, Anstiegszeit
+#   zaehler_entwurf       synchroner Zähler für eine Zustandsfolge: minimierte D- bzw. JK-Gleichungen
+#   fmax_schaltwerk       höchste Taktfrequenz eines synchronen Schaltwerks (Setup/Hold)
+#   frequenzteiler        Teiler durch m: Flipflops, Ausgangsfrequenz
 #   werkzeug_*            INTERAKTIVE Werkzeuge (digitaltechnik/grafiken.py)
 #
 # AD-Wandler und Abtastung gibt es schon im Bereich Messtechnik ("adc", "abtastung").
-# Rechnung: digitaltechnik/zahlen_mathe.py, pegel_mathe.py, logik_mathe.py, schaltnetze_mathe.py (ohne GUI)
+# Rechnung: digitaltechnik/zahlen_mathe.py, pegel_mathe.py, logik_mathe.py, schaltnetze_mathe.py,
+#           schaltwerke_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "zahlensystem")
 # =============================================================================
 
@@ -27,11 +31,14 @@ from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt          # 
 from digitaltechnik import logik_mathe as lm                                  # -> digitaltechnik/logik_mathe.py
 from digitaltechnik import pegel_mathe as pm                                  # -> digitaltechnik/pegel_mathe.py
 from digitaltechnik import schaltnetze_mathe as sm                            # -> digitaltechnik/schaltnetze_mathe.py
+from digitaltechnik import schaltwerke_mathe as swm                           # -> digitaltechnik/schaltwerke_mathe.py
 from digitaltechnik import zahlen_mathe as zm                                 # -> digitaltechnik/zahlen_mathe.py
 from digitaltechnik.grafiken import (BitmaskenKarte, LogikpegelKarte,         # -> digitaltechnik/grafiken.py
                                      ZahlensystemKarte, ZweierkomplementKarte)
 from digitaltechnik.grafiken_schaltnetze import (AddiererKarte, AusgangKarte,    # -> digitaltechnik/grafiken_schaltnetze.py
                                                  DecoderKarte, MuxKarte)
+from digitaltechnik.grafiken_schaltwerke import (FlipflopKarte, SchieberegisterKarte,  # -> digitaltechnik/grafiken_schaltwerke.py
+                                                 ZaehlerKarte)
 from digitaltechnik.grafiken_logik import (AusdruckKarte, GatterKarte, KVKarte,  # -> digitaltechnik/grafiken_logik.py
                                            wahrheitstabelle_text)
 
@@ -449,6 +456,91 @@ def open_drain_pullup(master):
 
 
 # =============================================================================
+# 14) SYNCHRONEN ZÄHLER ENTWERFEN
+# =============================================================================
+def _zaehler_entwurf(w):
+    if w["folge"] is None:
+        raise RechnerFehler("Zustandsfolge eingeben, z.B. 0 1 2 3 4 5 6 7 8 9 oder 0 1 3 2")
+    folge = [_zahl(t) for t in w["folge"].replace(",", " ").replace("→", " ").split()]
+    ff = "D" if w["ff"].startswith("D") else "JK"
+    e = _fehler_umwandeln(swm.zaehler_entwurf, folge, ff)
+    n = e["bits"]
+    zeilen = [f"{n} Flipflops ({' '.join(e['namen'])}), {len(folge)} Zustände"
+              + (f", unbenutzt (don't care): {', '.join(map(str, e['frei']))}" if e["frei"] else ""),
+              "Folge: " + " → ".join(format(z, f"0{n}b") for z, _ in e["tabelle"]) + f" → {format(folge[0], f'0{n}b')}"]
+    zeilen += [f"  {name} = {text}" for name, text in e["gleichungen"]]
+    if e["frei"]:
+        for z, weg, ok in swm.freie_zustaende_pruefen(e):
+            zeilen.append(f"  Start in {z}: " + " → ".join(map(str, weg)) + ("  ✓ findet zurück" if ok else "  ⚠ hängt fest"))
+    return zeilen
+
+
+def zaehler_entwurf(master):
+    return FormelRechner(
+        master, "Synchronen Zähler entwerfen", "Zustandsfolge eingeben – die Ansteuergleichungen werden minimiert",
+        felder=[("folge", "Zustandsfolge", "text", {"platzhalter": "z.B. 0 1 2 3 4 5 6 7 8 9"}),
+                ("ff", "Flipflop-Typ", "auswahl", {"werte": ["D-Flipflop", "JK-Flipflop"]})],
+        berechnen=_zaehler_entwurf, formel="D_i = Q_i⁺     JK: 0→0 J=0 K=X, 0→1 J=1 K=X, 1→0 J=X K=1, 1→1 J=X K=0")
+
+
+# =============================================================================
+# 15) HÖCHSTE TAKTFREQUENZ
+# =============================================================================
+def _fmax_schaltwerk(w):
+    if w["tpd"] is None or w["tsu"] is None:
+        raise RechnerFehler("t_pd (Takt → Q) und t_setup des Flipflops eingeben")
+    t_logik = w["tlog"] or 0.0
+    t_skew = w["tskew"] or 0.0
+    e = _fehler_umwandeln(swm.fmax_synchron, w["tpd"], w["tsu"], t_logik, t_skew, w["th"])
+    zeilen = [f"T_min = t_pd + t_Logik + t_setup + t_skew = {fmt(w['tpd'], 'zeit')} + {fmt(t_logik, 'zeit')} + "
+              f"{fmt(w['tsu'], 'zeit')} + {fmt(t_skew, 'zeit')} = {fmt(e['t_min'], 'zeit')}",
+              f"f_max = 1 / T_min = {fmt(e['f_max'], 'frequenz')}"]
+    if w["th"] is not None:
+        zeilen.append(f"Hold: t_pd + t_Logik − t_hold − t_skew = {fmt(e['hold_reserve'], 'zeit')}  "
+                      + ("✓ eingehalten" if e["hold_ok"] else "❌ verletzt (Signal ändert sich zu früh)"))
+    return zeilen
+
+
+def fmax_schaltwerk(master):
+    return FormelRechner(
+        master, "Höchste Taktfrequenz (synchron)", "Längster Weg von Flipflop zu Flipflop – mit Setup und Hold",
+        felder=[("tpd", "t_pd (Takt → Q)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 10"}),
+                ("tsu", "t_setup", "zeit", {"einheit": "ns", "platzhalter": "z.B. 5"}),
+                ("tlog", "t_Logik (längster Pfad, opt.)", "zeit", {"einheit": "ns", "platzhalter": "0"}),
+                ("tskew", "t_skew (Taktversatz, opt.)", "zeit", {"einheit": "ns", "platzhalter": "0"}),
+                ("th", "t_hold (opt.)", "zeit", {"einheit": "ns", "platzhalter": "optional"})],
+        berechnen=_fmax_schaltwerk, formel="f_max = 1 / (t_pd + t_Logik + t_setup + t_skew)")
+
+
+# =============================================================================
+# 16) FREQUENZTEILER
+# =============================================================================
+def _frequenzteiler(w):
+    if w["f"] is None or w["m"] is None:
+        raise RechnerFehler("Eingangsfrequenz und Teiler m eingeben")
+    e = _fehler_umwandeln(swm.frequenzteiler, w["f"], w["m"])
+    zeilen = [f"f_aus = f / m = {fmt(w['f'], 'frequenz')} / {int(w['m'])} = {fmt(e['f_aus'], 'frequenz')}"
+              f"   (Periode {fmt(e['periode'], 'zeit')})",
+              f"Flipflops: ⌈log2 {int(w['m'])}⌉ = {e['ff']}"]
+    if e["zweierpotenz"]:
+        zeilen.append("Zweierpotenz: einfacher Binärzähler, jede Stufe halbiert, Tastgrad 50 %")
+        zeilen.append("Stufen: " + ", ".join(fmt(f, "frequenz") for f in e["zwischen"][:8])
+                      + (" …" if len(e["zwischen"]) > 8 else ""))
+    else:
+        zeilen.append(f"Modulo-{int(w['m'])}-Zähler (synchron rücksetzen); Tastgrad am höchsten Bit ≠ 50 % – "
+                      "für 50 %: durch m/2 teilen und danach ein T-Flipflop (bei geradem m)")
+    return zeilen
+
+
+def frequenzteiler(master):
+    return FormelRechner(
+        master, "Frequenzteiler mit Flipflops", "Wie viele Flipflops braucht ein Teiler durch m?",
+        felder=[("f", "Eingangsfrequenz f", "frequenz", {"platzhalter": "z.B. 32768"}),
+                ("m", "Teiler m", "zahl", {"platzhalter": "z.B. 32768"})],
+        berechnen=_frequenzteiler, formel="f_aus = f / m     Flipflops = ⌈log2 m⌉")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -476,4 +568,10 @@ RECHNER = {
     "werkzeug_mux": MuxKarte,
     "werkzeug_decoder": DecoderKarte,
     "werkzeug_ausgang": AusgangKarte,
+    "zaehler_entwurf": zaehler_entwurf,
+    "fmax_schaltwerk": fmax_schaltwerk,
+    "frequenzteiler": frequenzteiler,
+    "werkzeug_flipflop": FlipflopKarte,
+    "werkzeug_zaehler": ZaehlerKarte,
+    "werkzeug_schieberegister": SchieberegisterKarte,
 }

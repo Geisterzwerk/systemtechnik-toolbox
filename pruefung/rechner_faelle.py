@@ -28,7 +28,7 @@ from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farb
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
 from schaltungen import netzteil_mathe as ntm
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
-from digitaltechnik import schaltnetze_mathe as snm
+from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm
 from schaltungen import verstaerker_mathe as vm
 
 
@@ -522,6 +522,21 @@ FAELLE = [
      "2.9 V / 3 mA;  300 ns / (0.847 · 200 pF);  0.847 · 4.7 kΩ · 200 pF"),
     ("open_drain_pullup", {"Ub": "5", "C": "1000", "modus": "Fast-Mode Plus (1 MHz, t_r ≤ 120 ns)"},
      ["❌ R_max < R_min"], "R_min = 230 Ω, R_max = 141.6 Ω"),
+    ("zaehler_entwurf", {"folge": "0 1 2 3 4 5 6 7 8 9"},
+     ["4 Flipflops (Q3 Q2 Q1 Q0), 10 Zustände", "D3 = Q3·¬Q0 + Q2·Q1·Q0", "D1 = ¬Q3·¬Q1·Q0 + Q1·¬Q0", "D0 = ¬Q0",
+      "Start in 10: 10 → 11 → 4  ✓"], "BCD-Zähler, Lehrbuchlösung"),
+    ("zaehler_entwurf", {"folge": "0 1 2 3 4 5 6 7 8 9", "ff": "JK-Flipflop"},
+     ["J3 = Q2·Q1·Q0", "K3 = Q0", "J1 = ¬Q3·Q0", "J0 = 1", "K0 = 1"], "JK-Ansteuertabelle"),
+    ("zaehler_entwurf", {"folge": "0 1 3 2"}, ["D1 = Q0", "D0 = ¬Q1"], "Gray-Zähler"),
+    ("zaehler_entwurf", {"folge": "0 1 1 2"}, fehler("nur einmal vorkommen"), "Zustand doppelt"),
+    ("fmax_schaltwerk", {"tpd": "10", "tsu": "5", "tlog": "8", "tskew": "1", "th": "3"},
+     ["= 24 ns", "f_max = 1 / T_min = 41.67 MHz", "= 14 ns  ✓ eingehalten"], "10 + 8 + 5 + 1;  10 + 8 − 3 − 1"),
+    ("fmax_schaltwerk", {"tpd": "2", "tsu": "1", "tskew": "3", "th": "1"}, ["❌ verletzt"], "2 − 1 − 3 < 0"),
+    ("frequenzteiler", {"f": "32768", "m": "32768"}, ["= 1 Hz", "⌈log2 32768⌉ = 15", "Tastgrad 50 %"],
+     "Uhrenquarz 2^15"),
+    ("frequenzteiler", {"f": "1M", "m": "10"}, ["= 100 kHz", "⌈log2 10⌉ = 4", "Tastgrad am höchsten Bit ≠ 50 %"],
+     "Dekadenteiler"),
+    ("frequenzteiler", {"f": "1M", "m": "2.5"}, fehler("ganze Zahl"), "kein ganzzahliger Teiler"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -765,6 +780,22 @@ FUNKTIONEN = [
     ("Pull-up I²C Standard-Mode 400 pF: R_max", lambda: snm.open_drain_pullup(3.3, 400e-12, t_r_max=1e-6)["r_max"],
      1e-6 / (0.8473 * 400e-12)),
     ("Buskonflikt 74HC bei 5 V: 50 mA", lambda: snm.buskonflikt(5)["i"], 0.05),
+
+    # ---- Digitaltechnik: Schaltwerke ----
+    ("JK: J = K = 1 toggelt", lambda: swm.naechster_zustand("JK-Flipflop", 0, {"J": 1, "K": 1})[0], 1),
+    ("JK: J = 0, K = 1 setzt zurück", lambda: swm.naechster_zustand("JK-Flipflop", 1, {"J": 0, "K": 1})[0], 0),
+    ("D-Latch hält bei C = 0", lambda: swm.naechster_zustand("D-Latch", 1, {"D": 0, "C": 0})[0], 1),
+    ("T-Flipflop toggelt", lambda: swm.naechster_zustand("T-Flipflop", 1, {"T": 1})[0], 0),
+    ("RS: S = R = 1 verboten", lambda: "verboten" in swm.naechster_zustand("RS-Latch", 0, {"S": 1, "R": 1})[1], True),
+    ("Modulo-10-Zähler", lambda: swm.zaehler_folge(4, 10), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]),
+    ("Abwärtszähler 3 Bit", lambda: swm.zaehler_folge(3, abwaerts=True)[:4], [0, 7, 6, 5]),
+    ("Ripple 0111 -> 1000 über Zwischenzustände", lambda: swm.ripple_uebergang(0b0111, 4), [7, 6, 4, 0, 8]),
+    ("Ripple Modulo 10: Glitch-Zustand 10", lambda: swm.ripple_uebergang(9, 4, 10), [9, 8, 10, 0]),
+    ("SIPO 1 0 1 1", lambda: swm.schieberegister(4, [1, 0, 1, 1])[-1], 0b1011),
+    ("Johnson 4 Bit: 8 Zustände", lambda: len(set(swm.schieberegister(4, [0] * 8, "Johnson"))), 8),
+    ("Ringzähler läuft im Kreis", lambda: swm.schieberegister(4, [0] * 4, "Ring", 1)[-1], 1),
+    ("Zählerentwurf: 7 Zustände -> 3 Flipflops", lambda: swm.zaehler_entwurf(list(range(7)))["bits"], 3),
+    ("f_max = 1 / 20 ns", lambda: swm.fmax_synchron(10e-9, 5e-9, 5e-9)["f_max"], 50e6),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),
