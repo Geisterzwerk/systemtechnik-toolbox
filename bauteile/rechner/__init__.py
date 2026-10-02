@@ -7,33 +7,40 @@
 #   kondensator_rechner.py   ... "Kondensator"   (inkl. interaktive Ladekurve)
 #   spule_rechner.py         ... "Spule"         (inkl. interaktive RL-Kurve)
 #   trafo_rechner.py         ... "Transformator" (inkl. Animation)
-#   dioden_rechner.py        ... "Diode"         (inkl. interaktive Kennlinie)
-#   transistor_rechner.py    ... "Transistor"    (inkl. Simulator)
-#   relais_rechner.py        ... "Relais"
+#   halbleiter_rechner.py    ... Diode, Z-Diode, LED, Transistor, MOSFET (Etappe 3)
+#   transistor_rechner.py    ... Zusatz-Rechner Bipolartransistor (PNP, Schaltzustand, PWM-Verluste)
+#   relais_rechner.py        ... "Relais" (inkl. Freilauf-Vergleich, auch auf Diode/MOSFET)
+#   messtechnik/rechner.py   ... Bereich Messtechnik (liegt im Ordner messtechnik/)
 #
 #   *_mathe.py               reine Rechenfunktionen (ohne GUI, einzeln testbar):
-#                            dioden_mathe.py, transistor_mathe.py, relais_mathe.py
-#
-# Auch interaktive Grafiken sind hier registriert und können im Wissen-Teil
-# über  "grafiken": ["trafo_animation"]  eingebunden werden.
+#                            transistor_mathe.py, relais_mathe.py
 #
 # Eine Themen-Datei (bauteile/inhalte/...) nennt ihre Rechner per ID:
 #     "rechner": ["ohm_leistung", "spannungsteiler"]
-# erstellen(master, "ohm_leistung") baut dann die passende Karte.
+# Auch interaktive Grafiken sind hier registriert und können im Wissen-Teil
+# über  "grafiken": ["trafo_animation"]  eingebunden werden.
 #
-# NEUE RECHNER-DATEI? Unten in _MODULE eintragen (nur der Dateiname ohne .py).
+# NEUE RECHNER-DATEI? Unten in _MODULE eintragen (voller Modulname).
 #
 # WARUM WERDEN DIE MODULE ERST SPÄTER GELADEN?
-#   Grafiken wie grafiken/dioden_kennlinie.py brauchen die Mathe aus diesem Paket
-#   (rechner/dioden_mathe.py), und dioden_rechner.py braucht umgekehrt die Grafik.
-#   Würden hier oben alle Rechner sofort importiert, entstünde ein Import-Kreis.
+#   Grafiken brauchen oft Bausteine aus diesem Paket (z.B. rechner/basis.py),
+#   und die Rechner brauchen umgekehrt die Grafiken. Würden hier oben alle
+#   Rechner sofort importiert, entstünde ein Import-Kreis.
 #   Deshalb: Registry erst beim ersten erstellen() aufbauen (registry()).
 # =============================================================================
 
 import importlib
 
-_MODULE = ["widerstand_rechner", "kondensator_rechner", "spule_rechner", "trafo_rechner",
-           "dioden_rechner", "transistor_rechner", "relais_rechner"]
+_MODULE = [
+    "bauteile.rechner.widerstand_rechner",     # -> rechner/widerstand_rechner.py
+    "bauteile.rechner.kondensator_rechner",    # -> rechner/kondensator_rechner.py
+    "bauteile.rechner.spule_rechner",          # -> rechner/spule_rechner.py
+    "bauteile.rechner.trafo_rechner",          # -> rechner/trafo_rechner.py
+    "bauteile.rechner.halbleiter_rechner",     # -> rechner/halbleiter_rechner.py
+    "bauteile.rechner.transistor_rechner",     # -> rechner/transistor_rechner.py
+    "bauteile.rechner.relais_rechner",         # -> rechner/relais_rechner.py
+    "messtechnik.rechner",                     # -> messtechnik/rechner.py
+]
 
 _REGISTRY = {}
 
@@ -42,7 +49,10 @@ def registry():
     """ID -> Fabrik-Funktion aller Rechner. Wird beim ersten Aufruf aufgebaut."""
     if not _REGISTRY:
         for name in _MODULE:
-            modul = importlib.import_module(f"bauteile.rechner.{name}")     # -> rechner/<name>.py
+            modul = importlib.import_module(name)
+            for rechner_id in modul.RECHNER:
+                if rechner_id in _REGISTRY:            # gleiche ID zweimal -> sofort sichtbar machen
+                    print(f"[rechner] WARNUNG: Rechner-ID '{rechner_id}' ist doppelt vergeben ({name})")
             _REGISTRY.update(modul.RECHNER)
     return _REGISTRY
 

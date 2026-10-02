@@ -1,16 +1,16 @@
 # =============================================================================
 # bauteile/rechner/transistor_rechner.py
 # -----------------------------------------------------------------------------
-# Alle RECHNER für die Seite "Transistor".
+# ZUSATZ-RECHNER für die Seite "Bipolartransistor" (ergänzen halbleiter_rechner.py).
 #
 # Unten im Dictionary RECHNER steht: ID -> Funktion, die die Rechner-Karte baut.
-# Die ID wird in bauteile/inhalte/03_transistoren/transistor.py unter "rechner" benutzt.
+# Die IDs werden in bauteile/inhalte/03_transistoren/bipolartransistor.py unter "rechner" benutzt.
 #
-#   transistor_simulator  INTERAKTIV: NPN schaltet eine Lampe (bauteile/grafiken/transistor_simulator.py)
-#   basiswiderstand       R_B für NPN- oder PNP-Schalter, mit Übersteuerung und Normwert
-#   arbeitspunkt          gesperrt, aktiv oder gesättigt?
-#   verlustleistung       Durchlass- und Schaltverluste (auch mit PWM)
-#   kuehlkoerper          Sperrschichttemperatur und nötiger Kühlkörper
+#   basiswiderstand       R_B für NPN- ODER PNP-Schalter, mit Übersteuerung und E12-Normwert
+#   arbeitspunkt          Schalter-Zustand prüfen: gesperrt, aktiv oder gesättigt?
+#   verlustleistung       Durchlass- und Schaltverluste (auch mit PWM-Tastgrad)
+#
+# Simulator ("transistor_simulator") und Kühlkörper ("kuehlkoerper") stehen in halbleiter_rechner.py.
 #
 # Die eigentliche Mathe steht in transistor_mathe.py (ohne GUI, einzeln testbar).
 # Hier werden nur Eingaben gelesen, Funktionen aufgerufen und Ergebnisse formatiert.
@@ -18,7 +18,6 @@
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py -> erstellen(master, "basiswiderstand")
 # =============================================================================
 
-from bauteile.grafiken.transistor_simulator import TransistorSimulator   # -> grafiken/transistor_simulator.py
 from bauteile.rechner import transistor_mathe as tm                      # -> rechner/transistor_mathe.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt     # -> rechner/basis.py
 
@@ -141,7 +140,7 @@ def _verlustleistung(w):
         zeilen.append("Für Schaltverluste f UND Schaltzeit eingeben")
     zeilen.append(f"GESAMT P_V = {fmt(v['p_gesamt'], 'leistung')}  → mit P_tot im Datenblatt vergleichen")
     if v["p_gesamt"] > 0.5:
-        zeilen.append("⚠ Über 0.5 W: TO-92 ist überfordert → Kühlkörper-Rechner benutzen")
+        zeilen.append("⚠ Über 0.5 W: TO-92 ist überfordert → Kühlkörper-Rechner benutzen (gleiche Seite)")
     return zeilen
 
 
@@ -159,54 +158,8 @@ def verlustleistung(master):
         formel="P_D = (U_CE · I_C + U_BE · I_B) · D     P_S ≈ ½ · U_B · I_C · (t_r + t_f) · f")
 
 
-# =============================================================================
-# 4) KÜHLKÖRPER / THERMIK
-# =============================================================================
-def _kw(wert):
-    return f"{wert:.3g} K/W"
-
-
-def _kuehlkoerper(w):
-    if w["P"] is None or w["Tu"] is None:
-        raise RechnerFehler("Verlustleistung und Umgebungstemperatur eingeben")
-    if w["Rja"] is None and w["Rjc"] is None:
-        raise RechnerFehler("R_thJA (ohne Kühlkörper) und/oder R_thJC (mit Kühlkörper) eingeben")
-    t_j_max = w["Tj"] if w["Tj"] is not None else 150.0
-    k = _fehler_umwandeln(tm.kuehlkoerper, w["P"], w["Tu"], t_j_max,
-                          r_th_jc=w["Rjc"], r_th_cs=w["Rcs"] if w["Rcs"] is not None else 0.5, r_th_ja=w["Rja"])
-    zeilen = [f"Erlaubt insgesamt: R_th ≤ ({fmt(t_j_max, 'temperatur')} − {fmt(w['Tu'], 'temperatur')}) / P "
-              f"= {_kw(k['r_th_gesamt_max'])}"]
-    if k["t_j_ohne"] is not None:
-        ok = k["t_j_ohne"] <= t_j_max
-        zeilen.append(f"Ohne Kühlkörper: T_j = {fmt(k['t_j_ohne'], 'temperatur')}  "
-                      + ("✅ ok" if ok else "⚠ ZU HEISS → Kühlkörper nötig"))
-    if k["r_th_sa_max"] is not None:
-        if k["r_th_sa_max"] <= 0:
-            zeilen.append("⚠ Kein Kühlkörper reicht – schon R_thJC + R_thCS ist zu gross. "
-                          "Verluste senken oder grösseres Gehäuse wählen.")
-        else:
-            zeilen.append(f"Mit Kühlkörper: R_thSA ≤ {_kw(k['r_th_sa_max'])}  (kleiner = grösserer Kühlkörper)")
-    zeilen.append("Reserve einplanen: im Dauerbetrieb T_j möglichst ≤ 100 … 125 °C")
-    return zeilen
-
-
-def kuehlkoerper(master):
-    return FormelRechner(
-        master, "Kühlkörper / Thermik", "Wärme fliesst wie Strom durch Widerstände in Reihe",
-        felder=[("P", "Verlustleistung P", "leistung"),
-                ("Tu", "Umgebung T_U", "temperatur", {"platzhalter": "z.B. 40 (im Gehäuse)"}),
-                ("Tj", "T_j,max", "temperatur", {"platzhalter": "leer = 150"}),
-                ("Rja", "R_thJA in K/W", "zahl", {"platzhalter": "ohne Kühlk., TO-92 ≈ 200"}),
-                ("Rjc", "R_thJC in K/W", "zahl", {"platzhalter": "Datenblatt, z.B. 10"}),
-                ("Rcs", "R_thCS in K/W", "zahl", {"platzhalter": "leer = 0.5 (Paste)"})],
-        berechnen=_kuehlkoerper,
-        formel="T_j = T_U + P · R_th     R_thSA ≤ (T_j,max − T_U) / P − R_thJC − R_thCS")
-
-
 RECHNER = {
-    "transistor_simulator": TransistorSimulator,
     "basiswiderstand": basiswiderstand,
     "arbeitspunkt": arbeitspunkt,
     "verlustleistung": verlustleistung,
-    "kuehlkoerper": kuehlkoerper,
 }

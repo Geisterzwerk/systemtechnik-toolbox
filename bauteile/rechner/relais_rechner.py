@@ -9,7 +9,7 @@
 #   relais_ansteuerung   Relais mit NPN vom µC schalten: Spulenstrom, R_B, Freilaufdiode
 #   relais_temperatur    Zieht das Relais auch mit heisser Spule noch an?
 #   freilauf             Diode vs. Diode + Z-Diode: Spannung am Transistor, Abfallzeit
-#                        (auch auf der Dioden-Seite benutzt)
+#                        (auch auf den Seiten Diode und MOSFET benutzt)
 #   kontakt_last         Einschaltstrom der Last (Lampe, Motor, Netzteil ...) abschätzen
 #
 # Die eigentliche Mathe steht in relais_mathe.py (ohne GUI, einzeln testbar).

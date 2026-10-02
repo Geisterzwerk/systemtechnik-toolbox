@@ -9,7 +9,6 @@
 #   schalter_dimensionieren()   Basiswiderstand für NPN/PNP als Schalter
 #   arbeitspunkt()              gesperrt / aktiv / gesättigt?
 #   verlustleistung()           Durchlass- + Schaltverluste
-#   kuehlkoerper()              Sperrschichttemperatur, nötiger Kühlkörper
 #
 # Vereinfachtes Modell (reicht für Schalteranwendungen und die Prüfung):
 #   U_BE ≈ 0.7 V        wenn der Transistor leitet (Si, wie eine Diode)
@@ -17,8 +16,8 @@
 #   I_C = B · I_B       NUR im aktiven Bereich (B = Stromverstärkung, auch β / hFE)
 #
 # WER RUFT DAS AUF?
-#   bauteile/rechner/transistor_rechner.py       (Rechner-Karten)
-#   bauteile/grafiken/transistor_simulator.py    (Simulator mit Schieberegler)
+#   bauteile/rechner/transistor_rechner.py       (Zusatz-Rechner Bipolartransistor)
+#   bauteile/rechner/relais_mathe.py             (Relais mit Transistor ansteuern)
 # =============================================================================
 
 from bauteile.rechner import normreihen      # -> rechner/normreihen.py
@@ -146,26 +145,3 @@ def verlustleistung(u_ce, i_c, i_b=0.0, u_be=U_BE, tastgrad=1.0, f=None, t_schal
     return {"p_durchlass": p_durchlass, "p_schalt": p_schalt,
             "p_gesamt": p_durchlass + (p_schalt or 0.0)}
 
-
-def kuehlkoerper(p, t_umgebung, t_j_max=150.0, r_th_jc=None, r_th_cs=0.5, r_th_ja=None):
-    """
-    Thermik: Wärme fliesst von der Sperrschicht (j) über das Gehäuse (c) und
-    den Kühlkörper (s) an die Umgebung (a). Wie Widerstände in Reihe:
-
-      T_j = T_U + P · R_th,gesamt
-      ohne Kühlkörper:  R_th = R_thJA                          (Datenblatt)
-      mit Kühlkörper:   R_th = R_thJC + R_thCS + R_thSA
-      nötiger Kühlkörper:  R_thSA ≤ (T_j,max − T_U) / P − R_thJC − R_thCS
-
-    Rückgabe: dict  t_j_ohne (oder None), r_th_sa_max (oder None), r_th_gesamt_max
-    """
-    if p <= 0:
-        raise ValueError("Verlustleistung muss grösser als 0 sein")
-    if t_j_max <= t_umgebung:
-        raise ValueError("T_j,max muss über der Umgebungstemperatur liegen")
-    r_th_gesamt_max = (t_j_max - t_umgebung) / p
-    return {
-        "r_th_gesamt_max": r_th_gesamt_max,
-        "t_j_ohne": t_umgebung + p * r_th_ja if r_th_ja is not None else None,
-        "r_th_sa_max": r_th_gesamt_max - r_th_jc - (r_th_cs or 0.0) if r_th_jc is not None else None,
-    }

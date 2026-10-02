@@ -171,7 +171,7 @@ Klassische Steuerungsschaltung (vor allem mit Schützen): Ein **Start-Taster** (
         "Mehr als 5 V auf ein 5-V-Relais aus Bequemlichkeit → Spule wird heiss, Isolation altert.",
         "Kein Pull-down an der Transistorbasis → Relais klappert beim Einschalten oder beim Flashen des µC.",
     ],
-    "siehe_auch": ["transistor", "diode", "spule", "widerstand"],
+    "siehe_auch": ["bipolartransistor", "mosfet", "diode", "spule", "widerstand"],
 
     # ---- 🧮 Rechner (IDs aus bauteile/rechner/relais_rechner.py) ----
     "rechner": ["relais_ansteuerung", "freilauf", "relais_temperatur", "kontakt_last"],
