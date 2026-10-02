@@ -7,7 +7,8 @@
 #   python -c "from bauteile.rechner.transistor_mathe import *; print(schalter_dimensionieren(12, 5, 100, r_last=120))"
 #
 #   schalter_dimensionieren()   Basiswiderstand für NPN/PNP als Schalter
-#   arbeitspunkt()              gesperrt / aktiv / gesättigt?
+#   schalter()                  NPN (Low-Side) / PNP (High-Side): gesperrt, aktiv, gesättigt?
+#   arbeitspunkt()              Kurzform für NPN
 #   verlustleistung()           Durchlass- + Schaltverluste
 #
 # Vereinfachtes Modell (reicht für Schalteranwendungen und die Prüfung):
@@ -97,32 +98,48 @@ def schalter_dimensionieren(u_b, u_steuer, b_min, ue=UE_STANDARD, r_last=None, i
     }
 
 
-def arbeitspunkt(u_b, r_last, u_steuer, r_b, b, u_be=U_BE, u_ce_sat=U_CE_SAT):
+def schalter(typ, u_b, r_last, u_steuer, r_b, b, u_be=U_BE, u_ce_sat=U_CE_SAT):
     """
-    In welchem Zustand ist ein NPN-Schalter (Last am Kollektor, Emitter an GND)?
+    Zustand eines Bipolartransistors als Schalter.
 
-    Rückgabe: dict  zustand = "gesperrt" | "aktiv" | "gesättigt"
-      gesperrt  : U_Steuer ≤ U_BE -> kein Strom, Schalter offen
-      aktiv     : I_C = B · I_B ist kleiner, als die Last erlauben würde
-                  -> Transistor ist nur "halb offen" und wird heiss
-      gesättigt : B · I_B wäre grösser, als die Last zulässt
-                  -> voll durchgeschaltet, U_CE ≈ U_CE,sat
+    typ "NPN"  LOW-SIDE:   +U_B ── Last ── C   E ── GND,   Basis über R_B an U_Steuer
+               Basisstrom fliesst, wenn U_Steuer > U_BE:   I_B = (U_Steuer − U_BE) / R_B
+    typ "PNP"  HIGH-SIDE:  +U_B ── E   C ── Last ── GND,   Basis über R_B an U_Steuer
+               Basisstrom fliesst, wenn die Basis mind. U_EB unter U_B liegt:
+               I_B = (U_B − U_EB − U_Steuer) / R_B   -> zum AUSschalten muss U_Steuer ≈ U_B sein!
+
+    Rückgabe: dict
+      zustand  "gesperrt" | "aktiv" | "gesättigt"
+      i_b, i_c, i_c_max   Basis-, Kollektor-, grösstmöglicher Laststrom
+      i_b_noetig          Basisstrom, der für Sättigung GERADE reicht (= I_C,max / B)
+      ue                  Übersteuerungsfaktor ü = B · I_B / I_C,max  (≥ 1 = gesättigt)
+      u_ce                |U_CE| am Transistor,  p_t  Verlust im Transistor,  u_last  Spannung an der Last
     """
+    if typ not in ("NPN", "PNP"):
+        raise ValueError(f"Unbekannter Typ: {typ}")
     if min(u_b, r_last, r_b, b) <= 0:
         raise ValueError("U_B, R_Last, R_B und B müssen grösser als 0 sein")
-    i_c_max = (u_b - u_ce_sat) / r_last             # mehr lässt die Last nicht zu
-    if u_steuer <= u_be:
-        return {"zustand": "gesperrt", "i_b": 0.0, "i_c": 0.0, "i_c_max": i_c_max,
-                "u_ce": u_b, "p_t": 0.0, "ue": 0.0}
-    i_b = (u_steuer - u_be) / r_b
+    i_c_max = max(0.0, (u_b - u_ce_sat) / r_last)            # mehr lässt die Last nicht zu
+    i_b_noetig = i_c_max / b
+    u_rb = (u_steuer - u_be) if typ == "NPN" else (u_b - u_be - u_steuer)
+    if u_rb <= 0:
+        return {"typ": typ, "zustand": "gesperrt", "i_b": 0.0, "i_c": 0.0, "i_c_max": i_c_max,
+                "i_b_noetig": i_b_noetig, "u_ce": u_b, "p_t": 0.0, "ue": 0.0, "u_last": 0.0}
+    i_b = u_rb / r_b
     i_c = b * i_b
-    ue = i_c / i_c_max                              # > 1 = übersteuert (gesättigt)
+    ue = i_c / i_c_max if i_c_max > 0 else float("inf")      # > 1 = übersteuert (gesättigt)
     if i_c >= i_c_max:
-        return {"zustand": "gesättigt", "i_b": i_b, "i_c": i_c_max, "i_c_max": i_c_max,
-                "u_ce": u_ce_sat, "p_t": u_ce_sat * i_c_max + u_be * i_b, "ue": ue}
-    u_ce = u_b - i_c * r_last
-    return {"zustand": "aktiv", "i_b": i_b, "i_c": i_c, "i_c_max": i_c_max,
-            "u_ce": u_ce, "p_t": u_ce * i_c + u_be * i_b, "ue": ue}
+        i_c, u_ce, zustand = i_c_max, u_ce_sat, "gesättigt"
+    else:
+        u_ce, zustand = u_b - i_c * r_last, "aktiv"
+    return {"typ": typ, "zustand": zustand, "i_b": i_b, "i_c": i_c, "i_c_max": i_c_max,
+            "i_b_noetig": i_b_noetig, "u_ce": u_ce, "p_t": u_ce * i_c + u_be * i_b, "ue": ue,
+            "u_last": i_c * r_last}
+
+
+def arbeitspunkt(u_b, r_last, u_steuer, r_b, b, u_be=U_BE, u_ce_sat=U_CE_SAT):
+    """NPN-Low-Side-Schalter (Kurzform von schalter("NPN", ...), benutzt vom Rechner "arbeitspunkt")."""
+    return schalter("NPN", u_b, r_last, u_steuer, r_b, b, u_be, u_ce_sat)
 
 
 def verlustleistung(u_ce, i_c, i_b=0.0, u_be=U_BE, tastgrad=1.0, f=None, t_schalt=None, u_sperr=None):

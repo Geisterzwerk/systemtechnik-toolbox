@@ -1,23 +1,21 @@
 # =============================================================================
 # bauteile/grafiken/halbleiter_grafiken.py
 # -----------------------------------------------------------------------------
-# INTERAKTIVE GRAFIKEN + SCHALTZEICHEN für Dioden und Transistoren (Etappe 3).
+# INTERAKTIVE GRAFIK für Dioden (Etappe 3) + gemeinsame Farben/Hilfsfunktionen.
 #
 #   DiodenKennlinie      Kennlinie I(U) + Arbeitsgerade von Ub und R.
 #                        Z-Dioden: VOLLE Kennlinie mit Durchlass (+0.7 V) und
 #                        Z-Durchbruch bei −Uz; Arbeitsgerade im 3. Quadranten.
 #                        Der Schnittpunkt ist der Arbeitspunkt ("Arbeiten mit
 #                        Kennlinien", vgl. Zastrow Kap. 2).
-#   TransistorSchalter   Transistor als Schalter: Ansteuerspannung am Regler,
-#                        Lampe leuchtet, Zustand (sperrt / aktiv / gesättigt)
-#                        wird farbig angezeigt. Umschaltbar NPN <-> N-MOSFET.
 #
+#   Transistor-/MOSFET-Schalter (getrennt): bauteile/grafiken/schalter_simulator.py
 #   Schaltzeichen (Diode, LED, Bipolartransistor, MOSFET): bauteile/grafiken/symbole.py
 #
 # REGEL gegen Hänger: Es wird nur gezeichnet, wenn sich die Grösse ändert
 # (core/layout.py ResponsiveCanvas) oder ein Regler bewegt wird. Keine
 # Endlosschleifen, keine Animation mit after().
-# Alle eigenen Namen beginnen mit dk_ / ts_ (keine Kollision mit tkinter).
+# Alle eigenen Namen beginnen mit dk_ (keine Kollision mit tkinter).
 # =============================================================================
 
 import math
@@ -26,7 +24,7 @@ import customtkinter as ctk
 
 import config                                                    # -> config.py
 from bauteile.einheiten import formatieren as fmt                # -> bauteile/einheiten.py
-from bauteile.rechner.basis import EinheitenEingabe, WertRegler  # -> bauteile/rechner/basis.py
+from bauteile.rechner.basis import WertRegler                    # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel       # -> core/layout.py
 
 BLAU = "#3B82F6"
@@ -333,238 +331,3 @@ class DiodenKennlinie(Karte):
         # ---- Hinweis Schaltungssicht ----
         c.create_text(links, unten, anchor="sw", fill=text, font=klein,
                       text="In der Schaltung ist die Kathode an Plus → gemessen wird +Uz")
-
-
-
-# =============================================================================
-# 2) TRANSISTOR ALS SCHALTER (NPN / N-MOSFET)
-# =============================================================================
-class TransistorSchalter(Karte):
-    """
-    Schaltung:    +Ub ── Lampe (RL) ── C/D ── Transistor ── E/S ── GND
-                  Ue ── Rb ── B/G   (beim MOSFET direkt ans Gate)
-    """
-
-    def __init__(self, master, modus="NPN"):
-        super().__init__(master, titel="🔌 Transistor als Schalter (interaktiv)",
-                         untertitel="Ansteuerspannung am Regler erhöhen und beobachten, wann die Lampe voll leuchtet")
-        b = self.body
-        self.ts_groesse = (0, 0)
-        self.ts_canvas = None
-        self.ts_ue = None                  # Regler existiert erst weiter unten
-        self.ts_felder = {}
-
-        self.ts_modus = ctk.CTkSegmentedButton(b, values=["NPN-Transistor", "N-MOSFET"],
-                                               command=lambda _v: self._ts_modus_geaendert())
-        self.ts_modus.set("N-MOSFET" if modus == "MOSFET" else "NPN-Transistor")
-        self.ts_modus.grid(row=0, column=0, sticky="w")
-
-        # ---- Parameter (Enter = übernehmen) ----
-        self.ts_param_rahmen = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        self.ts_param_rahmen.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self.ts_felder = {}
-
-        # ---- Zeichnung ----
-        self.ts_canvas = ResponsiveCanvas(b, self._ts_zeichnen, seitenverhaeltnis=0.55, max_hoehe=400)
-        self.ts_canvas.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-
-        # ---- Regler für die Ansteuerspannung ----
-        regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        regler.grid(row=3, column=0, sticky="ew", pady=(6, 0))
-        regler.grid_columnconfigure(0, weight=1)
-        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
-        self.ts_ue = WertRegler(regler, "Ansteuerspannung Ue", "spannung", 0, 12, 0, einheit="V", grenzen=(0, 30),
-                                schritte=240, bei_aenderung=self.ts_neu)
-        self.ts_ue.grid(row=0, column=0, sticky="ew")
-
-        self.ts_info = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"), text_color=config.FARBEN["akzent"])
-        self.ts_info.grid(row=4, column=0, sticky="ew", pady=(8, 0))
-        self._ts_modus_geaendert()
-
-    # -------------------------------------------------------------------------
-    def _ts_ist_mosfet(self):
-        return self.ts_modus.get() == "N-MOSFET"
-
-    def _ts_modus_geaendert(self):
-        for kind in self.ts_param_rahmen.winfo_children():
-            kind.destroy()
-        if self._ts_ist_mosfet():
-            felder = [("Ub", "Ub", "spannung", "V", "12"), ("RL", "Lampe RL", "widerstand", "Ω", "24"),
-                      ("Uth", "Ugs(th)", "spannung", "V", "2"), ("Rds", "Rds(on)", "widerstand", "mΩ", "50")]
-        else:
-            felder = [("Ub", "Ub", "spannung", "V", "12"), ("RL", "Lampe RL", "widerstand", "Ω", "24"),
-                      ("Rb", "Rb", "widerstand", "kΩ", "1"), ("beta", "β", "zahl", "", "100")]
-        self.ts_felder = {}
-        for spalte, (name, text, typ, einheit, start) in enumerate(felder):
-            ctk.CTkLabel(self.ts_param_rahmen, text=text, anchor="w").grid(
-                row=spalte // 2, column=(spalte % 2) * 2, sticky="w", padx=(0 if spalte % 2 == 0 else 14, 6), pady=2)
-            feld = EinheitenEingabe(self.ts_param_rahmen, typ, "", einheit or None, breite=70)
-            feld.ee_feld.insert(0, start)
-            feld.grid(row=spalte // 2, column=(spalte % 2) * 2 + 1, sticky="w", pady=2)
-            feld.bei_enter(self.ts_neu)
-            self.ts_felder[name] = feld
-        self.ts_neu()
-
-    def _ts_param(self, name, standard):
-        try:
-            wert = self.ts_felder[name].wert()
-        except (ValueError, KeyError):
-            return standard
-        return standard if wert is None or wert <= 0 else wert
-
-    # -------------------------------------------------------------------------
-    def ts_berechnen(self):
-        """Gibt ein Dictionary mit allen Werten des aktuellen Zustands zurück."""
-        ue = self.ts_ue.wert()
-        ub = self._ts_param("Ub", 12.0)
-        rl = self._ts_param("RL", 24.0)
-        i_max = ub / rl                                          # Strom bei ideal geschlossenem Schalter
-        if self._ts_ist_mosfet():
-            uth = self._ts_param("Uth", 2.0)
-            rds = self._ts_param("Rds", 0.05)
-            k = 0.5                                              # Steilheit in A/V² (vereinfacht)
-            if ue <= uth:
-                i, zustand = 0.0, "sperrt"
-            else:
-                i_kanal = k * (ue - uth) ** 2                    # was der Kanal bei dieser Ugs zulässt
-                i_voll = ub / (rl + rds)                         # was die Last zulässt
-                if i_kanal < i_voll * 0.97:
-                    i, zustand = i_kanal, "linear"
-                else:
-                    i, zustand = i_voll, "voll"
-            u_t = ub - i * rl
-            i_steuer = 0.0
-        else:
-            rb = self._ts_param("Rb", 1000.0)
-            beta = self._ts_param("beta", 100.0)
-            ib = max(0.0, (ue - 0.7) / rb)
-            ic_aktiv = beta * ib
-            ic_sat = max(0.0, (ub - 0.2) / rl)
-            if ib <= 0:
-                i, zustand = 0.0, "sperrt"
-            elif ic_aktiv < ic_sat:
-                i, zustand = ic_aktiv, "linear"
-            else:
-                i, zustand = ic_sat, "voll"
-            u_t = ub - i * rl
-            i_steuer = ib
-        return {"ue": ue, "ub": ub, "rl": rl, "i": i, "u_t": u_t, "zustand": zustand,
-                "p_t": u_t * i, "p_last": i * i * rl, "p_max": i_max * i_max * rl, "i_steuer": i_steuer}
-
-    def ts_neu(self):
-        if self.ts_ue is None:
-            return
-        z = self.ts_berechnen()
-        mosfet = self._ts_ist_mosfet()
-        texte = {
-            "sperrt": ("SPERRT – Schalter offen", "Ugs unter der Schwellspannung" if mosfet else "Ube < 0.7 V → kein Basisstrom"),
-            "linear": ("TEILWEISE LEITEND – Verstärkerbereich",
-                       "⚠ Transistor wird heiss! Als Schalter immer voll ein- oder ausschalten"),
-            "voll": ("VOLL DURCHGESCHALTET – Schalter zu",
-                     "Rds(on) klein → kaum Verlust" if mosfet else "Gesättigt: Uce ≈ 0.2 V, Ib reicht aus"),
-        }
-        titel, hinweis = texte[z["zustand"]]
-        zeilen = [f"{titel}",
-                  f"Strom {fmt(z['i'], 'strom')}   ·   Spannung am Transistor {fmt(z['u_t'], 'spannung')}   ·   "
-                  f"Verlust im Transistor {fmt(z['p_t'], 'leistung')}",
-                  hinweis]
-        if not mosfet and z["i_steuer"] > 0:
-            zeilen.append(f"Basisstrom Ib = {fmt(z['i_steuer'], 'strom')}  (muss die Ansteuerung liefern)")
-        if mosfet:
-            zeilen.append("Gate braucht (statisch) keinen Strom – nur beim Umladen der Gate-Kapazität")
-        self.ts_info.configure(text="\n".join(zeilen),
-                               text_color=("#B45309", ORANGE) if z["zustand"] == "linear" else config.FARBEN["akzent"])
-        w, h = self.ts_groesse
-        if self.ts_canvas is not None and w > 1:
-            self.ts_canvas.delete("all")
-            self._ts_zeichnen(self.ts_canvas, w, h)
-
-    # -------------------------------------------------------------------------
-    def _ts_zeichnen(self, c, w, h):
-        self.ts_groesse = (w, h)
-        if self.ts_ue is None:             # Canvas zeichnet evtl. schon beim Erstellen -> später nochmal
-            return
-        z = self.ts_berechnen()
-        text = _farbe(config.FARBEN["text"])
-        leise = _farbe(config.FARBEN["text_leise"])
-        bg = _farbe(config.FARBEN["flaeche"])
-        schrift = (config.SCHRIFT, max(8, int(h / 26)))
-        dick = max(2, int(h / 120))
-        farbe_zustand = {"sperrt": GRAU, "linear": ORANGE, "voll": GRUEN}[z["zustand"]]
-        strom_farbe = _mischen(leise, GRUEN, min(1.0, z["i"] / (z["ub"] / z["rl"])) if z["rl"] else 0)
-
-        xs = 0.55 * w                                 # senkrechte Hauptleitung
-        y_ub, y_gnd = 0.08 * h, 0.92 * h
-        y_lampe, y_t = 0.28 * h, 0.63 * h
-        r_lampe = min(0.09 * h, 0.06 * w)
-
-        # Versorgung und Masse
-        c.create_line(xs - 0.1 * w, y_ub, xs + 0.1 * w, y_ub, fill=ROT, width=dick + 1)
-        c.create_text(xs + 0.11 * w, y_ub, anchor="w", text=f"+Ub = {fmt(z['ub'], 'spannung', 3)}", fill=ROT, font=schrift)
-        c.create_line(xs - 0.06 * w, y_gnd, xs + 0.06 * w, y_gnd, fill=text, width=dick + 1)
-        c.create_line(xs - 0.035 * w, y_gnd + 0.025 * h, xs + 0.035 * w, y_gnd + 0.025 * h, fill=text, width=dick)
-        c.create_text(xs + 0.07 * w, y_gnd, anchor="w", text="GND", fill=leise, font=schrift)
-
-        # Leitungen (Farbe = Stromstärke)
-        c.create_line(xs, y_ub, xs, y_lampe - r_lampe, fill=strom_farbe, width=dick)
-        c.create_line(xs, y_lampe + r_lampe, xs, y_t - 0.1 * h, fill=strom_farbe, width=dick)
-        c.create_line(xs, y_t + 0.1 * h, xs, y_gnd, fill=strom_farbe, width=dick)
-
-        # Lampe: Helligkeit ~ Leistung
-        hell = z["p_last"] / z["p_max"] if z["p_max"] > 0 else 0
-        if hell > 0.03:
-            glow = r_lampe * (1.3 + 1.0 * hell)
-            c.create_oval(xs - glow, y_lampe - glow, xs + glow, y_lampe + glow, outline="",
-                          fill=_mischen(bg, "#FFD54A", 0.35 * hell))
-        c.create_oval(xs - r_lampe, y_lampe - r_lampe, xs + r_lampe, y_lampe + r_lampe, width=dick,
-                      outline=text, fill=_mischen(bg, "#FFE066", hell))
-        k = r_lampe * 0.6
-        c.create_line(xs - k, y_lampe - k, xs + k, y_lampe + k, fill=text, width=dick)
-        c.create_line(xs - k, y_lampe + k, xs + k, y_lampe - k, fill=text, width=dick)
-        c.create_text(xs + r_lampe + 8, y_lampe, anchor="w", fill=leise, font=schrift,
-                      text=f"Lampe {fmt(z['rl'], 'widerstand', 3)}  ·  {fmt(z['p_last'], 'leistung', 3)}")
-
-        # Transistor (Kreis in Zustandsfarbe)
-        rt = 0.1 * h
-        c.create_oval(xs - rt * 1.1, y_t - rt, xs + rt * 0.9, y_t + rt, outline=farbe_zustand, width=dick + 1)
-        mosfet = self._ts_ist_mosfet()
-        xb = xs - 0.45 * rt                           # Basis-/Gate-Linie
-        if mosfet:
-            c.create_line(xb - 0.25 * rt, y_t - 0.55 * rt, xb - 0.25 * rt, y_t + 0.55 * rt, fill=text, width=dick)
-            for dy in (-0.45, 0, 0.45):                # Kanal in drei Stücken (Anreicherungstyp)
-                c.create_line(xb, y_t + (dy - 0.15) * rt, xb, y_t + (dy + 0.15) * rt, fill=farbe_zustand, width=dick + 1)
-            c.create_line(xb, y_t - 0.45 * rt, xs, y_t - 0.45 * rt, xs, y_t - rt, fill=text, width=dick)
-            c.create_line(xb, y_t + 0.45 * rt, xs, y_t + 0.45 * rt, xs, y_t + rt, fill=text, width=dick)
-            c.create_line(xs, y_t, xb, y_t, fill=text, width=dick, arrow="last")
-            beschr_oben, beschr_unten, beschr_steuer = "D", "S", "G"
-        else:
-            c.create_line(xb, y_t - 0.55 * rt, xb, y_t + 0.55 * rt, fill=farbe_zustand, width=dick + 2)
-            c.create_line(xb, y_t - 0.25 * rt, xs, y_t - rt, fill=text, width=dick)
-            c.create_line(xb, y_t + 0.25 * rt, xs, y_t + rt, fill=text, width=dick, arrow="last")
-            beschr_oben, beschr_unten, beschr_steuer = "C", "E", "B"
-        c.create_text(xs + 6, y_t - rt - 6, anchor="w", text=beschr_oben, fill=leise, font=schrift)
-        c.create_text(xs + 6, y_t + rt + 8, anchor="w", text=beschr_unten, fill=leise, font=schrift)
-        c.create_text(xs + rt * 1.1, y_t, anchor="w", fill=farbe_zustand, font=(config.SCHRIFT, max(9, int(h / 22)), "bold"),
-                      text=f"{'U_DS' if mosfet else 'U_CE'} = {fmt(z['u_t'], 'spannung', 3)}")
-
-        # Ansteuerung links
-        x_ein = 0.08 * w
-        steuer_x = xb - (0.25 * rt if mosfet else 0)
-        c.create_line(x_ein, y_t, steuer_x, y_t, fill=BLAU, width=dick)
-        c.create_oval(x_ein - 5, y_t - 5, x_ein + 5, y_t + 5, fill=BLAU, outline="")
-        c.create_text(x_ein, y_t - 0.07 * h, text=f"Ue = {fmt(z['ue'], 'spannung', 3)}", fill=BLAU, font=schrift)
-        if not mosfet:
-            rx0, rx1 = 0.2 * w, 0.32 * w
-            c.create_rectangle(rx0, y_t - 0.035 * h, rx1, y_t + 0.035 * h, fill=bg, outline=BLAU, width=dick)
-            c.create_text((rx0 + rx1) / 2, y_t + 0.07 * h, text="Rb", fill=BLAU, font=schrift)
-        c.create_text(steuer_x - 8, y_t - 0.05 * h, anchor="e", text=beschr_steuer, fill=leise, font=schrift)
-
-        # Balken: Verlustleistung im Transistor
-        bx0, bx1, by = 0.72 * w, 0.95 * w, 0.84 * h
-        p_ref = max(z["p_max"] / 4, 1e-9)            # max. Verlust tritt bei halbem Strom auf (P_max/4)
-        anteil = min(1.0, z["p_t"] / p_ref)
-        c.create_text(bx0, by - 0.05 * h, anchor="w", text="Wärme im Transistor", fill=leise, font=schrift)
-        c.create_rectangle(bx0, by - 0.02 * h, bx1, by + 0.02 * h, outline=leise)
-        if anteil > 0.005:
-            c.create_rectangle(bx0, by - 0.02 * h, bx0 + (bx1 - bx0) * anteil, by + 0.02 * h, outline="",
-                               fill=_mischen(GRUEN, ROT, anteil))
