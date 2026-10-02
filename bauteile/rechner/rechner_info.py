@@ -29,12 +29,12 @@ KATEGORIEN = {
     "Bauteile":       ("🔧", "Kennwerte und Codes einzelner Bauteile"),
     "Schaltungen":    ("🔌", "Netzteile, Teiler, Filter, Schalten, Verstärker"),
     "Messtechnik":    ("📏", "Messunsicherheit, Messgeräte, Sensoren"),
-    "Digitaltechnik": ("💾", "AD-Wandler und Abtastung"),
+    "Digitaltechnik": ("💾", "Zahlensysteme, Bitmasken, Logikpegel, AD-Wandler"),
 }
 
 # Diese Bereiche enthalten Wissensseiten (Tab-Name -> Ordner mit den Seiten)
 WISSENS_BEREICHE = {"Bauteile": "bauteile/inhalte", "Messtechnik": "messtechnik/inhalte",
-                    "Schaltungen": "schaltungen/inhalte"}
+                    "Schaltungen": "schaltungen/inhalte", "Digitaltechnik": "digitaltechnik/inhalte"}
 
 RECHNER_INFO = {
     # =========================================================================
@@ -539,6 +539,51 @@ RECHNER_INFO = {
         "beschreibung": "Spulenstrom und Schaltknoten über zwei Perioden, Dauer- und Lückbetrieb.",
         "stichworte": ["Schaltregler", "Buck", "Boost", "Spulenstrom", "DCM"],
         "wissensseite": "schaltregler_buck_boost"},
+    "zahlensystem": {
+        "titel": "Zahlensysteme umrechnen", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "Dezimal, Binär, Hex, Oktal, BCD, Gray und ASCII – mit Präfix-Erkennung.",
+        "stichworte": ["Binär", "Hex", "Hexadezimal", "Oktal", "BCD", "Gray", "Umrechnen"],
+        "wissensseite": "zahlensysteme_codes"},
+    "werkzeug_zahlensystem": {
+        "titel": "Zahlensysteme (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "Bits anklicken oder Zahl eintippen – alle Schreibweisen gleichzeitig.",
+        "stichworte": ["Bits", "Binär", "Hex", "Umrechnen", "Werkzeug"],
+        "wissensseite": "zahlensysteme_codes"},
+    "zweierkomplement": {
+        "titel": "Zweierkomplement", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "Negative Zahl als Bitmuster mit Rechenweg – oder Bitmuster als signed lesen.",
+        "stichworte": ["Zweierkomplement", "signed", "negative Zahlen", "Vorzeichen"],
+        "wissensseite": "zweierkomplement_ueberlauf"},
+    "binaer_addieren": {
+        "titel": "Binär addieren mit Carry und Overflow", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "Summe mit n Bit, Carry-Flag (unsigned) und Overflow-Flag (signed).",
+        "stichworte": ["Addition", "Carry", "Overflow", "Überlauf", "Flags"],
+        "wissensseite": "zweierkomplement_ueberlauf"},
+    "werkzeug_zweierkomplement": {
+        "titel": "Zahlenkreis und Überlauf (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "4- und 8-Bit-Zahlenkreis mit signed/unsigned, Addition, C- und V-Grenze.",
+        "stichworte": ["Zahlenkreis", "Zweierkomplement", "Overflow", "Carry"],
+        "wissensseite": "zweierkomplement_ueberlauf"},
+    "bitmaske": {
+        "titel": "Bitmaske anwenden", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "Register-Bits setzen, löschen, umschalten, prüfen oder schieben – mit C-Ausdruck.",
+        "stichworte": ["Bitmaske", "Register", "AND", "OR", "XOR", "Shift"],
+        "wissensseite": "bitmasken"},
+    "werkzeug_bitmaske": {
+        "titel": "Bitmasken (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Zahlen & Codes",
+        "beschreibung": "Register und Maske anklicken, geänderte Bits sehen.",
+        "stichworte": ["Bitmaske", "Register", "Bit setzen", "Bit löschen"],
+        "wissensseite": "bitmasken"},
+    "logikpegel": {
+        "titel": "Logikpegel-Kompatibilität", "kategorie": "Digitaltechnik", "unterkategorie": "Logikpegel",
+        "beschreibung": "Störabstände S_H und S_L und Spannungsfestigkeit zwischen zwei Logikfamilien.",
+        "stichworte": ["Logikpegel", "Störabstand", "3.3 V", "5 V", "Pegelwandler", "74HCT"],
+        "wissensseite": "logikpegel_stoerabstand"},
+    "werkzeug_logikpegel": {
+        "titel": "Logikpegel und Störabstand (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Logikpegel",
+        "beschreibung": "Pegelbänder von Sender und Empfänger nebeneinander, Störabstände als Pfeile.",
+        "stichworte": ["Logikpegel", "Störabstand", "U_IH", "U_OH", "Werkzeug"],
+        "wissensseite": "logikpegel_stoerabstand"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",

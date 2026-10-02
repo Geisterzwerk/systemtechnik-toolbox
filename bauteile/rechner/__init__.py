@@ -42,6 +42,7 @@ _MODULE = [
     "bauteile.rechner.relais_rechner",         # -> rechner/relais_rechner.py
     "messtechnik.rechner",                     # -> messtechnik/rechner.py
     "schaltungen.rechner",                     # -> schaltungen/rechner.py
+    "digitaltechnik.rechner",                  # -> digitaltechnik/rechner.py
 ]
 
 _REGISTRY = {}

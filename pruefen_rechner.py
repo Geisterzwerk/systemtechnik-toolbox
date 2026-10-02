@@ -18,7 +18,7 @@
 #                        englische Python-Meldung (z.B. "math domain error").
 #   4) VERWEISE          Jede Rechner-ID in den Inhalten gibt es wirklich, keine ID doppelt,
 #                        RECHNER_INFO vollständig (Kategorie, Stichworte, Wissensseite),
-#                        Schaltungsseiten mit allen Pflichtabschnitten,
+#                        Schaltungs- und Digitaltechnik-Seiten mit allen Pflichtabschnitten,
 #                        jeder Rechner hat mindestens einen Beispielfall.
 #
 # Die Rechner werden OHNE Fenster geprüft: FormelRechner wird beim Laden durch
@@ -104,7 +104,7 @@ def texte_umwandeln(felder, texte):
                 raise KeyError(f"Option „{wert}“ gibt es im Feld {schluessel} nicht")
             werte[schluessel] = wert
         elif typ == "text":
-            werte[schluessel] = text
+            werte[schluessel] = text.strip() or None              # wie TextEingabe.wert(): leer -> None
         else:
             info = einheiten.EINHEITEN[typ]
             faktor = dict(info["stufen"])[opt.get("einheit") or info["standard"]]
@@ -292,6 +292,7 @@ def grenzfaelle_pruefen(formel, z):
 # 4) VERWEISE & METADATEN (RECHNER_INFO)
 # =============================================================================
 PFLICHT_ABSCHNITTE = ("Funktion", "Dimensionierung", "Betriebszustände", "Messpunkte", "Grenzfälle")
+PFLICHT_DIGITAL = ("Grundlagen", "Vorgehen", "Beispiel", "Praxis")      # digitaltechnik/inhalte/_vorlage.py
 PFLICHTFELDER = ("titel", "kategorie", "unterkategorie", "beschreibung", "stichworte", "wissensseite")
 
 
@@ -352,6 +353,15 @@ def verweise_pruefen(formel, andere, z):
             z.schlecht(f"Schaltung {thema.id}: es fehlt " + ", ".join(fehlt))
         else:
             z.gut(f"Schaltung {thema.id}: alle Pflichtabschnitte")
+    _, digital, _ = lader.alle_laden(os.path.join(basis_ordner, "digitaltechnik", "inhalte"))
+    for thema in digital.values():
+        text = thema.daten.get("erklaerung", "")
+        fehlt = [f"## {a}" for a in PFLICHT_DIGITAL if f"## {a}" not in text]
+        fehlt += [f"„{f}“" for f in ("fehler", "rechner") if not thema.daten.get(f)]
+        if fehlt:
+            z.schlecht(f"Digitaltechnik {thema.id}: es fehlt " + ", ".join(fehlt))
+        else:
+            z.gut(f"Digitaltechnik {thema.id}: alle Pflichtabschnitte")
 
     # ---- Rechner, die nirgends gezeigt werden / ohne Beispielfall ----
     benutzt = {rid for seite in seiten.values() for rid in seite["rechner"]}

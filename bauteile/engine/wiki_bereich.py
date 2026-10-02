@@ -16,7 +16,8 @@
 #   WikiBereich(parent, app, inhalte_pfad, titel="🔧 Bauteile",
 #               beschreibung="Wissen, Kniffe und Rechner", suchtext="z.B. Farbcode, LED")
 #
-# WER RUFT DAS AUF?  gui/bauteile_gui.py, gui/messtechnik_gui.py, gui/schaltungen_gui.py
+# WER RUFT DAS AUF?  gui/bauteile_gui.py, gui/messtechnik_gui.py, gui/schaltungen_gui.py,
+#                    gui/digitaltechnik_gui.py
 # BENUTZT:
 #   programmieren/engine/lader.py  -> lädt die Seiten (Ordner mit THEMA-Dateien)
 #   programmieren/engine/suche.py  -> Suche mit Tippfehler-Toleranz
