@@ -620,17 +620,17 @@ Der Schaltungen-Bereich soll keine reine Bildergalerie werden. Jede Schaltung be
 - Filter zweiter Ordnung ✅ (9a)
 - LC-Tiefpass ✅ (9a)
 - aktive Filter ✅ (9a, Sallen-Key)
-- Pt100 in 2-, 3- und 4-Leiter-Schaltung
-- NTC-Spannungsteiler
-- DMS-Brücken
-- Instrumentenverstärker an Messbrücke
-- Open Collector und Open Drain
-- Tri-State
-- Logikpegelwandler
-- Optokoppler
-- H-Brücke
-- MOSFET-Gate-Treiber
-- ADC-Eingangsschutz
+- Pt100 in 2-, 3- und 4-Leiter-Schaltung ✅ (9b)
+- NTC-Spannungsteiler ✅ (9b)
+- DMS-Brücken ✅ (9b)
+- Instrumentenverstärker an Messbrücke ✅ (9b)
+- Open Collector und Open Drain ✅ (8c, Digitaltechnik „Ausgangstypen“)
+- Tri-State ✅ (8c, Digitaltechnik „Ausgangstypen“)
+- Logikpegelwandler ✅ (9c)
+- Optokoppler ✅ (9c)
+- H-Brücke ✅ (9c)
+- MOSFET-Gate-Treiber ✅ (9c)
+- ADC-Eingangsschutz ✅ (9c)
 
 ## Priorität 3: Nice to have
 
@@ -957,7 +957,9 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 8e | Busse und Speicher: 4 Seiten (UART/RS-232/RS-485, SPI, I²C, Halbleiterspeicher); Werkzeuge UART-Rahmen (TTL + RS-232), SPI-Modi 0 … 3, I²C mit START/ACK/NACK/Sr/STOP, Speicherbaustein mit CS/OE/WE; Rechnung in `digitaltechnik/busse_mathe.py`; 6 Rechner (UART-Timing, Baudraten-Teiler, SPI, I²C-Dauer, Speicher-Organisation, Speicher erweitern) | ✅ erledigt |
 | 8f | Überarbeitung: Server-Beispiele mit allgemeinen Platzhaltern + Einstiegsseite „Erste Schritte“; alle Diagramme mit Skalenwerten und Einheiten, Skala nach Signal (kleine Spannungen/Ströme gut sichtbar): Trafo-Animation, Schaltungsdiagramme, Diodenkennlinien, Abtastung | ✅ erledigt |
 | 9a | Filter 2. Ordnung: 3 Seiten (LC-Tiefpass, Bandpass/Bandsperre mit Schwingkreis, aktive Sallen-Key-Filter); 3 interaktive Pläne mit Bode-Diagramm und umschaltbarer Sprungantwort (exakt gelöst, stabil für jedes Q); Rechnung in `schaltungen/filter_mathe.py`; 3 Rechner (LC-Tiefpass, Schwingkreis, Sallen-Key auslegen mit Normwerten); `STARTWERTE` je Variante jetzt in `SchaltungsKarte` | ✅ erledigt |
-| 9b+ | Priorität 2 weiter: Sensor-Messschaltungen (Pt100 2/3/4-Leiter, NTC-Teiler, DMS-Brücke + Instrumentenverstärker), dann Schnittstellen/Leistung (Pegelwandler, Optokoppler, H-Brücke, Gate-Treiber, ADC-Eingangsschutz) | offen |
+| 9b | Messschaltungen: 3 Seiten (Pt100 in 2/3/4-Leiter-Schaltung mit Eigenerwärmung, NTC-Spannungsteiler mit Linearisierung, DMS-Brücke + Instrumentenverstärker + ADC); 3 interaktive Pläne; Rechnung in `schaltungen/mess_mathe.py` (Pt-Kennlinie aus `messtechnik/rechner.py` wiederverwendet); 3 Rechner (Leitungsfehler, NTC-Teiler, DMS-Verstärker) | ✅ erledigt |
+| 9c | Schnittstellen & Leistung: 5 Seiten (Pegelwandler Teiler/MOSFET, Optokoppler, H-Brücke, Gate-Treiber mit Miller-Plateau, ADC-Eingang mit Abtastkondensator); 5 interaktive Pläne; Rechnung in `schaltungen/schnittstellen_mathe.py`; 6 Rechner (Pegelteiler, Optokoppler, H-Brücke, Gate-Schaltzeit, Bootstrap, ADC-Eingang) | ✅ erledigt |
+| 10+ | Priorität 3: 555-Timer, Multivibrator, Rechteck-/Dreieckgenerator, Watchdog, RS-485/CAN-Abschluss, Endstufen | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

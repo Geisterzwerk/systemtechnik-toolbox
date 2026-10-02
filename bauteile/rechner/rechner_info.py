@@ -769,6 +769,91 @@ RECHNER_INFO = {
         "beschreibung": "Tief- und Hochpass mit OPV: Q über die Bauteile einstellen, Bode und Sprungantwort.",
         "stichworte": ["Sallen-Key", "aktives Filter", "Bode", "Sprungantwort", "Simulation"],
         "wissensseite": "aktive_filter_sallen_key"},
+    "pt_leitung": {
+        "titel": "Pt100/Pt1000: Leitungsfehler", "kategorie": "Schaltungen", "unterkategorie": "Messschaltungen",
+        "beschreibung": "Leitungswiderstand aus Länge und Querschnitt, Fehler in K für 2-, 3- und 4-Leiter.",
+        "stichworte": ["Pt100", "Pt1000", "2-Leiter", "3-Leiter", "4-Leiter", "Leitungswiderstand"],
+        "wissensseite": "pt100_leiterschaltung"},
+    "ntc_teiler": {
+        "titel": "NTC-Spannungsteiler auslegen", "kategorie": "Schaltungen", "unterkategorie": "Messschaltungen",
+        "beschreibung": "Festwiderstand für beste Linearität, Spannungen und ADC-Stufen pro Kelvin.",
+        "stichworte": ["NTC", "Spannungsteiler", "Linearisierung", "Thermistor", "ADC"],
+        "wissensseite": "ntc_spannungsteiler"},
+    "dms_verstaerker": {
+        "titel": "DMS-Brücke: Instrumentenverstärker auslegen", "kategorie": "Schaltungen", "unterkategorie": "Messschaltungen",
+        "beschreibung": "Wägezelle (mV/V) auf den ADC-Bereich: Verstärkung, R_G mit Normwert, Gleichtakt.",
+        "stichworte": ["DMS", "Wägezelle", "Instrumentenverstärker", "INA128", "AD620", "R_G"],
+        "wissensseite": "dms_messverstaerker"},
+    "pegelteiler": {
+        "titel": "Pegelanpassung mit Spannungsteiler", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "R2 für 5 V → 3.3 V, Pegel und Anstiegszeit mit der Eingangskapazität.",
+        "stichworte": ["Pegelwandler", "Spannungsteiler", "5 V", "3.3 V", "Level Shifter"],
+        "wissensseite": "pegelwandler_schaltung"},
+    "optokoppler": {
+        "titel": "Optokoppler auslegen", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Vorwiderstand und Pull-up für sichere Sättigung mit CTR-Alterung.",
+        "stichworte": ["Optokoppler", "CTR", "galvanische Trennung", "Pull-up", "PC817"],
+        "wissensseite": "optokoppler_schaltung"},
+    "h_bruecke": {
+        "titel": "H-Brücke: Verluste", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Leit- und Schaltverluste der vier Schalter, Hinweis zur Totzeit.",
+        "stichworte": ["H-Brücke", "Motortreiber", "Verluste", "R_DS(on)", "Totzeit"],
+        "wissensseite": "h_bruecke_motor"},
+    "gate_schaltzeit": {
+        "titel": "MOSFET: Schaltzeit und Schaltverlust", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Dauer des Miller-Plateaus aus Q_gd und Gate-Strom, Schaltverlust.",
+        "stichworte": ["Gate-Treiber", "Miller-Plateau", "Q_gd", "Schaltverluste", "MOSFET"],
+        "wissensseite": "gate_treiber"},
+    "bootstrap": {
+        "titel": "Bootstrap-Kondensator", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Kondensator für einen High-Side-Gate-Treiber aus Gate-Ladung und Einschaltzeit.",
+        "stichworte": ["Bootstrap", "High-Side", "Gate-Treiber", "Halbbrücke", "IR2110"],
+        "wissensseite": "gate_treiber"},
+    "adc_eingang": {
+        "titel": "ADC-Eingang: Quellwiderstand und C_ext", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Grösster Quellwiderstand ohne C_ext, kleinstes C_ext für ½ LSB Genauigkeit.",
+        "stichworte": ["ADC", "Abtastkondensator", "Quellwiderstand", "Sample and Hold", "C_ext"],
+        "wissensseite": "adc_eingang_beschaltung"},
+    "schaltung_pt_leitung": {
+        "titel": "Pt100 in 2/3/4-Leiter-Schaltung (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Messschaltungen",
+        "beschreibung": "Leitungsfehler und Eigenerwärmung je Schaltung mit Diagrammen.",
+        "stichworte": ["Pt100", "Leiterschaltung", "Eigenerwärmung", "Simulation"],
+        "wissensseite": "pt100_leiterschaltung"},
+    "schaltung_ntc_teiler": {
+        "titel": "NTC-Spannungsteiler (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Messschaltungen",
+        "beschreibung": "U am ADC und ADC-Stufen pro Kelvin über der Temperatur.",
+        "stichworte": ["NTC", "Spannungsteiler", "ADC", "Simulation"],
+        "wissensseite": "ntc_spannungsteiler"},
+    "schaltung_dms_kette": {
+        "titel": "DMS-Brücke + Verstärker (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Messschaltungen",
+        "beschreibung": "Viertel-/Halb-/Vollbrücke, Instrumentenverstärker mit R_G und REF, Aussteuergrenzen.",
+        "stichworte": ["DMS", "Brücke", "Instrumentenverstärker", "Simulation"],
+        "wissensseite": "dms_messverstaerker"},
+    "schaltung_pegelwandler": {
+        "titel": "Pegelwandler (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Teiler und MOSFET-Wandler: Pegel auf beiden Seiten, Anstieg über die Pull-ups.",
+        "stichworte": ["Pegelwandler", "BSS138", "I²C", "Simulation"],
+        "wissensseite": "pegelwandler_schaltung"},
+    "schaltung_optokoppler": {
+        "titel": "Optokoppler (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "LED-Strom, CTR und Pull-up: U_aus über I_F mit Sättigungsknick.",
+        "stichworte": ["Optokoppler", "CTR", "Simulation"],
+        "wissensseite": "optokoppler_schaltung"},
+    "schaltung_h_bruecke": {
+        "titel": "H-Brücke (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Vorwärts, rückwärts, bremsen, Freilauf und Brückenkurzschluss mit Strompfad.",
+        "stichworte": ["H-Brücke", "Motor", "Shoot-through", "Simulation"],
+        "wissensseite": "h_bruecke_motor"},
+    "schaltung_gate_treiber": {
+        "titel": "Gate-Treiber und Miller-Plateau (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "u_GS und u_DS beim Einschalten, Treiber-IC gegen µC-Pin.",
+        "stichworte": ["Gate-Treiber", "Miller-Plateau", "Simulation"],
+        "wissensseite": "gate_treiber"},
+    "schaltung_adc_eingang": {
+        "titel": "ADC-Eingang (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Abtastkondensator laden ohne/mit C_ext, Restfehler in LSB.",
+        "stichworte": ["ADC", "Abtastkondensator", "Simulation"],
+        "wissensseite": "adc_eingang_beschaltung"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",

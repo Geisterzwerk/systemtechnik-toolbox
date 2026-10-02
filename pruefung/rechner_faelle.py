@@ -26,7 +26,8 @@ from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as 
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
-from schaltungen import netzteil_mathe as ntm, filter_mathe as fim
+from schaltungen import netzteil_mathe as ntm, filter_mathe as fim, mess_mathe as msm
+from schaltungen import schnittstellen_mathe as snt
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
 from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm, busse_mathe as bm
 from schaltungen import verstaerker_mathe as vm
@@ -595,6 +596,29 @@ FAELLE = [
      ["= 13.78 kΩ → Normwert 13 kΩ", "= 18.38 kΩ → Normwert 18 kΩ"], "Hochpass gleiche C"),
     ("sallen_key", {"art": "Hochpass", "typ": "Bessel (Q = 0.577)", "f0": "100"}, fehler("Kapazität C"),
      "Hochpass ohne C"),
+    ("pt_leitung", {"typ": "Pt100", "l": "20", "a": "0.25"},
+     ["= 1.424 Ω", "2-Leiter: Fehler +7.35 K", "3-Leiter: Fehler +0.00 K", "4-Leiter: Fehler +0.00 K"],
+     "2 · 1.424 Ω / 0.385 Ω/K"),
+    ("pt_leitung", {"typ": "Pt1000", "l": "20", "a": "0.25"}, ["2-Leiter: Fehler +0.73 K"], "Pt1000: 10× kleiner"),
+    ("ntc_teiler", {"R25": "10", "B": "3950", "T1": "0", "T2": "100"},
+     ["= 2.809 kΩ → E24: 2.7 kΩ", "50 °C: R_NTC = 3.588 kΩ"], "Drei-Punkt-Linearisierung"),
+    ("ntc_teiler", {"R25": "10", "B": "3950", "T1": "50", "T2": "20"}, fehler("t2 muss grösser"), "Bereich verkehrt"),
+    ("dms_verstaerker", {"kw": "2", "Ue": "5", "Ua": "2", "ina": "INA128 / INA129 (50 kΩ)"},
+     ["U_d = 2 mV/V · 5 V = 10 mV", "G = U_a / U_d = 2 V / 10 mV = 200", "= 251.3 Ω → E24 (nächst grösser) 270 Ω"],
+     "Wägezelle 2 mV/V"),
+    ("pegelteiler", {"Uh": "5", "Uz": "3.3", "R1": "10"}, ["= 19.41 kΩ → E24: 20 kΩ", "U = 3.333 V"], "5 V → 3.3 V"),
+    ("pegelteiler", {"Uh": "3.3", "Uz": "5", "R1": "10"}, fehler("zwischen 0 und"), "Teiler kann nicht hochsetzen"),
+    ("optokoppler", {"Ue": "24", "If": "5", "ctr": "50", "Ub": "3.3"},
+     ["= 4.56 kΩ → E24 4.7 kΩ", "50 % · 0.5 = 25 %", "R_L ≥ (U_B − 0.3 V) / I_C = 2.4 kΩ"], "24-V-Eingang"),
+    ("h_bruecke", {"Ub": "24", "I": "5", "Rds": "20"}, ["= 1 W", "= 240 mW", "Summe ≈ 1.24 W"], "5 A, 20 mΩ, 20 kHz"),
+    ("gate_schaltzeit", {"Udr": "12", "Rg": "10", "Qgd": "25", "Upl": "4.5", "Uds": "24", "Id": "5", "f": "20k"},
+     ["= 750 mA", "= 33.33 ns", "= 80 mW"], "Plateau 25 nC / 0.75 A"),
+    ("gate_schaltzeit", {"Udr": "3.3", "Rg": "10", "Qgd": "25", "Upl": "4.5"}, fehler("nicht über dem Plateau"),
+     "µC-Pin am Standard-MOSFET"),
+    ("bootstrap", {"Qg": "70", "Udd": "12"}, ["= 80 nC", "mit Faktor 2: 320 nF → 330 nF", "= 11.4 V"], "Bootstrap"),
+    ("adc_eingang", {"ts": "1", "cs": "10", "N": "12"}, ["= 9.01 Zeitkonstanten", "= 10.1 kΩ", "= 81.91 nF"],
+     "12-Bit, 10 pF, 1 µs"),
+    ("adc_eingang", {"ts": "1", "cs": "10", "N": "12.5"}, fehler("ganze Zahl"), "halbe Bits"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -885,6 +909,26 @@ FUNKTIONEN = [
     ("Bandpass: Bandbreite f0 / Q", lambda: fim.kennwerte("Bandpass", 1e3, 10)["bandbreite"], 100.0),
     ("Sallen-Key TP: C1 = 22 n, C2 = 11 n -> Q = 0.707", lambda: fim.sallen_key("Tiefpass", 1e4, 1e4, 22e-9, 11e-9)["q"], 0.70711),
     ("LC-Tiefpass: Q = R_L / Z0", lambda: fim.lc_tiefpass(1e-3, 1e-6, 31.623)["q"], 1.0),
+
+    # ---- Messschaltungen ----
+    ("Pt100 2-Leiter, 1 Ω je Ader: +5.16 K", lambda: msm.pt_leitung("2-Leiter", 25, 100, 1.0, 0, 1e-9)["fehler_leitung"], 5.1594),
+    ("Pt100 4-Leiter: kein Leitungsfehler", lambda: round(msm.pt_leitung("4-Leiter", 25, 100, 5.0, 0, 1e-9)["fehler_leitung"], 9), 0.0),
+    ("Pt100 Eigenerwärmung 1 mA, 0.4 K/mW", lambda: msm.pt_leitung("4-Leiter", 25, 100, 0, 0, 1e-3, 0.4)["fehler_eigen"], 0.043894),
+    ("Pt100 zu grosser Messstrom -> Meldung", lambda: msm.pt_leitung("4-Leiter", 25, 100, 0, 0, 1.0, 0.4), wirft(ValueError)),
+    ("NTC 10k/3950 bei 25 °C halbiert", lambda: msm.ntc_teiler(25, 10e3, 3950, 10e3, 3.3)["u_aus"], 1.65),
+    ("Viertelbrücke: U_e·x/(4+2x)", lambda: msm.bruecke_dms("Viertelbrücke", 5, 1e-3)["u_d"], 0.0024975),
+    ("Vollbrücke 2 mV/V bei x = 0.2 %", lambda: msm.bruecke_dms("Vollbrücke", 5, 1e-3)["mv_v"], 2.0),
+    ("INA128: G = 1 + 50k/R_G", lambda: msm.inamp_verstaerkung(r_g=50e3 / 99), 100.0),
+
+    # ---- Schnittstellen und Leistung ----
+    ("MOSFET-Pegelwandler: B zieht LOW -> A fast 0", lambda: snt.pegel_mosfet("B zieht LOW", 3.3, 5, 10e3, 10e3, 1e-10)["a"] < 0.01, True),
+    ("MOSFET-Pegelwandler: 1.8 V bei U_th 2 V leitet nicht", lambda: snt.pegel_mosfet("A zieht LOW", 1.8, 5, 1e4, 1e4, 1e-10, 2.0)["leitet"], False),
+    ("Optokoppler: CTR 20 % reicht nicht für 1 kΩ", lambda: snt.optokoppler(5, 1.2, 1e3, 0.2, 5, 1e3)["gesaettigt"], False),
+    ("H-Brücke vorwärts: S1 + S4", lambda: sorted(snt.h_bruecke("vorwärts", 12, 2)["an"]), ["S1", "S4"]),
+    ("H-Brücke Kurzschluss: U_B / (2·R_DS)", lambda: snt.h_bruecke("⚠ Kurzschluss", 12, 2, 0.02)["i_kurzschluss"], 300.0),
+    ("Gate: Plateaudauer Q_gd·R_G/(U−U_pl)", lambda: snt.gate_ladung(10, 10, 15e-9, 21e-9, 71e-9, 5.5)["t2"], 4.6667e-8),
+    ("ADC ohne C_ext, 10 kΩ: 0.42 LSB", lambda: snt.adc_abtastung(3.0, 10e3, 0, 1e3, 10e-12, 1e-6, 12, 3.3)["fehler_lsb"], 0.4196),
+    ("ADC mit 10 nF: 3.7 LSB (zu klein)", lambda: snt.adc_abtastung(3.0, 10e3, 10e-9, 1e3, 10e-12, 1e-6, 12, 3.3)["fehler_lsb"], 3.6837),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

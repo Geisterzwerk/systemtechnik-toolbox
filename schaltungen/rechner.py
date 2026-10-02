@@ -29,6 +29,15 @@
 #   lc_filter            LC-Tiefpass mit Last: f0, Q, Überhöhung, −3-dB-Frequenz, Dämpfung bei f
 #   schwingkreis_filter  RLC-Reihenkreis als Bandpass / Bandsperre: f0, Q, Bandbreite, Grenzfrequenzen
 #   sallen_key           aktives Filter 2. Ordnung für f0 und Charakteristik auslegen (mit Normwerten)
+#   pt_leitung           Pt100/Pt1000: Leitungswiderstand aus Länge/Querschnitt, Fehler in 2/3/4-Leiter-Schaltung
+#   ntc_teiler           NTC-Spannungsteiler: Festwiderstand für beste Linearität, Spannungen, Auflösung
+#   dms_verstaerker      Wägezelle/DMS-Brücke: Verstärkung und R_G für den gewünschten Ausgangsbereich
+#   pegelteiler          5 V -> 3.3 V: R2 für einen Teiler, Pegel und Anstiegszeit
+#   optokoppler          Vorwiderstand und Pull-up für sichere Sättigung (mit CTR-Alterung)
+#   h_bruecke            H-Brücke: Leit- und Schaltverluste, mittlere Motorspannung
+#   gate_schaltzeit      Miller-Plateau: Schaltzeit und Schaltverlust aus Q_gd und Gate-Strom
+#   bootstrap            Bootstrap-Kondensator eines High-Side-Treibers
+#   adc_eingang          grösster Quellwiderstand bzw. kleinstes C_ext für ½ LSB Genauigkeit
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
@@ -37,7 +46,9 @@
 # Die Grenzfrequenz allein rechnet schon "rc_filter" (bauteile/rechner/kondensator_rechner.py).
 #
 # Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py, rc_mathe.py,
-#           opv_mathe.py, netzteil_mathe.py, filter_mathe.py (ohne GUI, testbar)
+#           opv_mathe.py, netzteil_mathe.py, filter_mathe.py, mess_mathe.py, schnittstellen_mathe.py (ohne GUI)
+# Pt100, NTC, Brücke und DMS selbst rechnet messtechnik/rechner.py ("pt100", "ntc", "bruecke", "dms"),
+# die Gate-Ladung allein "mosfet_gate" (bauteile/rechner/transistor_rechner.py) - hier nur die Schaltungen drumherum.
 # Die Resonanzfrequenz allein rechnet schon "lc_resonanz" (bauteile/rechner/spule_rechner.py).
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
@@ -48,6 +59,8 @@ from bauteile.rechner import normreihen                                         
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import filter_mathe as fm                                       # -> schaltungen/filter_mathe.py
+from schaltungen import mess_mathe as mm                                         # -> schaltungen/mess_mathe.py
+from schaltungen import schnittstellen_mathe as sm                               # -> schaltungen/schnittstellen_mathe.py
 from schaltungen import netzteil_mathe as ntm                                    # -> schaltungen/netzteil_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
 from schaltungen import opv_mathe as om                                          # -> schaltungen/opv_mathe.py
@@ -55,6 +68,10 @@ from schaltungen import rc_mathe as rm                                          
 from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
 from schaltungen.grafiken_filter import (LcFilterSchaltung, SallenKeySchaltung,  # -> schaltungen/grafiken_filter.py
                                          SchwingkreisSchaltung)
+from schaltungen.grafiken_mess import (DmsKetteSchaltung, NtcTeilerSchaltung,    # -> schaltungen/grafiken_mess.py
+                                       PtLeitungSchaltung)
+from schaltungen.grafiken_schnittstellen import (AdcEingangSchaltung, GateTreiberSchaltung,  # -> grafiken_schnittstellen.py
+                                                 HBrueckeSchaltung, OptokopplerSchaltung, PegelwandlerSchaltung)
 from schaltungen.grafiken_netzteil import (LinearreglerSchaltung, QuelleSchaltung,  # -> schaltungen/grafiken_netzteil.py
                                            SchaltreglerSchaltung, StrombegrenzungSchaltung,
                                            StromquelleOpvSchaltung, VirtuelleMasseSchaltung)
@@ -1076,6 +1093,265 @@ def sallen_key(master):
 
 
 # =============================================================================
+# SENSOR-MESSSCHALTUNGEN
+# =============================================================================
+RHO_CU = 0.0178                                   # Ω·mm²/m, Kupfer bei 20 °C
+
+
+def _pt_leitung(w):
+    for name in ("l", "a"):
+        if w[name] is None:
+            raise RechnerFehler("Leitungslänge (einfach) und Querschnitt eingeben")
+    if w["a"] <= 0 or w["l"] < 0:
+        raise RechnerFehler("Länge ≥ 0 und Querschnitt > 0 eingeben")
+    r_l = RHO_CU * w["l"] / w["a"]
+    t = w["T"] if w["T"] is not None else 25.0
+    r0 = 1000.0 if w["typ"].startswith("Pt1000") else 100.0
+    zeilen = [f"R_L je Ader = ρ · l / A = 0.0178 Ω·mm²/m · {w['l']:g} m / {w['a']:g} mm² = {fmt(r_l, 'widerstand')}"]
+    for art in mm.PT_ARTEN:
+        e = _fehler_umwandeln(mm.pt_leitung, art, t, r0, r_l, 0.0, 1e-9)
+        fehler = f"{e['fehler_leitung'] + 0.0:+.2f}".replace("-", "−").replace("−0.00", "+0.00")
+        zeilen.append(f"  {art}: Fehler {fehler} K" + ("   (gleich lange Adern)" if art == "3-Leiter" else ""))
+    zeilen.append(f"{w['typ'].split()[0]}: {r0 * 0.00385:g} Ω/K – beim Pt1000 ist derselbe Leitungsfehler 10× kleiner")
+    return zeilen
+
+
+def pt_leitung(master):
+    return FormelRechner(
+        master, "Pt100/Pt1000: Leitungsfehler", "Wie viel Kelvin kostet die Zuleitung in 2-, 3- und 4-Leiter-Schaltung?",
+        felder=[("typ", "Sensor", "auswahl", {"werte": ["Pt100", "Pt1000"]}),
+                ("l", "Leitungslänge (einfach) in m", "zahl", {"platzhalter": "z.B. 20"}),
+                ("a", "Querschnitt in mm²", "zahl", {"platzhalter": "z.B. 0.25"}),
+                ("T", "Temperatur (opt.)", "temperatur", {"platzhalter": "25"})],
+        berechnen=_pt_leitung, formel="R_L = ρ · l / A     2-Leiter: Fehler = 2·R_L / (0.385 Ω/K)  (Pt100)")
+
+
+def _ntc_teiler(w):
+    for name in ("R25", "B", "T1", "T2"):
+        if w[name] is None:
+            raise RechnerFehler("R25, B-Wert und den Temperaturbereich T1 … T2 eingeben")
+    r_fix = _fehler_umwandeln(mm.ntc_linear_r, w["R25"], w["B"], w["T1"], w["T2"])
+    norm = normreihen.naechste_werte(r_fix, "E24")[2]
+    u_b = w["Ub"] if w["Ub"] is not None else 3.3
+    zeilen = [f"R_fix = (R1·R2 + R2·R3 − 2·R1·R3) / (R1 + R3 − 2·R2) = {fmt(r_fix, 'widerstand')} → E24: "
+              f"{fmt(norm, 'widerstand')}"]
+    for t in (w["T1"], (w["T1"] + w["T2"]) / 2, w["T2"]):
+        e = _fehler_umwandeln(mm.ntc_teiler, t, w["R25"], w["B"], norm, u_b, True, 12)
+        zeilen.append(f"  {t:g} °C: R_NTC = {fmt(e['r_ntc'], 'widerstand')}, U = {fmt(e['u_aus'], 'spannung')}, "
+                      f"{abs(e['steigung']) * 1e3:.1f} mV/K, {e['stufen_pro_k']:.1f} Stufen/K (12 Bit)")
+    zeilen.append("NTC unten (gegen GND), R_fix oben an U_B – U_ref des ADC = U_B (ratiometrisch)")
+    return zeilen
+
+
+def ntc_teiler(master):
+    return FormelRechner(
+        master, "NTC-Spannungsteiler auslegen", "Festwiderstand, der den Teiler im Messbereich am besten linearisiert",
+        felder=[("R25", "NTC R25", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("B", "B-Wert", "zahl", {"platzhalter": "z.B. 3950"}),
+                ("T1", "Bereich von T1", "temperatur", {"platzhalter": "z.B. 0"}),
+                ("T2", "bis T2", "temperatur", {"platzhalter": "z.B. 100"}),
+                ("Ub", "Versorgung U_B (opt.)", "spannung", {"platzhalter": "3.3"})],
+        berechnen=_ntc_teiler, formel="R_fix = (R1R2 + R2R3 − 2R1R3) / (R1 + R3 − 2R2),  R1/R2/R3 bei T1, Mitte, T2")
+
+
+def _dms_verstaerker(w):
+    for name in ("kw", "Ue", "Ua"):
+        if w[name] is None:
+            raise RechnerFehler("Nennkennwert (mV/V), Speisespannung und gewünschte Ausgangsspanne eingeben")
+    if w["kw"] <= 0 or w["Ue"] <= 0 or w["Ua"] <= 0:
+        raise RechnerFehler("Alle Werte müssen grösser als 0 sein")
+    u_d = w["kw"] * 1e-3 * w["Ue"]
+    g = w["Ua"] / u_d
+    r_intern = mm.INAMPS[w["ina"]]
+    if g <= 1:
+        raise RechnerFehler(f"Signal {fmt(u_d, 'spannung')} braucht keine Verstärkung > 1")
+    r_g = mm.inamp_verstaerkung(g=g, r_intern=r_intern)
+    norm = normreihen.naechste_werte(r_g, "E24")[1]               # nächst grösserer -> G etwas kleiner, keine Übersteuerung
+    g_ist = 1 + r_intern / norm
+    zeilen = [f"Brückensignal bei Nennlast: U_d = {w['kw']:g} mV/V · {fmt(w['Ue'], 'spannung')} = {fmt(u_d, 'spannung')}",
+              f"G = U_a / U_d = {fmt(w['Ua'], 'spannung')} / {fmt(u_d, 'spannung')} = {g:.4g}",
+              f"R_G = {fmt(r_intern, 'widerstand')} / (G − 1) = {fmt(r_g, 'widerstand')} → E24 (nächst grösser) "
+              f"{fmt(norm, 'widerstand')} → G = {g_ist:.4g}, U_a = {fmt(g_ist * u_d, 'spannung')}",
+              "REF: 0 V nur für Zug/Last in eine Richtung, sonst Mitte des ADC-Bereichs (z.B. U_B/2 über Puffer)",
+              f"Gleichtaktspannung U_e/2 = {fmt(w['Ue'] / 2, 'spannung')} muss im Eingangsbereich des Verstärkers liegen"]
+    return zeilen
+
+
+def dms_verstaerker(master):
+    return FormelRechner(
+        master, "DMS-Brücke: Instrumentenverstärker auslegen", "Wägezelle mit Nennkennwert in mV/V auf den ADC-Bereich",
+        felder=[("kw", "Nennkennwert (mV/V)", "zahl", {"platzhalter": "z.B. 2"}),
+                ("Ue", "Brückenspeisung U_e", "spannung", {"platzhalter": "z.B. 5"}),
+                ("Ua", "gewünschte Ausgangsspanne", "spannung", {"platzhalter": "z.B. 2"}),
+                ("ina", "Instrumentenverstärker", "auswahl", {"werte": list(mm.INAMPS)})],
+        berechnen=_dms_verstaerker, formel="U_d = Kennwert · U_e     G = U_a / U_d     R_G = R_intern / (G − 1)")
+
+
+# =============================================================================
+# SCHNITTSTELLEN UND LEISTUNG
+# =============================================================================
+def _pegelteiler(w):
+    for name in ("Uh", "Uz", "R1"):
+        if w[name] is None:
+            raise RechnerFehler("Hohe Spannung, Zielspannung und R1 eingeben")
+    if not 0 < w["Uz"] < w["Uh"]:
+        raise RechnerFehler("Die Zielspannung muss zwischen 0 und der hohen Spannung liegen")
+    r2 = w["R1"] * w["Uz"] / (w["Uh"] - w["Uz"])
+    norm = normreihen.naechste_werte(r2, "E24")[2]
+    e = _fehler_umwandeln(sm.pegel_teiler, w["Uh"], w["R1"], norm, w["C"] or 10e-12)
+    return [f"R2 = R1 · U_Ziel / (U_hoch − U_Ziel) = {fmt(r2, 'widerstand')} → E24: {fmt(norm, 'widerstand')}",
+            f"U = {fmt(e['u_aus'], 'spannung')}   ·   Querstrom {fmt(e['i'], 'strom')}",
+            f"t_r = 2.2 · (R1 ∥ R2) · C = {fmt(e['t_r'], 'zeit')} → bis ca. {fmt(e['f_max'], 'frequenz')}",
+            "Nur in eine Richtung (hoch -> niedrig). Für I²C/bidirektional: MOSFET-Pegelwandler"]
+
+
+def pegelteiler(master):
+    return FormelRechner(
+        master, "Pegelanpassung mit Spannungsteiler", "z.B. 5-V-Ausgang an 3.3-V-Eingang",
+        felder=[("Uh", "hohe Spannung (Ausgang)", "spannung", {"platzhalter": "z.B. 5"}),
+                ("Uz", "Zielspannung (Eingang)", "spannung", {"platzhalter": "z.B. 3.3"}),
+                ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("C", "Eingangskapazität (opt.)", "kapazitaet", {"einheit": "pF", "platzhalter": "10"})],
+        berechnen=_pegelteiler, formel="R2 = R1 · U_Ziel / (U_hoch − U_Ziel)     t_r = 2.2 · (R1∥R2) · C")
+
+
+def _optokoppler(w):
+    for name in ("Ue", "If", "ctr", "Ub"):
+        if w[name] is None:
+            raise RechnerFehler("U_e, LED-Strom, CTR und Ausgangsspannung eingeben")
+    u_f = w["Uf"] if w["Uf"] is not None else 1.2
+    e = _fehler_umwandeln(sm.optokoppler_auslegen, w["Ue"], u_f, w["If"], w["ctr"] / 100, w["Ub"])
+    norm_rv = normreihen.naechste_werte(e["r_v"], "E24")[2]
+    norm_rl = normreihen.naechste_werte(e["r_l_min"], "E24")[1]
+    return [f"R_V = (U_e − U_F) / I_F = ({fmt(w['Ue'], 'spannung')} − {u_f:g} V) / {fmt(w['If'], 'strom')} = "
+            f"{fmt(e['r_v'], 'widerstand')} → E24 {fmt(norm_rv, 'widerstand')}, P = {fmt(e['p_rv'], 'leistung')}",
+            f"CTR mit Alterung: {w['ctr']:g} % · 0.5 = {e['ctr_eff'] * 100:g} % → I_C = {fmt(e['i_c'], 'strom')}",
+            f"Pull-up R_L ≥ (U_B − 0.3 V) / I_C = {fmt(e['r_l_min'], 'widerstand')} → z.B. {fmt(norm_rl, 'widerstand')} "
+            "(grösser = sicherer gesättigt, aber langsamer)",
+            "Grosse R_L machen den Optokoppler langsam (Schaltzeiten einige 10 µs) – für schnelle Signale Typen mit "
+            "Logik-Ausgang verwenden"]
+
+
+def optokoppler(master):
+    return FormelRechner(
+        master, "Optokoppler auslegen", "Vorwiderstand und Pull-up für ein sicheres LOW am Ausgang",
+        felder=[("Ue", "Eingangsspannung U_e", "spannung", {"platzhalter": "z.B. 24"}),
+                ("Uf", "LED-Flussspannung (opt.)", "spannung", {"platzhalter": "1.2"}),
+                ("If", "LED-Strom I_F", "strom", {"einheit": "mA", "platzhalter": "z.B. 5"}),
+                ("ctr", "CTR min. in %", "zahl", {"platzhalter": "z.B. 50"}),
+                ("Ub", "Versorgung Ausgang U_B", "spannung", {"platzhalter": "z.B. 3.3"})],
+        berechnen=_optokoppler, formel="R_V = (U_e − U_F) / I_F     R_L ≥ (U_B − U_CE,sat) / (CTR · 0.5 · I_F)")
+
+
+def _h_bruecke(w):
+    for name in ("Ub", "I", "Rds"):
+        if w[name] is None:
+            raise RechnerFehler("U_B, Motorstrom und R_DS(on) eingeben")
+    f = w["f"] if w["f"] is not None else 20e3
+    t_sw = w["tsw"] if w["tsw"] is not None else 100e-9
+    e = _fehler_umwandeln(sm.h_verluste, w["Ub"], w["I"], w["Rds"], f, t_sw)
+    return [f"Leitverluste: I² · 2 · R_DS = {fmt(w['I'], 'strom')}² · 2 · {fmt(w['Rds'], 'widerstand')} = "
+            f"{fmt(e['p_leit'], 'leistung')} (je leitender Schalter die Hälfte)",
+            f"Schaltverluste ≈ U_B · I · t_sw · f = {fmt(e['p_schalt'], 'leistung')}  (t_sw = {fmt(t_sw, 'zeit')}, "
+            f"f = {fmt(f, 'frequenz')})",
+            f"Summe ≈ {fmt(e['p_gesamt'], 'leistung')} → Kühlung danach auslegen",
+            f"Totzeit im Treiber > Ausschaltzeit der MOSFETs (typ. 100 ns … 1 µs), sonst Brückenkurzschluss"]
+
+
+def h_bruecke(master):
+    return FormelRechner(
+        master, "H-Brücke: Verluste", "Wie warm werden die vier Schalter?",
+        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 24"}),
+                ("I", "Motorstrom", "strom", {"platzhalter": "z.B. 5"}),
+                ("Rds", "R_DS(on) je Schalter", "widerstand", {"einheit": "mΩ", "platzhalter": "z.B. 20"}),
+                ("f", "PWM-Frequenz (opt.)", "frequenz", {"platzhalter": "20 kHz"}),
+                ("tsw", "Schaltzeit t_sw (opt.)", "zeit", {"einheit": "ns", "platzhalter": "100"})],
+        berechnen=_h_bruecke, formel="P_L = I² · 2 · R_DS     P_S ≈ U_B · I · t_sw · f")
+
+
+def _gate_schaltzeit(w):
+    for name in ("Udr", "Rg", "Qgd", "Upl"):
+        if w[name] is None:
+            raise RechnerFehler("Treiberspannung, R_G, Q_gd und Plateauspannung eingeben")
+    if w["Udr"] <= w["Upl"]:
+        raise RechnerFehler(f"U_Tr = {fmt(w['Udr'], 'spannung')} liegt nicht über dem Plateau – der MOSFET schaltet "
+                            "nicht durch (Logic-Level-Typ oder höhere Treiberspannung)")
+    if w["Rg"] <= 0 or w["Qgd"] <= 0:
+        raise RechnerFehler("R_G und Q_gd müssen grösser als 0 sein")
+    i_g = (w["Udr"] - w["Upl"]) / w["Rg"]
+    t = w["Qgd"] / i_g
+    zeilen = [f"Gate-Strom im Plateau I_G = (U_Tr − U_pl) / R_G = {fmt(i_g, 'strom')}",
+              f"Plateaudauer t = Q_gd / I_G = {fmt(t, 'zeit')} (in dieser Zeit fällt U_DS)"]
+    if None not in (w["Uds"], w["Id"], w["f"]):
+        p = w["Uds"] * w["Id"] * t * w["f"]
+        zeilen.append(f"Schaltverlust ≈ U_DS · I_D · t · f (Ein + Aus je ½) = {fmt(p, 'leistung')}")
+    return zeilen
+
+
+def gate_schaltzeit(master):
+    return FormelRechner(
+        master, "MOSFET: Schaltzeit und Schaltverlust", "Wie lange dauert das Miller-Plateau?",
+        felder=[("Udr", "Treiberspannung U_Tr", "spannung", {"platzhalter": "z.B. 12"}),
+                ("Rg", "R_G (inkl. Treiber)", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 10"}),
+                ("Qgd", "Q_gd (Datenblatt)", "ladung", {"einheit": "nC", "platzhalter": "z.B. 25"}),
+                ("Upl", "Plateauspannung U_pl", "spannung", {"platzhalter": "z.B. 4.5"}),
+                ("Uds", "U_DS (opt.)", "spannung", {"platzhalter": "optional"}),
+                ("Id", "I_D (opt.)", "strom", {"platzhalter": "optional"}),
+                ("f", "Schaltfrequenz (opt.)", "frequenz", {"platzhalter": "optional"})],
+        berechnen=_gate_schaltzeit, formel="t = Q_gd · R_G / (U_Tr − U_pl)     P ≈ U_DS · I_D · t · f")
+
+
+def _bootstrap(w):
+    if w["Qg"] is None or w["Udd"] is None:
+        raise RechnerFehler("Gate-Ladung und Treiberversorgung eingeben")
+    t_ein = w["ton"] if w["ton"] is not None else 1e-3
+    du = w["du"] if w["du"] is not None else 0.5
+    e = _fehler_umwandeln(sm.bootstrap, w["Qg"], w["Udd"], 10e-6, t_ein, du)
+    norm = normreihen.naechste_werte(e["c_empf"], "E12")[1]
+    return [f"Q = Q_g + I_leck · t_ein = {fmt(w['Qg'], 'ladung')} + 10 µA · {fmt(t_ein, 'zeit')} = {fmt(e['q'], 'ladung')}",
+            f"C ≥ Q / ΔU = {fmt(e['c_min'], 'kapazitaet')}  → mit Faktor 2: {fmt(e['c_empf'], 'kapazitaet')} → "
+            f"{fmt(norm, 'kapazitaet')} (Keramik X7R, niedriger ESR)",
+            f"Spannung am Bootstrap-C ≈ U_DD − U_Diode = {fmt(e['u_boot'], 'spannung')}",
+            "Der Low-Side-Schalter muss regelmässig einschalten, damit der Kondensator nachladen kann (kein 100 % Tastgrad)"]
+
+
+def bootstrap(master):
+    return FormelRechner(
+        master, "Bootstrap-Kondensator", "High-Side-Treiber: Welcher Kondensator versorgt das Gate?",
+        felder=[("Qg", "Gate-Ladung Q_g", "ladung", {"einheit": "nC", "platzhalter": "z.B. 70"}),
+                ("Udd", "Treiberversorgung U_DD", "spannung", {"platzhalter": "z.B. 12"}),
+                ("ton", "längste Einschaltzeit (opt.)", "zeit", {"einheit": "ms", "platzhalter": "1 ms"}),
+                ("du", "zulässiger Spannungseinbruch (opt.)", "spannung", {"platzhalter": "0.5 V"})],
+        berechnen=_bootstrap, formel="C ≥ 2 · (Q_g + I_leck · t_ein) / ΔU")
+
+
+def _adc_eingang(w):
+    for name in ("ts", "cs", "N"):
+        if w[name] is None:
+            raise RechnerFehler("Abtastzeit, Abtastkondensator und Auflösung (Bit) eingeben")
+    if w["N"] != int(w["N"]) or not 4 <= w["N"] <= 24:
+        raise RechnerFehler("Auflösung: ganze Zahl 4 … 24 Bit")
+    r_sw = w["rsw"] if w["rsw"] is not None else 1e3
+    e = _fehler_umwandeln(sm.adc_abtastung, 1.0, 0.0, 0.0, r_sw, w["cs"], w["ts"], int(w["N"]), 1.0)
+    n = int(w["N"])
+    return [f"ln(2^(N+1)) = {math.log(2 ** (n + 1)):.2f} Zeitkonstanten für ½ LSB",
+            f"Ohne C_ext: R_Quelle ≤ t_s / (C_S · ln 2^(N+1)) − R_sw = {fmt(e['r_max'], 'widerstand')}",
+            f"Mit C_ext am Pin: C_ext ≥ (2^(N+1) − 1) · C_S = {fmt(e['c_ext_min'], 'kapazitaet')}",
+            "Mit C_ext muss die Quelle das C zwischen zwei Abtastungen nachladen – das begrenzt die Abtastrate "
+            "(Grafik „ADC-Eingang“)"]
+
+
+def adc_eingang(master):
+    return FormelRechner(
+        master, "ADC-Eingang: Quellwiderstand und C_ext", "Wird der Abtastkondensator auf ½ LSB genau geladen?",
+        felder=[("ts", "Abtastzeit t_s", "zeit", {"einheit": "µs", "platzhalter": "z.B. 1"}),
+                ("cs", "Abtastkondensator C_S", "kapazitaet", {"einheit": "pF", "platzhalter": "z.B. 10"}),
+                ("N", "Auflösung N (Bit)", "zahl", {"platzhalter": "z.B. 12"}),
+                ("rsw", "Schalterwiderstand R_sw (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "1 kΩ"})],
+        berechnen=_adc_eingang, formel="R ≤ t_s / (C_S · ln 2^(N+1)) − R_sw     C_ext ≥ (2^(N+1) − 1) · C_S")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -1138,4 +1414,21 @@ RECHNER = {
     "schaltung_lc_filter": LcFilterSchaltung,
     "schaltung_sallen_key": SallenKeySchaltung,
     "schaltung_schwingkreis": SchwingkreisSchaltung,
+    "pt_leitung": pt_leitung,
+    "ntc_teiler": ntc_teiler,
+    "dms_verstaerker": dms_verstaerker,
+    "pegelteiler": pegelteiler,
+    "optokoppler": optokoppler,
+    "h_bruecke": h_bruecke,
+    "gate_schaltzeit": gate_schaltzeit,
+    "bootstrap": bootstrap,
+    "adc_eingang": adc_eingang,
+    "schaltung_pt_leitung": PtLeitungSchaltung,
+    "schaltung_ntc_teiler": NtcTeilerSchaltung,
+    "schaltung_dms_kette": DmsKetteSchaltung,
+    "schaltung_pegelwandler": PegelwandlerSchaltung,
+    "schaltung_optokoppler": OptokopplerSchaltung,
+    "schaltung_h_bruecke": HBrueckeSchaltung,
+    "schaltung_gate_treiber": GateTreiberSchaltung,
+    "schaltung_adc_eingang": AdcEingangSchaltung,
 }
