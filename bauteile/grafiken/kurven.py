@@ -1,37 +1,60 @@
 # =============================================================================
 # bauteile/grafiken/kurven.py
 # -----------------------------------------------------------------------------
-# INTERAKTIVE KURVE: Laden/Entladen (RC) bzw. Ein-/Ausschalten (RL).
+# LERNANSICHT SCHALTVORGANG: Kondensator laden/entladen (RC) bzw.
+# Spule ein-/ausschalten (RL) - Spannung UND Strom gleichzeitig.
 #
-#   ┌───────────────────────────────────────────────┐
-#   │ R [10  ][kΩ]  C [100][µF]  U0 [5][V]  [Laden|Entladen]
-#   │  U │         ●───────────────                 │
-#   │    │     ╱   ┊                                │
-#   │    │   ╱     ┊   63 %  86 %  95 %             │
-#   │    │ ╱       ┊                                │
-#   │    └────────τ────2τ────3τ────4τ────5τ── t      │
-#   │  Zeit t: ──────●────────  [ 1 ][s ▾]  (Regler + Zahlenfeld, 0 … 5τ)
-#   │  t = 1.00 s (1.0 τ)  →  u = 3.16 V (63.2 %)   │
-#   └───────────────────────────────────────────────┘
+#   ┌──────────────────────────────────────────────────────────┐
+#   │ R [10][kΩ]  C [10][µF]  U_q [5][V]  U_C0 [0][V]           │
+#   │ [ Laden | Entladen ]                                      │
+#   │  u_E │ ──────┐________   <- Schalter / Eingangsspannung    │
+#   │  u_C │      ╱‾‾‾‾‾‾‾‾‾   <- Diagramm 1 (eigene Achse)      │
+#   │  i_C │      ‾╲________   <- Diagramm 2 (eigene Achse)      │
+#   │       0    1τ   2τ   3τ   4τ   5τ   <- mit echter Zeit     │
+#   │  Zeit t: ──────●──────  [ 50 ][ms ▾]                      │
+#   └──────────────────────────────────────────────────────────┘
 #
-#   modus="RC"  Kondensatorspannung u_C(t)   (bauteile/rechner/kondensator_rechner.py)
-#   modus="RL"  Spulenstrom i_L(t)           (bauteile/rechner/spule_rechner.py)
+#   modus="RC"  oben u_C(t), unten i_C(t)        (bauteile/rechner/kondensator_rechner.py)
+#   modus="RL"  oben i_L(t), unten u_L(t)        (bauteile/rechner/spule_rechner.py)
+#               Ausschalten wahlweise ohne Freilaufdiode (Strom über R_aus),
+#               mit Freilaufdiode oder mit Diode + Z-Diode.
 #
-# Die Kurve zeichnet sich bei jeder Fenstergrösse neu (core/layout.py ResponsiveCanvas).
-# Beim Verschieben des Reglers wird NUR die Markierung neu gezeichnet (schnell).
+# Die Rechnung steht in bauteile/rechner/schaltvorgaenge_mathe.py.
+# Beim Verschieben des Zeit-Reglers wird NUR die Markierung neu gezeichnet.
+# Eigene Namen beginnen mit ku_ (keine Kollision mit tkinter).
 # =============================================================================
-
-import math
 
 import customtkinter as ctk
 
 import config                                                   # -> config.py
 from bauteile.einheiten import formatieren as fmt               # -> bauteile/einheiten.py
+from bauteile.rechner import schaltvorgaenge_mathe as sv        # -> rechner/schaltvorgaenge_mathe.py
 from bauteile.rechner.basis import EinheitenEingabe, WertRegler # -> rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel      # -> core/layout.py
 
-PUNKTE = 120          # Stützpunkte der Kurve
-T_MAX = 5.0           # Kurve bis 5 τ
+PUNKTE = 240             # Stützpunkte pro Kurve
+VOR_NULL = 0.12          # so viel (Anteil der Zeitachse) wird VOR dem Schalten gezeigt
+BLAU = "#3B82F6"
+GRUEN = "#22C55E"
+ORANGE = "#F59E0B"
+VIOLETT = "#A78BFA"
+
+# Knöpfe der Spule -> Ausschaltpfad in schaltvorgaenge_mathe.py
+RL_KNOEPFE = {"Einschalten": None, "Aus: ohne Diode": sv.AUSSCHALTEN[0],
+              "Aus: Freilaufdiode": sv.AUSSCHALTEN[1], "Aus: Diode + Z-Diode": sv.AUSSCHALTEN[2]}
+
+ERKLAERUNG = {
+    "RC": ("Was zeigt die Grafik?  Direkt nach dem Schalten liegt die ganze Spannungsdifferenz am Widerstand – der "
+           "Strom ist am grössten. Je weiter sich der Kondensator auflädt, desto kleiner wird die Differenz und damit "
+           "der Strom: Spannung und Strom nähern sich exponentiell ihrem Endwert. Nach 1τ ist 63 % der Änderung "
+           "geschafft, nach 5τ über 99 % (τ = R · C ist eine ZEIT, 5τ also nicht automatisch 5 s). Vorzeichen: "
+           "i_C > 0 heisst, Strom fliesst in den Kondensator (laden), i_C < 0 heraus (entladen)."),
+    "RL": ("Was zeigt die Grafik?  Die Spule wehrt sich gegen jede Stromänderung: u_L = L · di/dt. Beim Einschalten "
+           "liegt deshalb zuerst die ganze Spannung an der Spule und der Strom steigt erst langsam an. Beim Ausschalten "
+           "kann der Strom nicht springen – die Spulenspannung kehrt ihre Polarität um, damit er weiterfliessen kann. "
+           "Ohne Freilaufpfad wird diese Spannung riesig (Strom × Widerstand des Ausschaltpfads) und zerstört den "
+           "Schalter. Mit Freilaufdiode bleibt sie klein, der Strom klingt aber langsam ab; mit Z-Diode schneller."),
+}
 
 
 def _farbe(paar):
@@ -40,86 +63,148 @@ def _farbe(paar):
 
 class KurvenKarte(Karte):
 
-    # Texte und Einheiten je Modus
-    MODI = {
-        "RC": {"titel": "📈 Kondensator laden & entladen (interaktiv)",
-               "unter": "Werte ändern, Enter drücken – dann am Regler die Zeit verschieben",
-               "bauteil": ("C", "kapazitaet", "µF", "100"), "r_start": ("10", "kΩ"), "achse": "u_C", "groesse": "spannung",
-               "schalter": ["Laden", "Entladen"]},
-        "RL": {"titel": "📈 Spule ein- & ausschalten (interaktiv)",
-               "unter": "Strom durch die Spule nach dem Einschalten bzw. Ausschalten (mit Freilaufdiode)",
-               "bauteil": ("L", "induktivitaet", "mH", "100"), "r_start": ("100", "Ω"), "achse": "i_L", "groesse": "strom",
-               "schalter": ["Einschalten", "Ausschalten"]},
+    FELDER = {
+        "RC": [("r", "R", "widerstand", "kΩ", "10"), ("c", "C", "kapazitaet", "µF", "10"),
+               ("uq", "U_q", "spannung", "V", "5"), ("u0", "U_C0 (Start)", "spannung", "V", "0")],
+        "RL": [("r", "R_Spule", "widerstand", "Ω", "100"), ("l", "L", "induktivitaet", "mH", "100"),
+               ("u", "U", "spannung", "V", "10"), ("raus", "R_aus", "widerstand", "kΩ", "10"),
+               ("uz", "U_Z", "spannung", "V", "24")],
     }
+    TITEL = {"RC": ("📈 Kondensator laden & entladen – Spannung und Strom (interaktiv)",
+                    "Werte ändern + Enter, Vorgang wählen, dann am Zeit-Regler verschieben"),
+             "RL": ("📈 Spule ein- & ausschalten – Strom und Spannung (interaktiv)",
+                    "Ausschalten mit und ohne Freilaufdiode vergleichen")}
 
     def __init__(self, master, modus="RC"):
         self.ku_modus = modus
-        info = self.MODI[modus]
-        super().__init__(master, titel=info["titel"], untertitel=info["unter"])
+        super().__init__(master, titel=self.TITEL[modus][0], untertitel=self.TITEL[modus][1])
         b = self.body
-        # Startwerte VOR dem Canvas setzen (der Canvas kann sofort zeichnen wollen)
-        self.ku_tau, self.ku_end, self.ku_R, self.ku_U = 1.0, 1.0, 1.0, 1.0
+        # Zustand VOR dem Canvas setzen (der Canvas kann sofort zeichnen wollen)
+        self.ku_m = None                  # aktuelles Modell (Kurven, Achsen, Texte)
         self.ku_groesse = (0, 0)
         self.ku_regler = None
 
-        # ---- Eingaben ----
+        # ---- Eingaben (Enter = übernehmen) ----
         eingaben = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         eingaben.grid(row=0, column=0, sticky="w")
-        name, typ, einheit, start = info["bauteil"]
-        r_wert, r_einheit = info["r_start"]
-        self.ku_r = self._feld(eingaben, 0, "R", "widerstand", r_einheit, r_wert)
-        self.ku_x = self._feld(eingaben, 1, name, typ, einheit, start)
-        self.ku_u = self._feld(eingaben, 2, "U0", "spannung", "V", "5")
-        self.ku_art = ctk.CTkSegmentedButton(b, values=info["schalter"], command=lambda _v: self.ku_neu())
-        self.ku_art.set(info["schalter"][0])
+        self.ku_felder = {}
+        for i, (name, text, typ, einheit, start) in enumerate(self.FELDER[modus]):
+            zeile, spalte = divmod(i, 3)
+            ctk.CTkLabel(eingaben, text=text, anchor="w").grid(row=zeile, column=spalte * 2, sticky="w",
+                                                               padx=(0 if spalte == 0 else 14, 6), pady=2)
+            feld = EinheitenEingabe(eingaben, typ, "", einheit, breite=64)
+            feld.ee_feld.insert(0, start)
+            feld.grid(row=zeile, column=spalte * 2 + 1, sticky="w", pady=2)
+            feld.bei_enter(self.ku_neu)
+            self.ku_felder[name] = feld
+
+        knoepfe = ["Laden", "Entladen"] if modus == "RC" else list(RL_KNOEPFE)
+        self.ku_art = ctk.CTkSegmentedButton(b, values=knoepfe, command=lambda _v: self._ku_art_gewechselt())
+        self.ku_art.set(knoepfe[0])
         self.ku_art.grid(row=1, column=0, sticky="w", pady=(8, 4))
 
-        # ---- Kurve (wächst mit der Breite) ----
-        self.ku_canvas = ResponsiveCanvas(b, self._zeichnen, seitenverhaeltnis=0.45, max_hoehe=360)
+        # ---- Drei Streifen: Eingang, Diagramm 1, Diagramm 2 ----
+        self.ku_canvas = ResponsiveCanvas(b, self._zeichnen, seitenverhaeltnis=0.78, max_hoehe=560)
         self.ku_canvas.grid(row=2, column=0, sticky="ew", pady=(4, 4))
 
-        # ---- Zeit-Regler: echte Zeit (s, ms, µs), Bereich 0 … 5τ ----
-        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
-        self.ku_regler = WertRegler(b, "Zeit t", "zeit", 0, T_MAX * self.ku_tau, self.ku_tau,
-                                    schritte=500, bei_aenderung=self._marker, text_breite=60)
+        # ---- Zeit-Regler: echte Zeit (s, ms, µs) -> bauteile/rechner/basis.py WertRegler ----
+        self.ku_regler = WertRegler(b, "Zeit t", "zeit", 0, 1.0, 0.2, schritte=500,
+                                    bei_aenderung=self._marker, text_breite=60)
         self.ku_regler.grid(row=3, column=0, sticky="ew")
 
         self.ku_anzeige = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"),
                                     text_color=config.FARBEN["akzent"])
         self.ku_anzeige.grid(row=4, column=0, sticky="ew", pady=(6, 0))
+        WrapLabel(b, text=ERKLAERUNG[modus], font=config.FONT_KLEIN, text_color=config.FARBEN["text_leise"]).grid(
+            row=5, column=0, sticky="ew", pady=(6, 0))
 
         self.ku_neu()
 
-    def _feld(self, rahmen, spalte, text, typ, einheit, start):
-        ctk.CTkLabel(rahmen, text=text, anchor="w").grid(row=0, column=spalte * 2, padx=(0 if spalte == 0 else 12, 4))
-        feld = EinheitenEingabe(rahmen, typ, "", einheit, breite=70)
-        feld.ee_feld.insert(0, start)
-        feld.grid(row=0, column=spalte * 2 + 1)
-        feld.bei_enter(self.ku_neu)
-        return feld
+    # =========================================================================
+    # MODELL: Werte lesen, Kurven-Funktionen und Texte festlegen
+    # =========================================================================
+    def _werte(self):
+        werte = {}
+        for name, text, *_ in self.FELDER[self.ku_modus]:
+            wert = self.ku_felder[name].wert()                  # ValueError bei Unsinn
+            if wert is None:
+                raise ValueError(f"{text} eingeben")
+            if name not in ("u0",) and wert <= 0:
+                raise ValueError(f"{text} muss grösser als 0 sein")
+            werte[name] = wert
+        return werte
 
-    # -------------------------------------------------------------------------
-    def ku_neu(self):
-        """Werte lesen, τ berechnen, Kurve neu zeichnen."""
-        try:
-            R, X, U = self.ku_r.wert(), self.ku_x.wert(), self.ku_u.wert()
-            if not R or not X or not U or R <= 0 or X <= 0:
-                raise ValueError("R, " + ("C" if self.ku_modus == "RC" else "L") + " und U0 > 0 eingeben")
-        except ValueError as fehler:
-            self.ku_anzeige.configure(text=f"⚠ {fehler}", text_color=("#B45309", "#F59E0B"))
-            return
-        self.ku_R = R
-        tau_alt = self.ku_tau
+    def _ku_art_gewechselt(self):
+        """RC: Startspannung sichtbar auf den natürlichen Startwert setzen (Laden: 0 V, Entladen: U_q)."""
         if self.ku_modus == "RC":
-            self.ku_tau = R * X
-            self.ku_end = U                          # Endspannung
+            try:
+                uq = self.ku_felder["uq"].wert() or 0.0
+            except ValueError:
+                uq = 0.0
+            feld = self.ku_felder["u0"]
+            feld.leeren()
+            feld.ee_feld.insert(0, f"{(0.0 if self.ku_art.get() == 'Laden' else uq) / feld._faktor():g}")
+        self.ku_neu()
+
+    def _modell(self, w):
+        """Baut ein Dictionary mit allem, was Zeichnung und Anzeige brauchen."""
+        if self.ku_modus == "RC":
+            laden = self.ku_art.get() == "Laden"
+            u_start, u_ende = w["u0"], (w["uq"] if laden else 0.0)
+            tau = w["r"] * w["c"]
+            return {
+                "tau": tau, "t_ende": 5 * tau, "t_null": None,
+                "eingang": lambda t: u_start if t < 0 else u_ende,
+                "eingang_name": "u_E", "eingang_text": "Eingang (Schalter)",
+                "f": lambda t: sv.rc(t, w["r"], w["c"], u_start, u_ende),
+                "namen": ("u_C", "i_C"), "typen": ("spannung", "strom"), "farben": (BLAU, GRUEN),
+                "prozent": "laden" if u_ende > u_start else ("entladen" if u_ende < u_start else None),
+                "vorzeichen": "i_C > 0: lädt  ·  i_C < 0: entlädt",
+                "w": w, "laden": laden,
+            }
+        # ---- RL ----
+        art = RL_KNOEPFE[self.ku_art.get()]
+        tau_ein = w["l"] / w["r"]
+        if art is None:                                         # Einschalten
+            return {
+                "tau": tau_ein, "t_ende": 5 * tau_ein, "t_null": None, "tau_ein": tau_ein,
+                "eingang": lambda t: 0.0 if t < 0 else w["u"],
+                "eingang_name": "u_E", "eingang_text": "Schalter: AUS → EIN",
+                "f": lambda t: sv.rl_ein(t, w["r"], w["l"], w["u"]),
+                "namen": ("i_L", "u_L"), "typen": ("strom", "spannung"), "farben": (GRUEN, BLAU),
+                "prozent": "laden", "vorzeichen": "u_L > 0: bremst den steigenden Strom",
+                "w": w, "art": None,
+            }
+        k = sv.rl_aus_kennwerte(w["u"], w["r"], w["l"], art, w["raus"], w["uz"])   # -> schaltvorgaenge_mathe.py
+        t_ende = 5 * k["tau"] if k["t_null"] is None else min(5 * k["tau"], 1.4 * k["t_null"])
+        return {
+            "tau": k["tau"], "t_ende": t_ende, "t_null": k["t_null"], "tau_ein": tau_ein, "k": k,
+            "eingang": lambda t: w["u"] if t < 0 else 0.0,
+            "eingang_name": "u_E", "eingang_text": "Schalter: EIN → AUS",
+            "f": lambda t: sv.rl_aus(t, k["r_kreis"], w["l"], k["i0"], k["u_gegen"]),
+            "namen": ("i_L", "u_L"), "typen": ("strom", "spannung"), "farben": (GRUEN, BLAU),
+            "prozent": "entladen" if k["u_gegen"] == 0 else None,
+            "vorzeichen": "u_L < 0: Polarität kehrt um, treibt den Strom weiter",
+            "w": w, "art": art,
+        }
+
+    def ku_neu(self):
+        """Werte lesen, Modell bauen, Zeitachse anpassen, alles neu zeichnen."""
+        try:
+            m = self._modell(self._werte())
+        except ValueError as fehler:
+            self.ku_m = None
+            self.ku_anzeige.configure(text=f"⚠ {fehler}", text_color=("#B45309", "#F59E0B"))
+            self.ku_canvas.delete("all")
+            return
+        # Zeit-Regler: gleicher ANTEIL der Zeitachse wie vorher (beim ersten Mal: 1τ)
+        if self.ku_m is None:
+            t_neu = m["tau"] if m["tau"] <= m["t_ende"] else 0.2 * m["t_ende"]
         else:
-            self.ku_tau = X / R
-            self.ku_end = U / R                      # Endstrom
-        self.ku_U = U
-        # Zeit-Regler auf 0 … 5τ einstellen, an derselben Stelle (gleiches Vielfaches von τ) bleiben
-        n_tau = self.ku_regler.wert() / tau_alt if tau_alt > 0 else 1.0
-        self.ku_regler.bereich_setzen(0, T_MAX * self.ku_tau, n_tau * self.ku_tau)
+            t_neu = self.ku_regler.wert() / self.ku_m["t_ende"] * m["t_ende"]
+        self.ku_m = m
+        self._achsen_berechnen()
+        self.ku_regler.bereich_setzen(0, m["t_ende"], t_neu)
         breite, hoehe = self.ku_groesse
         if breite > 1:
             self.ku_canvas.delete("all")
@@ -127,97 +212,183 @@ class KurvenKarte(Karte):
         else:
             self._marker()
 
-    def _steigend(self):
-        return self.ku_art.get() == self.MODI[self.ku_modus]["schalter"][0]
+    def _achsen_berechnen(self):
+        """Kurven vorab berechnen und Wertebereich je Diagramm bestimmen (Nullpunkt immer sichtbar)."""
+        m = self.ku_m
+        t0, t1 = -VOR_NULL * m["t_ende"], m["t_ende"]
+        zeiten = [t0 + (t1 - t0) * i / PUNKTE for i in range(PUNKTE + 1)]
+        werte = [m["f"](t) for t in zeiten]
+        m["zeiten"], m["werte"] = zeiten, werte
+        bereiche, extreme = [], []
+        for spalte in (0, 1):
+            vs = [v[spalte] for v in werte]
+            extreme.append((min(vs), max(vs)))                  # für die Achsenbeschriftung
+            lo, hi = min(0.0, min(vs)), max(0.0, max(vs))
+            if hi - lo < 1e-15:
+                hi = lo + 1.0
+            rand = 0.12 * (hi - lo)
+            bereiche.append((lo - (rand if lo < 0 else 0), hi + rand))
+        eingang = [m["eingang"](t) for t in zeiten]
+        lo, hi = min(0.0, min(eingang)), max(0.0, max(eingang))
+        bereiche.append((lo, hi if hi > lo else lo + 1.0))
+        m["bereiche"], m["extreme"] = bereiche, extreme
 
-    def _wert(self, n_tau):
-        """Relativer Wert 0..1 nach n_tau Zeitkonstanten."""
-        return 1 - math.exp(-n_tau) if self._steigend() else math.exp(-n_tau)
-
-    # -------------------------------------------------------------------------
-    def _koord(self):
+    # =========================================================================
+    # ZEICHNEN
+    # =========================================================================
+    def _geometrie(self):
         w, h = self.ku_groesse
-        links, rechts, oben, unten = 0.10 * w, 0.96 * w, 0.08 * h, 0.82 * h
-        return links, rechts, oben, unten
+        links, rechts = 0.13 * w, 0.93 * w             # rechts Platz für die 5τ-Beschriftung
+        baender = {"eingang": (0.04 * h, 0.13 * h), 0: (0.21 * h, 0.50 * h), 1: (0.58 * h, 0.86 * h)}
+        return w, h, links, rechts, baender
+
+    def _x(self, t):
+        w, h, links, rechts, _ = self._geometrie()
+        t0, t1 = -VOR_NULL * self.ku_m["t_ende"], self.ku_m["t_ende"]
+        return links + (rechts - links) * (t - t0) / (t1 - t0)
+
+    def _y(self, wert, band):
+        _, _, _, _, baender = self._geometrie()
+        oben, unten = baender[band]
+        lo, hi = self.ku_m["bereiche"][2 if band == "eingang" else band]
+        return unten - (unten - oben) * (wert - lo) / (hi - lo)
 
     def _zeichnen(self, c, w, h):
-        """Achsen, Hilfslinien bei τ, 2τ ... und die Kurve (wird bei Grössenänderung aufgerufen)."""
         self.ku_groesse = (w, h)
-        links, rechts, oben, unten = self._koord()
+        m = self.ku_m
+        if m is None:
+            return
+        _, _, links, rechts, baender = self._geometrie()
         text = _farbe(config.FARBEN["text_leise"])
         linie = _farbe(config.FARBEN["rahmen"])
-        schrift = (config.SCHRIFT, max(8, int(h / 26)))
+        schrift = (config.SCHRIFT, max(8, int(h / 40)))
+        klein = (config.SCHRIFT, max(7, int(h / 48)))
+        fett = (config.SCHRIFT, max(9, int(h / 34)), "bold")
 
-        def x(n):
-            return links + (rechts - links) * n / T_MAX
+        # ---- Senkrechte Hilfslinien: Schaltzeitpunkt, 1τ … 5τ, ggf. "i = 0" ----
+        oben_alles, unten_alles = baender["eingang"][0], baender[1][1]
+        c.create_line(self._x(0), oben_alles, self._x(0), unten_alles, fill=text, dash=(4, 3))
+        c.create_text(self._x(0), unten_alles + 0.03 * h, text="t = 0\nSchalten", fill=text, font=klein, justify="center")
+        n_max = int(m["t_ende"] / m["tau"] + 1e-9)
+        for n in range(1, min(n_max, 5) + 1):
+            x = self._x(n * m["tau"])
+            c.create_line(x, baender[0][0], x, unten_alles, fill=linie, dash=(2, 4))
+            c.create_text(x, unten_alles + 0.03 * h, text=f"{n}τ\n{fmt(n * m['tau'], 'zeit', 3)}",
+                          fill=text, font=klein, justify="center")
+        if n_max < 2:                                   # z.B. Z-Diode: Strom ist schon vor 1τ null
+            for k in range(1, 5):
+                t = k * m["t_ende"] / 4
+                x = self._x(t)
+                c.create_line(x, baender[0][0], x, unten_alles, fill=linie, dash=(2, 4))
+                c.create_text(x, unten_alles + 0.03 * h, text="\n" + fmt(t, "zeit", 3), fill=text, font=klein,
+                              justify="center")
+        if m["t_null"] is not None and m["t_null"] <= m["t_ende"]:
+            x = self._x(m["t_null"])
+            c.create_line(x, baender[0][0], x, unten_alles, fill=ORANGE, dash=(6, 3))
+            c.create_text(x + 4, baender[0][0] + 0.02 * h, anchor="w", text=f"i = 0 nach {fmt(m['t_null'], 'zeit', 3)}",
+                          fill=ORANGE, font=klein)
 
-        def y(v):
-            return unten - (unten - oben) * v
-
-        # Raster + Beschriftung Zeitachse
-        for n in range(0, 6):
-            c.create_line(x(n), oben, x(n), unten, fill=linie, dash=(2, 4))
-            c.create_text(x(n), unten + 0.06 * h, text="0" if n == 0 else f"{n}τ", fill=text, font=schrift)
-            if n:
-                c.create_text(x(n), unten + 0.13 * h, text=fmt(n * self.ku_tau, "zeit", 3), fill=text,
-                              font=(config.SCHRIFT, max(7, int(h / 32))))
-        for anteil in (0, 0.5, 1):
-            c.create_line(links, y(anteil), rechts, y(anteil), fill=linie, dash=(2, 4))
-            c.create_text(links - 0.01 * w, y(anteil), anchor="e", fill=text, font=schrift,
-                          text=fmt(anteil * self.ku_end, self.MODI[self.ku_modus]["groesse"], 3))
-        # Achsen
-        c.create_line(links, unten, rechts, unten, fill=text, width=2, arrow="last")
-        c.create_line(links, unten, links, oben - 0.03 * h, fill=text, width=2, arrow="last")
-        c.create_text(links + 0.01 * w, oben - 0.035 * h, anchor="w", fill=text, font=schrift,
-                      text=self.MODI[self.ku_modus]["achse"])
-
-        # Prozentmarken bei 1τ … 5τ
-        for n in range(1, 6):
-            v = self._wert(n)
-            c.create_oval(x(n) - 3, y(v) - 3, x(n) + 3, y(v) + 3, fill=text, outline="")
-            c.create_text(x(n) + 4, y(v) + (12 if self._steigend() else -12), anchor="w", fill=text,
-                          font=(config.SCHRIFT, max(7, int(h / 32))), text=f"{v * 100:.1f} %")
-
-        # Kurve
+        # ---- Streifen 1: Eingang / Schalter (Rechteck) ----
+        o, u = baender["eingang"]
+        c.create_line(links, u, rechts, u, fill=linie)
         punkte = []
-        for i in range(PUNKTE + 1):
-            n = T_MAX * i / PUNKTE
-            punkte += [x(n), y(self._wert(n))]
-        c.create_line(*punkte, fill="#3B82F6", width=3, smooth=True)
+        for t in m["zeiten"]:
+            punkte += [self._x(t), self._y(m["eingang"](t), "eingang")]
+        c.create_line(*punkte, fill=VIOLETT, width=2)
+        c.create_text(links - 6, (o + u) / 2, anchor="e", text=m["eingang_name"], fill=VIOLETT, font=fett)
+        c.create_text(rechts, o - 0.005 * h, anchor="ne", text=m["eingang_text"], fill=text, font=klein)
 
-        # Tangente im Startpunkt: schneidet den Endwert genau bei 1τ (klassischer Merksatz)
-        if self._steigend():
-            c.create_line(x(0), y(0), x(1), y(1), fill="#9AA1AD", dash=(6, 4))
-        else:
-            c.create_line(x(0), y(1), x(1), y(0), fill="#9AA1AD", dash=(6, 4))
+        # ---- Streifen 2 und 3: Diagramme mit eigener Achse ----
+        for band in (0, 1):
+            o, u = baender[band]
+            lo, hi = m["bereiche"][band]
+            name, typ, farbe = m["namen"][band], m["typen"][band], m["farben"][band]
+            c.create_line(links, o, links, u, fill=text, width=2)                       # y-Achse
+            y0 = self._y(0, band)
+            c.create_line(links, y0, rechts, y0, fill=text, width=1)                    # Nulllinie
+            dmin, dmax = m["extreme"][band]
+            span = (hi - lo) or 1.0
+            for wert in sorted({0.0, dmin, dmax}):
+                # nur beschriften, wenn nicht zu nah an einer anderen Beschriftung (sonst überlappen sie)
+                if wert != 0.0 and abs(wert) < 0.12 * span:
+                    continue
+                y = self._y(wert, band)
+                c.create_line(links - 3, y, links, y, fill=text)
+                c.create_text(links - 5, y, anchor="e", text=fmt(wert, typ, 3), fill=text, font=klein)
+            c.create_text(0.01 * self.ku_groesse[0], o - 0.012 * h, anchor="sw", text=name, fill=farbe, font=fett)
+            punkte = []
+            for t, v in zip(m["zeiten"], m["werte"]):
+                punkte += [self._x(t), self._y(v[band], band)]
+            c.create_line(*punkte, fill=farbe, width=3)
+        c.create_text(rechts, baender[1][0] - 0.005 * h, anchor="se", text=m["vorzeichen"], fill=text, font=klein)
+
+        # ---- Prozentmarken bei 1τ … 5τ (Diagramm 1) ----
+        if m["prozent"]:
+            for n in range(1, min(n_max, 5) + 1):
+                t = n * m["tau"]
+                v = m["f"](t)[0]
+                x, y = self._x(t), self._y(v, 0)
+                anteil = 1 - pow(2.718281828459045, -n) if m["prozent"] == "laden" else pow(2.718281828459045, -n)
+                c.create_oval(x - 3, y - 3, x + 3, y + 3, fill=m["farben"][0], outline="")
+                nahe_rand = x > links + 0.8 * (rechts - links)          # dann links vom Punkt beschriften
+                c.create_text(x - 5 if nahe_rand else x + 5, y + (12 if m["prozent"] == "laden" else -12),
+                              anchor="e" if nahe_rand else "w", fill=text, font=klein, text=f"{anteil * 100:.1f} %")
         self._marker()
 
     def _marker(self):
-        """Nur die Markierung (senkrechte Linie + Punkt) neu zeichnen und Werte anzeigen."""
+        """Nur die Markierung (Cursor) neu zeichnen und die Werte anzeigen."""
         w, h = self.ku_groesse
-        if w <= 1 or self.ku_regler is None:
+        m = self.ku_m
+        if m is None or self.ku_regler is None:
+            return
+        t = self.ku_regler.wert()
+        a, b = m["f"](t)
+        zeilen = self._texte(t, a, b)
+        self.ku_anzeige.configure(text="\n".join(zeilen[0]), text_color=zeilen[1])
+        if w <= 1:
             return
         c = self.ku_canvas
         c.delete("marker")
-        links, rechts, oben, unten = self._koord()
-        n = self.ku_regler.wert() / self.ku_tau             # Zeit in Vielfachen von τ
-        v = self._wert(n)
-        px = links + (rechts - links) * n / T_MAX
-        py = unten - (unten - oben) * v
-        c.create_line(px, oben, px, unten, fill="#F59E0B", width=2, tags="marker")
-        c.create_oval(px - 7, py - 7, px + 7, py + 7, fill="#F59E0B", outline="white", width=2, tags="marker")
+        _, _, links, rechts, baender = self._geometrie()
+        x = self._x(t)
+        c.create_line(x, baender["eingang"][0], x, baender[1][1], fill=ORANGE, width=2, tags="marker")
+        fett = (config.SCHRIFT, max(9, int(h / 34)), "bold")
+        for band, wert in ((0, a), (1, b)):
+            y = self._y(wert, band)
+            c.create_oval(x - 6, y - 6, x + 6, y + 6, fill=ORANGE, outline="white", width=2, tags="marker")
+            # Wert ÜBER dem Diagramm neben dem Namen -> überdeckt nie Kurve oder Prozentmarken
+            c.create_text(links, baender[band][0] - 0.012 * h, anchor="sw",
+                          text=f"= {fmt(wert, m['typen'][band], 4)}",
+                          fill=ORANGE, font=fett, tags="marker")
 
-        t = n * self.ku_tau
-        groesse = self.MODI[self.ku_modus]["groesse"]
-        zeilen = [f"t = {fmt(t, 'zeit')}  ({n:.2f} τ)   →   "
-                  f"{self.MODI[self.ku_modus]['achse']} = {fmt(v * self.ku_end, groesse)}  ({v * 100:.1f} %)"]
+    def _texte(self, t, a, b):
+        """Anzeige unter der Grafik: (Zeilen, Farbe)."""
+        m, w = self.ku_m, self.ku_m["w"]
+        n = t / m["tau"]
+        akzent = config.FARBEN["akzent"]
         if self.ku_modus == "RC":
-            # Strom durch R: beim Laden (U0-u)/R, beim Entladen u/R (entgegengesetzt)
-            i = self.ku_U * (1 - v if self._steigend() else v) / self.ku_R
-            zeilen.append(f"Strom durch R: {fmt(i, 'strom')}   ·   τ = R·C = {fmt(self.ku_tau, 'zeit')}")
-        else:
-            u_l = self.ku_U * (1 - v) if self._steigend() else None
-            zeilen.append(f"Spannung an L: {fmt(u_l, 'spannung')}   ·   τ = L/R = {fmt(self.ku_tau, 'zeit')}"
-                          if u_l is not None else
-                          f"Freilaufdiode hält den Strom am Fliessen   ·   τ = L/R = {fmt(self.ku_tau, 'zeit')}")
-        self.ku_anzeige.configure(text="\n".join(zeilen), text_color=config.FARBEN["akzent"])
+            zeilen = [f"t = {fmt(t, 'zeit')} ({n:.2f} τ)   →   u_C = {fmt(a, 'spannung')}   ·   i_C = {fmt(b, 'strom')}"
+                      + (f"   ·   Ladezustand {a / w['uq'] * 100:.1f} % von U_q" if w["uq"] > 0 else ""),
+                      f"τ = R · C = {fmt(m['tau'], 'zeit')}  →  nach 5τ = {fmt(5 * m['tau'], 'zeit')} ist der "
+                      "Vorgang zu 99.3 % abgeschlossen (5τ ist eine Zeit, nicht 5 s)"]
+            return zeilen, akzent
+        energie = 0.5 * w["l"] * a * a
+        zeilen = [f"t = {fmt(t, 'zeit')} ({n:.2f} τ)   →   i_L = {fmt(a, 'strom')}   ·   u_L = {fmt(b, 'spannung')}"
+                  f"   ·   Energie ½·L·i² = {fmt(energie, 'energie')}"]
+        if m["art"] is None:
+            zeilen.append(f"Einschaltpfad: R = R_Spule = {fmt(w['r'], 'widerstand')}  →  τ_ein = L / R = "
+                          f"{fmt(m['tau'], 'zeit')}  ·  Endstrom U / R = {fmt(w['u'] / w['r'], 'strom')}")
+            return zeilen, akzent
+        k = m["k"]
+        pfad = {sv.AUSSCHALTEN[0]: f"R_Spule + R_aus = {fmt(k['r_kreis'], 'widerstand')}",
+                sv.AUSSCHALTEN[1]: f"R_Spule = {fmt(k['r_kreis'], 'widerstand')} + Diode 0.7 V",
+                sv.AUSSCHALTEN[2]: f"R_Spule = {fmt(k['r_kreis'], 'widerstand')} + Diode + Z-Diode "
+                                   f"({fmt(k['u_gegen'], 'spannung')})"}[m["art"]]
+        zeilen.append(f"Ausschaltpfad: {pfad}  →  τ_aus = {fmt(k['tau'], 'zeit')}   (τ_ein = {fmt(m['tau_ein'], 'zeit')})")
+        zeilen.append(f"Spannung am Schalter beim Abschalten ≈ {fmt(k['u_schalter'], 'spannung')}   ·   "
+                      f"gespeicherte Energie vorher {fmt(k['energie'], 'energie')}")
+        farbe = akzent
+        if k["u_schalter"] > 100:
+            zeilen.append("⚠ Diese Spannungsspitze zerstört Transistoren und lässt Kontakte abbrennen → Freilaufpfad nötig")
+            farbe = ("#B91C1C", "#EF4444")
+        return zeilen, farbe

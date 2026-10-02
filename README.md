@@ -266,7 +266,7 @@ Die Lernansicht soll Spannung und Strom gemeinsam darstellen:
   - Spulenspannung kehrt ihre Polarität um, damit der Strom weiterfliessen kann.
   - Bei einer Freilaufdiode wird die Spannung begrenzt und der Strom fällt langsamer ab.
 - Den Ausschaltvorgang mit und ohne Freilaufdiode vergleichbar machen.
-  - **Hinweis zur Umsetzung:** Im idealen Modell ist die Abschaltspannung ohne Freilaufpfad unendlich gross. Für die Simulation muss der Ausschaltpfad festgelegt werden (z.B. Abschaltwiderstand `R_aus`, Z-Diode oder Durchbruchspannung). Daraus folgt `τ_aus = L / (R_Spule + R_aus)`.
+  - **Umgesetzt mit Abschaltwiderstand `R_aus` (Standard 10 kΩ).** Im idealen Modell ist die Abschaltspannung ohne Freilaufpfad unendlich gross. Für die Simulation muss der Ausschaltpfad festgelegt werden (z.B. Abschaltwiderstand `R_aus`, Z-Diode oder Durchbruchspannung). Daraus folgt `τ_aus = L / (R_Spule + R_aus)`.
 - Klar anzeigen, welche Widerstände im Einschalt- und Ausschaltpfad wirksam sind.
 - Wenn unterschiedliche Zeitkonstanten entstehen, beide ausgeben:
   - `τ_ein`
@@ -932,7 +932,7 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 1 | Gemeinsame Komponente **Slider + Zahlenfeld + Einheit** (`WertRegler` in `bauteile/rechner/basis.py`, eingebaut in RC/RL-Kurve, Trafo-Animation, Diodenkennlinie, Transistor-Schalter, Abtast-Grafik) | ✅ erledigt |
 | 2 | Gemeinsame Komponente **Schaltzeichen-Reihe** (`SymbolReihe` in `bauteile/grafiken/symbol_reihe.py`; alle Schaltzeichen in `symbole.py` neu gezeichnet: eigene Zelle pro Symbol, gleiche Grösse, Beschriftung darunter, Anschlussbezeichnungen ausserhalb, Umbruch bei schmalem Fenster) | ✅ erledigt |
 | 3 | Simulator Bipolartransistor (NPN/PNP) und MOSFET (N-/P-Kanal) trennen (`schalter_simulator.py`, Rechnung in `transistor_mathe.py` / `mosfet_mathe.py`; Low-/High-Side, Übersteuerungsfaktor, R_DS(on) bei tatsächlicher U_GS, U_GS,max, Gate-Ladung) | ✅ erledigt |
-| 4 | RC- und RL-Lernansicht: Spannung und Strom, zwei Diagramme, `τ_ein` / `τ_aus` | offen |
+| 4 | RC- und RL-Lernansicht: Spannung und Strom, zwei Diagramme, `τ_ein` / `τ_aus` (`kurven.py` neu, Rechnung in `schaltvorgaenge_mathe.py`; Eingang als Rechteck, Startspannung U_C0, Vorzeichen erklärt, Ausschalten ohne Freilaufdiode (Modell R_aus), mit Freilaufdiode und mit Diode + Z-Diode) | ✅ erledigt |
 | 5 | Prüfskript für alle Rechner mit bekannten Beispielwerten und Grenzfällen | offen |
 | 6 | Rechner-Tab mit `RECHNER_INFO` | offen |
 | 7+ | Schaltungen, Operationsverstärker und Versorgung, Digitaltechnik | offen |
