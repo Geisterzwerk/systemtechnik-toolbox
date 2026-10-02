@@ -28,7 +28,7 @@ from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farb
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
 from schaltungen import netzteil_mathe as ntm
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
-from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm
+from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm, busse_mathe as bm
 from schaltungen import verstaerker_mathe as vm
 
 
@@ -40,6 +40,18 @@ def fehler(text):
 def wirft(fehlerklasse):
     """Erwartung: Die Funktion bricht mit dieser Fehlerklasse ab."""
     return {"wirft": fehlerklasse}
+
+
+def _i2c_regel_ok():
+    """I²C: SDA darf sich bei SCL = 1 nur bei START, Sr und STOP ändern."""
+    teile = bm.i2c_rahmen(0x48, daten=[0xA5, 0x3C], register=0x10)
+    d = bm.i2c_signale(teile)
+    erlaubt = set()
+    for anfang, ende, name, _s in d["abschnitte"]:
+        if name in ("START", "STOP", "Sr"):
+            erlaubt |= set(range(anfang, ende))
+    return all(d["SDA"][i] == d["SDA"][i - 1] or i in erlaubt
+               for i in range(1, len(d["SDA"])) if d["SCL"][i] == 1 and d["SCL"][i - 1] == 1)
 
 
 # =============================================================================
@@ -537,6 +549,38 @@ FAELLE = [
     ("frequenzteiler", {"f": "1M", "m": "10"}, ["= 100 kHz", "⌈log2 10⌉ = 4", "Tastgrad am höchsten Bit ≠ 50 %"],
      "Dekadenteiler"),
     ("frequenzteiler", {"f": "1M", "m": "2.5"}, fehler("ganze Zahl"), "kein ganzzahliger Teiler"),
+    ("uart_timing", {"baud": "9600", "n": "100"},
+     ["Format 8N1", "= 10 Bit", "= 104.2 µs", "max. 960.0 Zeichen/s", "0.5 / 9.5 = 5.3 %", "100 Zeichen ohne Pausen: 104.2 ms"],
+     "9600 8N1"),
+    ("uart_timing", {"baud": "115200", "datenbits": "7", "paritaet": "gerade (even)", "stopbits": "2"},
+     ["Format 7E2", "+ 1 Parität + 2 Stopp = 11 Bit", "= 95.49 µs"], "7E2"),
+    ("uart_baudrate", {"f": "16", "baud": "9600"},
+     ["= 104.167 → gerundet N = 104", "UBRR = N − 1 = 103", "9615.4 Bd", "Fehler = +0.16 %  ✓ sehr gut"],
+     "AVR-Datenblatt: UBRR 103, 0.2 %"),
+    ("uart_baudrate", {"f": "16", "baud": "115200"}, ["N = 9", "111111.1 Bd", "Fehler = -3.55 %  ⚠ grenzwertig"],
+     "AVR-Datenblatt: −3.5 %"),
+    ("uart_baudrate", {"f": "16", "baud": "115200", "ueber": "8-fach (doppelte Geschwindigkeit)"},
+     ["N = 17", "Fehler = +2.12 %"], "AVR U2X: 2.1 %"),
+    ("uart_baudrate", {"f": "14.7456", "baud": "115200"}, ["N = 8", "Fehler = +0.00 %"], "Baudratenquarz"),
+    ("uart_baudrate", {"f": "8", "baud": "115200"}, ["Fehler = +8.51 %  ❌ zu gross"], "8 MHz zu ungenau"),
+    ("spi_uebertragung", {"modus": "Modus 3", "f": "8", "n": "3"},
+     ["CPOL = 1, CPHA = 1", "in Ruhe HIGH", "steigenden Flanke", "= 24 / 8 MHz = 3 µs"], "Modus 3"),
+    ("spi_uebertragung", {"modus": "Modus 1"}, ["CPOL = 0, CPHA = 1", "abtasten an der fallenden Flanke"], "nur Modus"),
+    ("i2c_uebertragung", {"modus": "Standard-mode (100 kHz)", "art": "Register lesen", "n": "2"},
+     ["= 48", "= 480 µs"], "Sensor: Register + 2 Byte"),
+    ("i2c_uebertragung", {"modus": "Fast-mode (400 kHz)", "art": "schreiben", "n": "1"}, ["= 20", "= 50 µs"],
+     "1 Byte schreiben"),
+    ("i2c_uebertragung", {"n": "1.5"}, fehler("ganze Zahl"), "keine halben Bytes"),
+    ("speicher_organisation", {"a": "15", "d": "8"},
+     ["= 32768 (32 Ki)", "= 262144 Bit = 256 KiBit = 32 KiByte", "0x0000 … 0x7FFF", "A14 … A0"], "62256: 32 K × 8"),
+    ("speicher_organisation", {"a": "4", "d": "4"}, ["= 16", "= 64 Bit = 8 Byte", "0x0 … 0xF"], "16 × 4"),
+    ("speicher_erweitern", {"ziel": "64K", "zb": "16", "chip": "32K", "cb": "8"},
+     ["= 2 Chips nebeneinander", "64 Ki / 32 Ki = 2 Reihen", "→ 4 Chips", "16 (A15 … A0)", "Decoder an A15"],
+     "64K × 16 aus 32K × 8"),
+    ("speicher_erweitern", {"ziel": "2^17", "zb": "8", "chip": "32Ki", "cb": "8"},
+     ["= 4 Reihen", "Decoder an A16 … A15 (2 Bit → 4"], "128K aus 4 × 32K"),
+    ("speicher_erweitern", {"ziel": "60K", "zb": "8", "chip": "32K", "cb": "8"}, fehler("Zweierpotenz"),
+     "60K keine Zweierpotenz"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -796,6 +840,24 @@ FUNKTIONEN = [
     ("Ringzähler läuft im Kreis", lambda: swm.schieberegister(4, [0] * 4, "Ring", 1)[-1], 1),
     ("Zählerentwurf: 7 Zustände -> 3 Flipflops", lambda: swm.zaehler_entwurf(list(range(7)))["bits"], 3),
     ("f_max = 1 / 20 ns", lambda: swm.fmax_synchron(10e-9, 5e-9, 5e-9)["f_max"], 50e6),
+
+    # ---- Digitaltechnik: Busse und Speicher ----
+    ("UART 'A' 8N1: Start, LSB zuerst, Stopp", lambda: [b for _n, b in bm.uart_rahmen(0x41)], [0, 1, 0, 0, 0, 0, 0, 1, 0, 1]),
+    ("Parität gerade bei 3 Einsen = 1", lambda: bm.paritaetsbit(0b0111, "gerade (even)"), 1),
+    ("Parität ungerade bei 3 Einsen = 0", lambda: bm.paritaetsbit(0b0111, "ungerade (odd)"), 0),
+    ("Zeichen 'A' einlesen", lambda: bm.byte_einlesen("A"), 65),
+    ("SPI Modus 2: abtasten fallend", lambda: bm.spi_modus(2)["abtast"], "fallend"),
+    ("SPI Modus 0: 8 Abtastflanken", lambda: len(bm.spi_signale(0xA5, 0x3C, 0)["flanken"]), 8),
+    ("SPI Modus 0: MOSI-Bits an den Flanken = 0xA5",
+     lambda: [bm.spi_signale(0xA5, 0, 0)["MOSI"][i] for i in bm.spi_signale(0xA5, 0, 0)["flanken"]], [1, 0, 1, 0, 0, 1, 0, 1]),
+    ("SPI Modus 3: SCLK steigt an jeder Abtastflanke",
+     lambda: all(bm.spi_signale(1, 2, 3)["SCLK"][i] == 1 and bm.spi_signale(1, 2, 3)["SCLK"][i - 1] == 0
+                 for i in bm.spi_signale(1, 2, 3)["flanken"]), True),
+    ("I²C: SDA ändert sich nur bei SCL = 0 (ausser START/STOP)", lambda: _i2c_regel_ok(), True),
+    ("I²C: kein Slave -> NACK, STOP", lambda: [n for n, _b, _s in bm.i2c_rahmen(0x48, slave_da=False)][-2:], ["NACK", "STOP"]),
+    ("I²C: Lesen, letztes Byte NACK", lambda: bm.i2c_rahmen(0x48, True, [1, 2])[-2][0], "NACK"),
+    ("I²C: Adresse 0x78 reserviert", lambda: bm.i2c_rahmen(0x78), wirft(ValueError)),
+    ("Speicher 32K = 2^15", lambda: bm.worte_einlesen("32K"), 32768),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

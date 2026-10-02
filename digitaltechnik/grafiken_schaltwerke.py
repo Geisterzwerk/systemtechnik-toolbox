@@ -29,7 +29,8 @@ SIGNAL_FARBEN = {"CLK": "#A855F7", "C": "#A855F7", "Q": EINS}
 
 def zeitdiagramm(c, x0, x1, y0, y1, signale, schrift, leise, markierungen=()):
     """
-    signale: [(name, [werte …], farbe), …] – alle Listen gleich lang, ein Wert je Zeitschritt (0/1, None = X).
+    signale: [(name, [werte …], farbe), …] – alle Listen gleich lang, ein Wert je Zeitschritt
+             (0/1, None = unbestimmt X, "Z" = hochohmig).
     markierungen: [(schritt, farbe), …] senkrechte Hilfslinien (z.B. Taktflanken, Glitches).
     """
     if not signale or not signale[0][1]:
@@ -46,7 +47,9 @@ def zeitdiagramm(c, x0, x1, y0, y1, signale, schrift, leise, markierungen=()):
         punkte = []
         for i, w in enumerate(werte):
             y = unten if not w else oben
-            if w is None:                                          # unbestimmt: Mitte, gestrichelt dargestellt
+            if w == "Z":                                           # hochohmig (Leitung frei): Mitte
+                y = (oben + unten) / 2
+            elif w is None:                                        # unbestimmt: Mitte, gestrichelt dargestellt
                 c.create_rectangle(x0 + i * dx, oben, x0 + (i + 1) * dx, unten, outline=ROT, dash=(2, 2))
                 y = (oben + unten) / 2
             punkte += [x0 + i * dx, y, x0 + (i + 1) * dx, y]

@@ -952,7 +952,7 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 8b | Logik: 4 Seiten (Gatter, boolesche Algebra/De Morgan, Normalformen, KV-Diagramme); Parser für boolesche Ausdrücke (viele Schreibweisen), Quine-McCluskey mit don't cares in `digitaltechnik/logik_mathe.py`; Werkzeuge Gatter-Simulator (IEC + ANSI), Ausdruck → Tabelle/Normalformen, KV-Diagramm mit Blöcken; 3 Rechner | ✅ erledigt |
 | 8c | Schaltnetze & Ausgänge: 4 Seiten (Addierer, Multiplexer, Decoder/Encoder/7-Segment, Ausgangstypen); Werkzeuge Ripple-Carry-Addierer, MUX/DEMUX, Decoder/Prioritäts-Encoder/7-Segment, Push-Pull/Open Drain/Tri-State an einer Leitung; Rechnung in `digitaltechnik/schaltnetze_mathe.py`; 5 Rechner (Addierer-Laufzeit, MUX-Funktion, 7-Segment, Adressdecoder, I²C-Pull-up) | ✅ erledigt |
 | 8d | Schaltwerke: 4 Seiten (Flipflops, Zähler, Schieberegister, synchroner Zählerentwurf); Werkzeuge Flipflop mit Takt und Zeitdiagramm, Zähler asynchron/synchron mit Zwischenzuständen, Schieberegister/Ring/Johnson; Zählerentwurf mit D/JK und Selbststart-Prüfung in `digitaltechnik/schaltwerke_mathe.py`; 3 Rechner | ✅ erledigt |
-| 8e+ | Speicher, Busse (SPI, I²C, UART mit Zeitdiagrammen) – nach Rückmeldung | offen |
+| 8e | Busse und Speicher: 4 Seiten (UART/RS-232/RS-485, SPI, I²C, Halbleiterspeicher); Werkzeuge UART-Rahmen (TTL + RS-232), SPI-Modi 0 … 3, I²C mit START/ACK/NACK/Sr/STOP, Speicherbaustein mit CS/OE/WE; Rechnung in `digitaltechnik/busse_mathe.py`; 6 Rechner (UART-Timing, Baudraten-Teiler, SPI, I²C-Dauer, Speicher-Organisation, Speicher erweitern) | ✅ erledigt |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

@@ -19,15 +19,22 @@
 #   zaehler_entwurf       synchroner Zähler für eine Zustandsfolge: minimierte D- bzw. JK-Gleichungen
 #   fmax_schaltwerk       höchste Taktfrequenz eines synchronen Schaltwerks (Setup/Hold)
 #   frequenzteiler        Teiler durch m: Flipflops, Ausgangsfrequenz
+#   uart_timing           Bitzeit, Rahmenzeit, Zeichen pro Sekunde, Toleranz eines UART-Formats (z.B. 8N1)
+#   uart_baudrate         Baudraten-Teiler eines µC: tatsächliche Baudrate und Fehler in %
+#   spi_uebertragung      SPI: Modus (CPOL/CPHA), Dauer und Datenrate
+#   i2c_uebertragung      I²C: Takte, Dauer und Nutzdatenrate einer Übertragung
+#   speicher_organisation Kapazität und Adressbereich aus Adress- und Datenbits
+#   speicher_erweitern    Wie viele Speicherchips für grössere Tiefe / Wortbreite?
 #   werkzeug_*            INTERAKTIVE Werkzeuge (digitaltechnik/grafiken.py)
 #
 # AD-Wandler und Abtastung gibt es schon im Bereich Messtechnik ("adc", "abtastung").
 # Rechnung: digitaltechnik/zahlen_mathe.py, pegel_mathe.py, logik_mathe.py, schaltnetze_mathe.py,
-#           schaltwerke_mathe.py (ohne GUI, testbar)
+#           schaltwerke_mathe.py, busse_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "zahlensystem")
 # =============================================================================
 
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt          # -> bauteile/rechner/basis.py
+from digitaltechnik import busse_mathe as bm                                  # -> digitaltechnik/busse_mathe.py
 from digitaltechnik import logik_mathe as lm                                  # -> digitaltechnik/logik_mathe.py
 from digitaltechnik import pegel_mathe as pm                                  # -> digitaltechnik/pegel_mathe.py
 from digitaltechnik import schaltnetze_mathe as sm                            # -> digitaltechnik/schaltnetze_mathe.py
@@ -39,6 +46,8 @@ from digitaltechnik.grafiken_schaltnetze import (AddiererKarte, AusgangKarte,   
                                                  DecoderKarte, MuxKarte)
 from digitaltechnik.grafiken_schaltwerke import (FlipflopKarte, SchieberegisterKarte,  # -> digitaltechnik/grafiken_schaltwerke.py
                                                  ZaehlerKarte)
+from digitaltechnik.grafiken_busse import (I2cKarte, SpeicherKarte, SpiKarte,  # -> digitaltechnik/grafiken_busse.py
+                                           UartKarte)
 from digitaltechnik.grafiken_logik import (AusdruckKarte, GatterKarte, KVKarte,  # -> digitaltechnik/grafiken_logik.py
                                            wahrheitstabelle_text)
 
@@ -541,6 +550,219 @@ def frequenzteiler(master):
 
 
 # =============================================================================
+# 17) UART: TIMING EINES FORMATS
+# =============================================================================
+DATENBITS = ["8", "7", "9", "6", "5"]
+
+
+def _uart_timing(w):
+    if w["baud"] is None:
+        raise RechnerFehler("Baudrate eingeben, z.B. 9600 oder 115200")
+    datenbits, stopbits = int(w["datenbits"]), float(w["stopbits"])
+    e = _fehler_umwandeln(bm.uart_timing, w["baud"], datenbits, w["paritaet"], stopbits)
+    zeilen = [f"Format {bm.uart_format(datenbits, w['paritaet'], stopbits)}: 1 Start + {datenbits} Daten"
+              + ("" if w["paritaet"] == "keine" else " + 1 Parität") + f" + {stopbits:g} Stopp = {e['rahmen_bits']:g} Bit",
+              f"t_bit = 1 / Baudrate = 1 / {w['baud']:g} Bd = {fmt(e['t_bit'], 'zeit')}",
+              f"t_Rahmen = {e['rahmen_bits']:g} · t_bit = {fmt(e['t_rahmen'], 'zeit')}   →   "
+              f"max. {e['bytes_s']:.1f} Zeichen/s",
+              f"Nutzdaten: {datenbits} / {e['rahmen_bits']:g} = {e['nutzanteil'] * 100:.1f} %  →  "
+              f"{fmt(e['nutz_bit_s'], 'zahl')} bit/s",
+              f"Taktabweichung beider Seiten zusammen höchstens ≈ 0.5 / {e['rahmen_bits'] - 0.5:g} = "
+              f"{e['toleranz_gesamt'] * 100:.1f} % (praktisch je Seite ≤ 2 %)"]
+    if w["n"] is not None:
+        if w["n"] < 1 or w["n"] != int(w["n"]):
+            raise RechnerFehler("Anzahl Zeichen: ganze Zahl ≥ 1")
+        zeilen.append(f"{int(w['n'])} Zeichen ohne Pausen: {fmt(w['n'] * e['t_rahmen'], 'zeit')}")
+    return zeilen
+
+
+def uart_timing(master):
+    return FormelRechner(
+        master, "UART: Bitzeit und Datenrate", "Wie lange dauert ein Zeichen, wie viele passen in eine Sekunde?",
+        felder=[("baud", "Baudrate", "zahl", {"platzhalter": "z.B. 9600"}),
+                ("datenbits", "Datenbits", "auswahl", {"werte": DATENBITS}),
+                ("paritaet", "Parität", "auswahl", {"werte": bm.PARITAETEN}),
+                ("stopbits", "Stoppbits", "auswahl", {"werte": ["1", "2", "1.5"]}),
+                ("n", "Anzahl Zeichen (opt.)", "zahl", {"platzhalter": "optional"})],
+        berechnen=_uart_timing, formel="t_bit = 1 / Baudrate     Zeichen/s = Baudrate / Rahmenbits")
+
+
+# =============================================================================
+# 18) UART: BAUDRATEN-TEILER
+# =============================================================================
+BAUDQUARZE = "1.8432, 3.6864, 7.3728, 11.0592, 14.7456 MHz"
+UEBERABTASTUNG = {"16-fach (normal)": 16, "8-fach (doppelte Geschwindigkeit)": 8}
+
+
+def _uart_baudrate(w):
+    if w["f"] is None or w["baud"] is None:
+        raise RechnerFehler("Takt des µC und gewünschte Baudrate eingeben")
+    k = UEBERABTASTUNG[w["ueber"]]
+    e = _fehler_umwandeln(bm.baud_teiler, w["f"], w["baud"], k)
+    fehler = abs(e["fehler"]) * 100
+    f_text = fmt(w["f"], "frequenz", 6)
+    zeilen = [f"N = f / ({k} · Baudrate) = {f_text} / ({k} · {w['baud']:g}) = {e['ideal']:.3f} "
+              f"→ gerundet N = {e['teiler']}  (AVR: UBRR = N − 1 = {e['register']})",
+              f"tatsächlich: {f_text} / ({k} · {e['teiler']}) = {e['ist']:.1f} Bd",
+              f"Fehler = {e['fehler'] * 100:+.2f} %"]
+    if fehler <= 0.5:
+        zeilen[-1] += "  ✓ sehr gut"
+    elif fehler <= 2:
+        zeilen[-1] += "  ✓ in Ordnung (≤ 2 %)"
+    elif fehler <= 4.5:
+        zeilen[-1] += "  ⚠ grenzwertig – funktioniert nur, wenn die Gegenseite fast genau ist"
+    else:
+        zeilen[-1] += "  ❌ zu gross – Zeichen werden falsch empfangen"
+    if fehler > 0.5:
+        zeilen.append(f"Abhilfe: anderer Takt („Baudratenquarz“ {BAUDQUARZE} ergibt 0 %), "
+                      "8-fache Überabtastung oder kleinere Baudrate")
+    return zeilen
+
+
+def uart_baudrate(master):
+    return FormelRechner(
+        master, "UART: Baudraten-Teiler und Fehler", "Trifft der µC-Takt die gewünschte Baudrate genau genug?",
+        felder=[("f", "Takt f des µC", "frequenz", {"einheit": "MHz", "platzhalter": "z.B. 16"}),
+                ("baud", "Baudrate", "zahl", {"platzhalter": "z.B. 115200"}),
+                ("ueber", "Überabtastung", "auswahl", {"werte": list(UEBERABTASTUNG)})],
+        berechnen=_uart_baudrate, formel="N = round(f / (16 · Baudrate))     Fehler = f / (16 · N · Baudrate) − 1")
+
+
+# =============================================================================
+# 19) SPI-ÜBERTRAGUNG
+# =============================================================================
+SPI_MODI = ["Modus 0", "Modus 1", "Modus 2", "Modus 3"]
+
+
+def _spi_uebertragung(w):
+    m = bm.spi_modus(SPI_MODI.index(w["modus"]))
+    zeilen = [f"{w['modus']}: CPOL = {m['cpol']}, CPHA = {m['cpha']}  →  SCLK in Ruhe {'HIGH' if m['ruhe'] else 'LOW'}, "
+              f"abtasten an der {m['abtast']}en Flanke, Daten wechseln an der {m['schiebe']}en"]
+    if w["f"] is None:
+        return zeilen
+    n = w["n"] if w["n"] is not None else 1
+    if n < 1 or n != int(n):
+        raise RechnerFehler("Anzahl Bytes: ganze Zahl ≥ 1")
+    e = _fehler_umwandeln(bm.spi_dauer, w["f"], int(n))
+    zeilen += [f"t = {int(n)} · 8 / f_SCLK = {e['takte']} / {fmt(w['f'], 'frequenz')} = {fmt(e['dauer'], 'zeit')}"
+               "  (ohne Pausen zwischen den Bytes)",
+               f"Datenrate: {fmt(e['bytes_s'], 'zahl')} Byte/s je Richtung (Vollduplex)"]
+    return zeilen
+
+
+def spi_uebertragung(master):
+    return FormelRechner(
+        master, "SPI: Modus und Übertragungsdauer", "CPOL/CPHA nachschlagen und die Dauer einer Übertragung berechnen",
+        felder=[("modus", "SPI-Modus", "auswahl", {"werte": SPI_MODI}),
+                ("f", "Takt f_SCLK (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "z.B. 8"}),
+                ("n", "Anzahl Bytes (opt.)", "zahl", {"platzhalter": "1"})],
+        berechnen=_spi_uebertragung, formel="Modus = 2 · CPOL + CPHA     t = 8 · n / f_SCLK")
+
+
+# =============================================================================
+# 20) I²C-ÜBERTRAGUNG
+# =============================================================================
+def _i2c_uebertragung(w):
+    if w["n"] is None:
+        raise RechnerFehler("Anzahl Datenbytes eingeben")
+    if w["n"] < 0 or w["n"] != int(w["n"]):
+        raise RechnerFehler("Anzahl Datenbytes: ganze Zahl ≥ 0")
+    f = w["f"] if w["f"] is not None else bm.I2C_MODI[w["modus"]]
+    e = _fehler_umwandeln(bm.i2c_dauer, f, w["art"], int(w["n"]))
+    n = int(w["n"])
+    if w["art"] == "Register lesen":
+        aufbau = f"S + 9 (Adresse+W+ACK) + 9 (Register+ACK) + Sr + 9 (Adresse+R+ACK) + 9 · {n} + P"
+    else:
+        aufbau = f"S + 9 (Adresse+R/W+ACK) + 9 · {n} (Byte+ACK) + P"
+    zeilen = [f"Takte ≈ {aufbau} = {e['takte']}",
+              f"t ≈ {e['takte']} / {fmt(f, 'frequenz')} = {fmt(e['dauer'], 'zeit')}  "
+              "(ohne Clock Stretching und Pausen)"]
+    if n:
+        zeilen.append(f"Nutzdaten: {8 * n} Bit in {fmt(e['dauer'], 'zeit')} = {fmt(e['nutz_bit_s'], 'zahl')} bit/s "
+                      f"({e['anteil'] * 100:.0f} % der Takte)")
+    if w["f"] is not None and w["f"] > 1e6:
+        zeilen.append("⚠ Über 1 MHz nur im High-speed-mode (3.4 MHz) mit besonderen Treibern")
+    return zeilen
+
+
+def i2c_uebertragung(master):
+    return FormelRechner(
+        master, "I²C: Dauer einer Übertragung", "Wie lange braucht ein Schreib- oder Lesezugriff?",
+        felder=[("modus", "Modus", "auswahl", {"werte": list(bm.I2C_MODI)}),
+                ("art", "Zugriff", "auswahl", {"werte": bm.I2C_ARTEN}),
+                ("n", "Datenbytes", "zahl", {"platzhalter": "z.B. 2"}),
+                ("f", "eigener Takt f_SCL (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"})],
+        berechnen=_i2c_uebertragung, formel="Takte ≈ 1 + 9 · (1 + n) + 1     t = Takte / f_SCL")
+
+
+# =============================================================================
+# 21) SPEICHER-ORGANISATION
+# =============================================================================
+def _speicher_organisation(w):
+    if w["a"] is None or w["d"] is None:
+        raise RechnerFehler("Adressbits und Datenbits eingeben")
+    if w["a"] != int(w["a"]) or w["d"] != int(w["d"]):
+        raise RechnerFehler("Ganze Zahlen eingeben")
+    a, d = int(w["a"]), int(w["d"])
+    o = _fehler_umwandeln(bm.speicher_organisation, a, d)
+    worte_text, bits_text = bm.groesse_text(o["worte"], ""), bm.groesse_text(o["bits"])
+    return [f"Wörter = 2^{a} = {o['worte']}" + (f" ({worte_text.strip()})" if o["worte"] >= 1024 else ""),
+            f"Kapazität = 2^{a} · {d} Bit = {o['bits']} Bit" + (f" = {bits_text}" if o["bits"] >= 1024 else "")
+            + (f" = {bm.groesse_text(int(o['bytes']), 'Byte')}" if o["bits"] % 8 == 0 else ""),
+            f"Adressen 0x{0:0{o['hex_stellen']}X} … 0x{o['hoechste']:0{o['hex_stellen']}X}   "
+            f"(A{a - 1} … A0, Daten D{d - 1} … D0)"]
+
+
+def speicher_organisation(master):
+    return FormelRechner(
+        master, "Speicher: Organisation und Kapazität", "Aus Adress- und Datenbits: Wörter, Bit, Byte, Adressbereich",
+        felder=[("a", "Adressbits a", "zahl", {"platzhalter": "z.B. 15 (62256)"}),
+                ("d", "Datenbits d (Wortbreite)", "zahl", {"platzhalter": "z.B. 8"})],
+        berechnen=_speicher_organisation, formel="Wörter = 2^a     Kapazität = 2^a · d Bit")
+
+
+# =============================================================================
+# 22) SPEICHER ERWEITERN
+# =============================================================================
+def _speicher_erweitern(w):
+    for name in ("ziel", "zb", "chip", "cb"):
+        if w[name] is None:
+            raise RechnerFehler("Ziel (Wörter × Bit) und Chip (Wörter × Bit) eingeben, z.B. 64K × 16 aus 32K × 8")
+    ziel = _fehler_umwandeln(bm.worte_einlesen, w["ziel"])
+    chip = _fehler_umwandeln(bm.worte_einlesen, w["chip"])
+    if w["zb"] != int(w["zb"]) or w["cb"] != int(w["cb"]):
+        raise RechnerFehler("Wortbreiten als ganze Zahl eingeben")
+    zb, cb = int(w["zb"]), int(w["cb"])
+    e = _fehler_umwandeln(bm.speicher_erweitern, ziel, zb, chip, cb)
+    zeilen = [f"Wortbreite: ⌈{zb} / {cb}⌉ = {e['nebeneinander']} Chips nebeneinander (gleiche Adresse, gleiches ¬CS)",
+              f"Tiefe: {bm.groesse_text(ziel, '')} / {bm.groesse_text(chip, '')} = {e['untereinander']} Reihen "
+              "untereinander (gemeinsamer Datenbus, ein Decoder wählt per ¬CS)",
+              f"→ {e['chips']} Chips   ·   Adressbits gesamt: {e['adressbits']} (A{e['adressbits'] - 1} … A0), "
+              f"jeder Chip bekommt A{e['adressbits_chip'] - 1} … A0"]
+    if e["decoder_bits"]:
+        bereich = (f"A{e['adressbits'] - 1}" if e["decoder_bits"] == 1 else
+                   f"A{e['adressbits'] - 1} … A{e['adressbits_chip']}")
+        zeilen.append(f"Decoder an {bereich} ({e['decoder_bits']} Bit → {2 ** e['decoder_bits']} ¬CS-Leitungen"
+                      + (", bei 1 Bit reicht ein Inverter" if e["decoder_bits"] == 1 else "") + ")")
+    if ziel < chip:
+        zeilen.append("Hinweis: Der Chip ist grösser als nötig – ein Teil bleibt ungenutzt")
+    if e["ungenutzt_bits"]:
+        zeilen.append(f"Hinweis: {e['ungenutzt_bits']} Datenbit(s) je Adresse bleiben ungenutzt")
+    return zeilen
+
+
+def speicher_erweitern(master):
+    return FormelRechner(
+        master, "Speicher erweitern (Tiefe und Wortbreite)", "Aus kleinen Speicherchips einen grösseren Speicher bauen",
+        felder=[("ziel", "Ziel: Wörter", "text", {"platzhalter": "z.B. 64K"}),
+                ("zb", "Ziel: Wortbreite (Bit)", "zahl", {"platzhalter": "z.B. 16"}),
+                ("chip", "Chip: Wörter", "text", {"platzhalter": "z.B. 32K"}),
+                ("cb", "Chip: Wortbreite (Bit)", "zahl", {"platzhalter": "z.B. 8"})],
+        berechnen=_speicher_erweitern,
+        formel="Chips = ⌈Breite_Ziel / Breite_Chip⌉ · Wörter_Ziel / Wörter_Chip     Decoder-Bits = log2(Reihen)")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -574,4 +796,14 @@ RECHNER = {
     "werkzeug_flipflop": FlipflopKarte,
     "werkzeug_zaehler": ZaehlerKarte,
     "werkzeug_schieberegister": SchieberegisterKarte,
+    "uart_timing": uart_timing,
+    "uart_baudrate": uart_baudrate,
+    "spi_uebertragung": spi_uebertragung,
+    "i2c_uebertragung": i2c_uebertragung,
+    "speicher_organisation": speicher_organisation,
+    "speicher_erweitern": speicher_erweitern,
+    "werkzeug_uart": UartKarte,
+    "werkzeug_spi": SpiKarte,
+    "werkzeug_i2c": I2cKarte,
+    "werkzeug_speicher": SpeicherKarte,
 }

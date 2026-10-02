@@ -29,7 +29,7 @@ KATEGORIEN = {
     "Bauteile":       ("🔧", "Kennwerte und Codes einzelner Bauteile"),
     "Schaltungen":    ("🔌", "Netzteile, Teiler, Filter, Schalten, Verstärker"),
     "Messtechnik":    ("📏", "Messunsicherheit, Messgeräte, Sensoren"),
-    "Digitaltechnik": ("💾", "Zahlen, Pegel, Logik, Schaltnetze, Schaltwerke, AD-Wandler"),
+    "Digitaltechnik": ("💾", "Zahlen, Pegel, Logik, Schaltnetze, Schaltwerke, Busse, Speicher, AD-Wandler"),
 }
 
 # Diese Bereiche enthalten Wissensseiten (Tab-Name -> Ordner mit den Seiten)
@@ -689,6 +689,56 @@ RECHNER_INFO = {
         "beschreibung": "SIPO, Ring- und Johnson-Zähler Takt für Takt mit Zeitdiagramm.",
         "stichworte": ["Schieberegister", "Ringzähler", "Johnson-Zähler", "SIPO", "Werkzeug"],
         "wissensseite": "schieberegister"},
+    "uart_timing": {
+        "titel": "UART: Bitzeit und Datenrate", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Bitzeit, Rahmenzeit, Zeichen pro Sekunde und Taktoleranz eines Formats wie 8N1.",
+        "stichworte": ["UART", "Baudrate", "8N1", "Bitzeit", "Rahmen", "seriell", "RS-232", "RS-485"],
+        "wissensseite": "uart"},
+    "uart_baudrate": {
+        "titel": "UART: Baudraten-Teiler und Fehler", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Teiler N = f / (16 · Baudrate), tatsächliche Baudrate und Fehler in % (AVR: UBRR).",
+        "stichworte": ["UART", "Baudrate", "UBRR", "Baudratenfehler", "Quarz", "Teiler"],
+        "wissensseite": "uart"},
+    "spi_uebertragung": {
+        "titel": "SPI: Modus und Übertragungsdauer", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "CPOL/CPHA, Abtastflanke und Dauer von n Bytes bei gegebenem SCLK.",
+        "stichworte": ["SPI", "CPOL", "CPHA", "SPI-Modus", "SCLK", "MOSI", "MISO"],
+        "wissensseite": "spi"},
+    "i2c_uebertragung": {
+        "titel": "I²C: Dauer einer Übertragung", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Takte, Dauer und Nutzdatenrate beim Schreiben, Lesen oder Register-Lesen.",
+        "stichworte": ["I²C", "I2C", "TWI", "SCL", "Übertragungsdauer", "Register lesen"],
+        "wissensseite": "i2c"},
+    "speicher_organisation": {
+        "titel": "Speicher: Organisation und Kapazität", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Aus Adress- und Datenbits: Anzahl Wörter, Kapazität in Bit/Byte, Adressbereich.",
+        "stichworte": ["Speicher", "Kapazität", "Adressbits", "Datenbits", "RAM", "ROM", "Organisation"],
+        "wissensseite": "speicher"},
+    "speicher_erweitern": {
+        "titel": "Speicher erweitern (Tiefe und Wortbreite)", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Wie viele Chips, welche Adressbits an den Decoder?",
+        "stichworte": ["Speichererweiterung", "Wortbreite", "Chip Select", "Decoder", "RAM", "Speicherchip"],
+        "wissensseite": "speicher"},
+    "werkzeug_uart": {
+        "titel": "UART-Rahmen (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Zeichen eingeben -> Startbit, Daten LSB zuerst, Parität, Stoppbit; TTL- und RS-232-Pegel.",
+        "stichworte": ["UART", "Rahmen", "Zeitdiagramm", "Parität", "RS-232", "Werkzeug"],
+        "wissensseite": "uart"},
+    "werkzeug_spi": {
+        "titel": "SPI-Übertragung (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Modus 0 … 3 mit CS, SCLK, MOSI, MISO und Abtastflanken im Zeitdiagramm.",
+        "stichworte": ["SPI", "Zeitdiagramm", "CPOL", "CPHA", "Werkzeug"],
+        "wissensseite": "spi"},
+    "werkzeug_i2c": {
+        "titel": "I²C-Übertragung (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "START, Adresse, R/W, ACK/NACK, Daten und STOP auf SDA und SCL.",
+        "stichworte": ["I²C", "I2C", "Zeitdiagramm", "ACK", "START", "STOP", "Werkzeug"],
+        "wissensseite": "i2c"},
+    "werkzeug_speicher": {
+        "titel": "Speicherbaustein (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Busse und Speicher",
+        "beschreibung": "Adresse wählen, lesen und schreiben, Steuersignale CS/OE/WE sehen.",
+        "stichworte": ["Speicher", "RAM", "Adresse", "CS", "OE", "WE", "Werkzeug"],
+        "wissensseite": "speicher"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
