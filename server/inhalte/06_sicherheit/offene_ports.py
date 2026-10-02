@@ -58,7 +58,7 @@ docker run -d -p 127.0.0.1:5432:5432 postgres
 #     - "127.0.0.1:5432:5432"'''}},
         {"titel": "Sicher auf einen internen Dienst zugreifen: SSH-Tunnel (vom PC aus)",
          "text": "Leitet `localhost:8006` auf deinem PC verschlüsselt zum Proxmox-Host weiter – Port 8006 muss nirgends offen sein. Danach im Browser `https://localhost:8006` öffnen.",
-         "code": {"Bash": r'''ssh -L 8006:127.0.0.1:8006 jorick@proxmox-host'''}},
+         "code": {"Bash": r'''ssh -L 8006:127.0.0.1:8006 benutzer@proxmox-host'''}},
     ],
 
     "tabellen": [

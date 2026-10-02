@@ -27,18 +27,18 @@ THEMA = {
 
     "befehle": [
         {"titel": "scp (vom PC aus)", "zeilen": [
-            ("scp datei.txt jorick@srv01:~/", "Datei vom PC in dein Home auf dem Server"),
-            ("scp jorick@srv01:/var/log/syslog .", "Datei vom Server in den aktuellen Ordner holen"),
-            ("scp -r ordner/ jorick@srv01:~/", "Ganzen Ordner hochladen"),
-            ("scp -P 2222 datei.txt jorick@srv01:~/", "Anderer SSH-Port (grosses -P!)"),
+            ("scp datei.txt benutzer@srv01:~/", "Datei vom PC in dein Home auf dem Server"),
+            ("scp benutzer@srv01:/var/log/syslog .", "Datei vom Server in den aktuellen Ordner holen"),
+            ("scp -r ordner/ benutzer@srv01:~/", "Ganzen Ordner hochladen"),
+            ("scp -P 2222 datei.txt benutzer@srv01:~/", "Anderer SSH-Port (grosses -P!)"),
         ]},
         {"titel": "rsync", "zeilen": [
-            ("rsync -avP quelle/ jorick@srv01:/srv/ziel/", "Ordnerinhalt hochladen, mit Fortschritt"),
-            ("rsync -avP jorick@srv01:/srv/daten/ ./daten/", "Vom Server herunterladen"),
+            ("rsync -avP quelle/ benutzer@srv01:/srv/ziel/", "Ordnerinhalt hochladen, mit Fortschritt"),
+            ("rsync -avP benutzer@srv01:/srv/daten/ ./daten/", "Vom Server herunterladen"),
             ("rsync -avn --delete quelle/ ziel/", "TROCKENLAUF: zeigt, was kopiert und gelöscht würde"),
             ("rsync -av --delete quelle/ ziel/", "Spiegeln: im Ziel löschen, was in der Quelle fehlt"),
             ("rsync -av --exclude='*.log' quelle/ ziel/", "Bestimmte Dateien auslassen"),
-            ("rsync -avP -e \"ssh -p 2222\" quelle/ jorick@srv01:ziel/", "Über anderen SSH-Port"),
+            ("rsync -avP -e \"ssh -p 2222\" quelle/ benutzer@srv01:ziel/", "Über anderen SSH-Port"),
         ]},
         {"titel": "Aus dem Internet laden", "zeilen": [
             ("wget https://example.com/datei.tar.gz", "Datei herunterladen"),

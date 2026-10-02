@@ -37,7 +37,7 @@ Bricht SSH ab, wird alles beendet, was in der Sitzung lief (z.B. ein langes Upda
             ("exit", "Verbindung sauber beenden (oder Ctrl+D)"),
         ]},
         {"titel": "Schlüssel (auf deinem PC)", "zeilen": [
-            ("ssh-keygen -t ed25519 -C \"jorick@laptop\"", "Neues Schlüsselpaar erzeugen (mit Passphrase!)"),
+            ("ssh-keygen -t ed25519 -C \"benutzer@laptop\"", "Neues Schlüsselpaar erzeugen (mit Passphrase!)"),
             ("ssh-copy-id benutzer@server", "Öffentlichen Schlüssel auf den Server kopieren (Linux/Mac)"),
             ("ssh-keygen -R 192.168.1.50", "Alten Fingerprint löschen (nach Neuinstallation des Servers)"),
         ]},
@@ -64,14 +64,14 @@ Bricht SSH ab, wird alles beendet, was in der Sitzung lief (z.B. ein langes Upda
     "beispiele": [
         {"titel": "Windows: Schlüssel erzeugen und auf den Server kopieren (in PowerShell)",
          "text": "Windows hat kein `ssh-copy-id`. Diese Zeile macht dasselbe: öffentlichen Schlüssel lesen und auf dem Server an `authorized_keys` anhängen – mit den richtigen Rechten.",
-         "code": {"Bash": r'''ssh-keygen -t ed25519 -C "jorick@laptop"
+         "code": {"Bash": r'''ssh-keygen -t ed25519 -C "benutzer@laptop"
 
 type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh benutzer@192.168.1.50 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"'''}},
         {"titel": "Abkürzungen: ~/.ssh/config (auf deinem PC)",
          "text": "Danach reicht `ssh srv01` statt der ganzen Zeile. Unter Windows: `C:\\Users\\<name>\\.ssh\\config`.",
          "code": {"Bash": r'''Host srv01
     HostName 192.168.1.50
-    User jorick
+    User benutzer
     Port 22
     IdentityFile ~/.ssh/id_ed25519'''}},
     ],

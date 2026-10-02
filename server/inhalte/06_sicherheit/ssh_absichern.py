@@ -52,7 +52,7 @@ Liest die Logs und sperrt IPs per Firewall, die sich zu oft falsch anmelden. Auf
 
     "beispiele": [
         {"titel": "/etc/ssh/sshd_config.d/00-haertung.conf",
-         "text": "`jorick` durch deinen Benutzer ersetzen. **Vorher** Schlüssel-Login testen!",
+         "text": "`benutzer` durch deinen Benutzer ersetzen. **Vorher** Schlüssel-Login testen!",
          "code": {"Bash": r'''# Nur Schlüssel, kein Passwort
 PasswordAuthentication no
 KbdInteractiveAuthentication no
@@ -62,7 +62,7 @@ PubkeyAuthentication yes
 PermitRootLogin no
 
 # Nur diese Benutzer dürfen sich anmelden
-AllowUsers jorick
+AllowUsers benutzer
 
 # Weniger Versuche, schneller Timeout
 MaxAuthTries 3
@@ -70,7 +70,7 @@ LoginGraceTime 30
 X11Forwarding no'''}},
         {"titel": "Prüfen und anwenden – mit Sicherheitsnetz",
          "code": {"Bash": r'''sudo sshd -t && sudo systemctl reload ssh
-# JETZT: neues Terminal öffnen und  ssh jorick@srv01  testen
+# JETZT: neues Terminal öffnen und  ssh benutzer@srv01  testen
 # erst wenn das klappt, dieses Fenster schliessen'''}},
         {"titel": "fail2ban anpassen: /etc/fail2ban/jail.local",
          "code": {"Bash": r'''[DEFAULT]

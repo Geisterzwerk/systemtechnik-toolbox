@@ -19,7 +19,7 @@ Einstellungen sind Textdateien (meist in `/etc`), Festplatten erscheinen als Dat
 ## Absolute und relative Pfade
 - **Absolut** – beginnt mit `/`, gilt von überall: `/etc/ssh/sshd_config`
 - **Relativ** – ausgehend vom aktuellen Ordner: `projekte/test`
-- `.` = aktueller Ordner · `..` = eine Ebene höher · `~` = dein Home (`/home/jorick`)
+- `.` = aktueller Ordner · `..` = eine Ebene höher · `~` = dein Home (`/home/benutzer`)
 ## Die wichtigsten Orte für Admins
 - **Konfiguration ändern?** → `/etc`
 - **Etwas geht nicht?** → Logs in `/var/log` (bzw. `journalctl`)
@@ -33,7 +33,7 @@ Einstellungen sind Textdateien (meist in `/etc`), Festplatten erscheinen als Dat
             "zeilen": [
                 ["/", "Wurzel – alles liegt darunter", "–"],
                 ["/etc", "Konfigurationsdateien des Systems und der Dienste", "/etc/ssh/sshd_config, /etc/netplan/"],
-                ["/home", "Home-Verzeichnisse der Benutzer", "/home/jorick"],
+                ["/home", "Home-Verzeichnisse der Benutzer", "/home/benutzer"],
                 ["/root", "Home-Verzeichnis von root (NICHT /home/root)", "–"],
                 ["/var", "variable Daten: Logs, Caches, Datenbanken, Webseiten", "/var/log, /var/www, /var/lib/docker"],
                 ["/var/log", "Log-Dateien", "/var/log/syslog, /var/log/auth.log"],

@@ -45,7 +45,7 @@ Für den Austausch mit Windows ist `zip` praktischer. Muss auf Ubuntu Server mei
 tar -tzf ~/etc-backup-*.tar.gz | head       # Stichprobe: ist etwas drin?
 
 # auf DEINEM PC (PowerShell):
-scp jorick@srv01:~/etc-backup-*.tar.gz .'''},
+scp benutzer@srv01:~/etc-backup-*.tar.gz .'''},
          "ausgabe": "tar: Removing leading `/' from member names\netc/\netc/hostname\netc/ssh/\n..."},
     ],
 

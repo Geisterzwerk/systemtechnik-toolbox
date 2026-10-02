@@ -36,23 +36,23 @@ sudo nano /etc/hosts                               # 127.0.1.1 srv-web01
 sudo timedatectl set-timezone Europe/Zurich
 sudo apt install -y htop curl git tmux ncdu unzip
 # nur falls noch kein eigener Admin existiert:
-sudo adduser jorick && sudo usermod -aG sudo jorick
+sudo adduser benutzer && sudo usermod -aG sudo benutzer
 sudo reboot'''}},
         {"titel": "Schritt 4: Schlüssel vom PC hinterlegen (auf dem PC, PowerShell)",
-         "code": {"Bash": r'''ssh-keygen -t ed25519 -C "jorick@laptop"
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh jorick@192.168.1.50 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
-ssh jorick@192.168.1.50            # muss OHNE Server-Passwort klappen'''}},
+         "code": {"Bash": r'''ssh-keygen -t ed25519 -C "benutzer@laptop"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh benutzer@192.168.1.50 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+ssh benutzer@192.168.1.50            # muss OHNE Server-Passwort klappen'''}},
         {"titel": "Schritt 5: SSH härten (Sitzung offen lassen!)",
          "code": {"Bash": r'''sudo tee /etc/ssh/sshd_config.d/00-haertung.conf > /dev/null <<'EOF'
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin no
-AllowUsers jorick
+AllowUsers benutzer
 MaxAuthTries 3
 EOF
 sudo sshd -t && sudo systemctl reload ssh
 sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin'
-# -> neues Fenster: ssh jorick@srv-web01  testen!'''}},
+# -> neues Fenster: ssh benutzer@srv-web01  testen!'''}},
         {"titel": "Schritt 6–9: Firewall, fail2ban, Updates, Guest-Agent",
          "code": {"Bash": r'''sudo ufw default deny incoming
 sudo ufw default allow outgoing

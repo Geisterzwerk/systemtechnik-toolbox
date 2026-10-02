@@ -78,7 +78,7 @@ double p = u * i;
 Console.WriteLine($"Hallo {name}!");
 Console.WriteLine($"Leistung: {p:F2} W");         // 2 Nachkommastellen''',
             },
-            "ausgabe": "Hallo Jorick!\nLeistung: 12.00 W",
+            "ausgabe": "Hallo Alex!\nLeistung: 12.00 W",
         },
     ],
 

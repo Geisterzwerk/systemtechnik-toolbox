@@ -16,9 +16,9 @@ THEMA = {
 - **`ls`** (list) – zeigt, was im Ordner liegt.
 - **`cd`** (change directory) – wechselt den Ordner.
 ## ls -l lesen
-`-rw-r--r-- 1 jorick jorick 4096 Sep 29 10:12 notizen.txt`
+`-rw-r--r-- 1 benutzer benutzer 4096 Sep 29 10:12 notizen.txt`
 - **-rw-r--r--** – Typ und Rechte (erstes Zeichen: `-` Datei, `d` Ordner, `l` Link) → Seite „Dateirechte“
-- **jorick jorick** – Besitzer und Gruppe
+- **benutzer benutzer** – Besitzer und Gruppe
 - **4096** – Grösse in Byte (mit `-h` lesbar: 4.0K)
 - **Sep 29 10:12** – letzte Änderung
 ## Versteckte Dateien
@@ -52,7 +52,7 @@ cd /var/log
 ls -lht | head -5     # die 5 zuletzt geänderten Logs
 cd -                  # zurück, wo ich vorher war
 pwd'''},
-         "ausgabe": "/home/jorick\ntotal 8.4M\n-rw-r----- 1 syslog adm 1.2M Sep 29 10:14 syslog\n-rw-r----- 1 syslog adm  88K Sep 29 10:13 auth.log\n...\n/home/jorick\n/home/jorick"},
+         "ausgabe": "/home/benutzer\ntotal 8.4M\n-rw-r----- 1 syslog adm 1.2M Sep 29 10:14 syslog\n-rw-r----- 1 syslog adm  88K Sep 29 10:13 auth.log\n...\n/home/benutzer\n/home/benutzer"},
     ],
 
     "tipps": [

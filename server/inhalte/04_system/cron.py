@@ -18,7 +18,7 @@ Jeder Benutzer hat eine eigene **crontab** (`crontab -e`). Jede Zeile = ein Auft
 - Wochentag: 0 oder 7 = Sonntag, 1 = Montag … 6 = Samstag
 Root-Aufgaben: `sudo crontab -e` (laufen als root).
 ## Die drei Cron-Fallen
-- **Andere Umgebung:** cron kennt deinen `PATH` nicht. Immer **absolute Pfade** verwenden (`/usr/bin/rsync`, `/home/jorick/skript.sh`).
+- **Andere Umgebung:** cron kennt deinen `PATH` nicht. Immer **absolute Pfade** verwenden (`/usr/bin/rsync`, `/home/benutzer/skript.sh`).
 - **Keine Ausgabe:** Fehler sieht man nicht. Ausgabe in eine Log-Datei umleiten: `>> /var/log/meinjob.log 2>&1`.
 - **Zeitzone:** Cron benutzt die Zeitzone des Systems – vorher `timedatectl` prüfen.
 ## systemd-Timer – die moderne Alternative

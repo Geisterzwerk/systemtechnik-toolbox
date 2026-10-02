@@ -16,7 +16,7 @@ THEMA = {
 - **Shell:** das Programm, das deine Eingabe liest und ausführt. Auf Ubuntu ist das **Bash** (Bourne Again Shell).
 - **Server ohne Oberfläche:** Ein Ubuntu Server hat keine Maus und keine Fenster – alles läuft über Befehle. Das ist Absicht: weniger Software = weniger Angriffsfläche, weniger Ressourcen.
 ## Der Prompt
-`jorick@srv01:~$` zeigt: Benutzer **jorick**, Server **srv01**, Ordner **~** (Home), **$** = normaler Benutzer. Steht dort **#**, bist du **root** – dann ist alles erlaubt, auch jeder Fehler.
+`benutzer@srv01:~$` zeigt: Benutzer **benutzer**, Server **srv01**, Ordner **~** (Home), **$** = normaler Benutzer. Steht dort **#**, bist du **root** – dann ist alles erlaubt, auch jeder Fehler.
 ## Aufbau eines Befehls
 `befehl  -optionen  argumente` – z.B. `ls -la /etc`
 - **Befehl:** das Programm (`ls`)
@@ -49,7 +49,7 @@ THEMA = {
             "titel": "📊 Anführungszeichen",
             "kopf": ["Schreibweise", "Wirkung", "Beispiel"],
             "zeilen": [
-                ["\"doppelt\"", "Variablen werden ersetzt, Leerzeichen bleiben zusammen", "echo \"Hallo $USER\" → Hallo jorick"],
+                ["\"doppelt\"", "Variablen werden ersetzt, Leerzeichen bleiben zusammen", "echo \"Hallo $USER\" → Hallo benutzer"],
                 ["'einfach'", "alles wörtlich, nichts wird ersetzt", "echo 'Hallo $USER' → Hallo $USER"],
                 ["\\ (Backslash)", "nächstes Zeichen wörtlich / Zeile fortsetzen", "cd Meine\\ Dateien"],
                 ["$(befehl)", "Ausgabe eines Befehls einsetzen", "echo \"Heute: $(date +%F)\""],

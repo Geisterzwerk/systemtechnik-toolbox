@@ -105,12 +105,12 @@ THEMA = {
             "titel": "📊 Die Konsole lesen: der Prompt",
             "kopf": ["Teil", "Beispiel", "Bedeutung"],
             "zeilen": [
-                ["Benutzer", "jorick", "als wer du angemeldet bist"],
+                ["Benutzer", "benutzer", "als wer du angemeldet bist (hier steht dein Name)"],
                 ["@Host", "@srv01", "auf welchem Server du bist – wichtig bei mehreren SSH-Fenstern!"],
                 [":Pfad", ":~/projekte", "aktueller Ordner (~ = Home)"],
                 ["$ oder #", "$  /  #", "$ = normaler Benutzer · # = root (Vorsicht, alles erlaubt!)"],
             ],
-            "hinweis": "Beispiel: `jorick@srv01:~/projekte$` – Benutzer jorick, Server srv01, Ordner /home/jorick/projekte.",
+            "hinweis": "Beispiel: `benutzer@srv01:~/projekte$` – angemeldet als benutzer (steht für deinen Benutzernamen), auf dem Server srv01, im Ordner /home/benutzer/projekte.",
         },
         {
             "titel": "📊 Tastenkürzel, die man sofort braucht",

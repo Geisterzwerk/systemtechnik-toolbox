@@ -31,7 +31,7 @@ Werte, die sich nie ändern dürfen (z.B. π, Maximalwerte):
             "code": {
                 "Python": r'''alter = 25            # int
 spannung = 24.5       # float
-name = "Jorick"       # str
+name = "Alex"         # str
 aktiv = True          # bool
 
 alter = alter + 1     # neuen Wert zuweisen -> 26
@@ -45,7 +45,7 @@ print(name, alter)''',
 int main() {
     int alter = 25;              // Typ Name = Wert;
     double spannung = 24.5;
-    std::string name = "Jorick";
+    std::string name = "Alex";
     bool aktiv = true;
 
     alter = alter + 1;           // 26
@@ -59,7 +59,7 @@ int main() {
 }''',
                 "C#": r'''int alter = 25;              // Typ Name = Wert;
 double spannung = 24.5;
-string name = "Jorick";
+string name = "Alex";
 bool aktiv = true;
 
 alter = alter + 1;           // 26
@@ -70,7 +70,7 @@ var zaehler = 10;            // var: Compiler erkennt den Typ (int)
 
 Console.WriteLine($"{name} {alter}");''',
             },
-            "ausgabe": "Jorick 27",
+            "ausgabe": "Alex 27",
         },
         {
             "titel": "Dynamische vs. statische Typisierung",
