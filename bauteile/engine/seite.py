@@ -19,7 +19,8 @@
 #
 # Die DATEN kommen aus bauteile/inhalte/<kategorie>/<bauteil>.py (THEMA = {...}).
 #
-# WER RUFT DAS AUF?  gui/bauteile_gui.py -> BauteilWiki.thema_oeffnen()
+# WER RUFT DAS AUF?  bauteile/engine/wiki_bereich.py -> WikiBereich.thema_oeffnen()
+#                    (Tabs Bauteile, Messtechnik, Schaltungen)
 # =============================================================================
 
 import os
@@ -161,26 +162,3 @@ class BauteilSeite:
         grid = self.s.add(ResponsiveGrid(self.master, min_spaltenbreite=400, max_spalten=2))
         for rechner_id in rechner_ids:
             grid.add(rechner.erstellen(grid, rechner_id))       # -> bauteile/rechner/__init__.py
-
-
-# =============================================================================
-# ÜBERSICHT
-# =============================================================================
-def uebersicht_zeichnen(master, kategorien, oeffnen, ladefehler=None):
-    s = Stapel(master)
-    anzahl = sum(len(k.themen) for k in kategorien)
-    seiten_kopf(s, "🔧 Bauteile",
-                f"{anzahl} Bauteile in {len(kategorien)} Kategorien  ·  Wissen, Kniffe und Rechner  ·  "
-                f"Suche oben oder links wählen")
-    if ladefehler:
-        s.add(info_box(master, "⚠️ Einige Bauteile konnten nicht geladen werden", ladefehler, art="warnung"))
-    grid = s.add(ResponsiveGrid(master, min_spaltenbreite=340, max_spalten=2))
-    for kat in kategorien:
-        kasten = grid.add(Karte(grid, titel=f"{kat.icon}  {kat.name}", untertitel=kat.beschreibung or None))
-        for zeile, thema in enumerate(kat.themen):
-            anzahl_r = len(thema.daten.get("rechner", []))
-            zusatz = f"   ·  🧮 {anzahl_r}" if anzahl_r else ""
-            ctk.CTkButton(kasten.body, text=f"  {thema.titel}{zusatz}", anchor="w", height=28,
-                          fg_color="transparent", hover_color=config.FARBEN["rahmen"],
-                          text_color=config.FARBEN["akzent"],
-                          command=lambda t=thema: oeffnen(t.id)).grid(row=zeile, column=0, sticky="ew", pady=1)

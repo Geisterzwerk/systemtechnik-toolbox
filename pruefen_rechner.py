@@ -18,6 +18,7 @@
 #                        englische Python-Meldung (z.B. "math domain error").
 #   4) VERWEISE          Jede Rechner-ID in den Inhalten gibt es wirklich, keine ID doppelt,
 #                        RECHNER_INFO vollständig (Kategorie, Stichworte, Wissensseite),
+#                        Schaltungsseiten mit allen Pflichtabschnitten,
 #                        jeder Rechner hat mindestens einen Beispielfall.
 #
 # Die Rechner werden OHNE Fenster geprüft: FormelRechner wird beim Laden durch
@@ -290,6 +291,7 @@ def grenzfaelle_pruefen(formel, z):
 # =============================================================================
 # 4) VERWEISE & METADATEN (RECHNER_INFO)
 # =============================================================================
+PFLICHT_ABSCHNITTE = ("Funktion", "Dimensionierung", "Betriebszustände", "Messpunkte", "Grenzfälle")
 PFLICHTFELDER = ("titel", "kategorie", "unterkategorie", "beschreibung", "stichworte", "wissensseite")
 
 
@@ -338,6 +340,18 @@ def verweise_pruefen(formel, andere, z):
             z.schlecht(f"RECHNER_INFO {rechner_id}", probleme)
         else:
             z.gut(f"RECHNER_INFO {rechner_id}")
+
+    # ---- Schaltungsseiten: Pflichtabschnitte (README: "keine reine Bildergalerie") ----
+    from programmieren.engine import lader
+    _, schaltungen, _ = lader.alle_laden(os.path.join(basis_ordner, "schaltungen", "inhalte"))
+    for thema in schaltungen.values():
+        text = thema.daten.get("erklaerung", "")
+        fehlt = [f"## {a}" for a in PFLICHT_ABSCHNITTE if f"## {a}" not in text]
+        fehlt += [f"„{f}“" for f in ("fehler", "rechner", "grafiken") if not thema.daten.get(f)]
+        if fehlt:
+            z.schlecht(f"Schaltung {thema.id}: es fehlt " + ", ".join(fehlt))
+        else:
+            z.gut(f"Schaltung {thema.id}: alle Pflichtabschnitte")
 
     # ---- Rechner, die nirgends gezeigt werden / ohne Beispielfall ----
     benutzt = {rid for seite in seiten.values() for rid in seite["rechner"]}

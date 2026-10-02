@@ -1,23 +1,31 @@
 # =============================================================================
 # gui/schaltungen_gui.py
 # -----------------------------------------------------------------------------
-# Bereich SCHALTUNGEN (noch im Aufbau).
+# Der Bereich SCHALTUNGEN - ein Wiki wie Bauteile, Messtechnik und Schaltungen.
+#
+# Der ganze Aufbau (Suche, Kategorie-Baum, Seite) steckt im gemeinsamen Baustein
+#   bauteile/engine/wiki_bereich.py  -> WikiBereich
+# Hier steht nur, WELCHER Ordner angezeigt wird und wie der Bereich heisst.
+#
 # WER RUFT DAS AUF?  main.py -> schaltungen_gui.create(tab, app)
 #
-# ERWEITERN (gleiches Prinzip wie gui/bauteile_gui.py):
-#   1. Seite anlegen, z.B. schaltungen/rc_glied.py  mit  create(parent)
-#   2. Hier importieren und  bereich.eintrag_hinzufuegen("RC-Glied", rc_glied.create)
+# NEUE SEITE: Datei in schaltungen/inhalte/<kategorie>/ anlegen (Vorlage: schaltungen/inhalte/_vorlage.py)
+#             -> erscheint automatisch. Hier muss nichts geändert werden.
 # =============================================================================
 
-from core.widgets import SeitenBereich, platzhalter_seite     # -> core/widgets.py
+import os
 
+import config                                                          # -> config.py
+from bauteile.engine.wiki_bereich import WikiBereich                   # -> bauteile/engine/wiki_bereich.py
 
-def _uebersicht(parent):
-    platzhalter_seite(parent, "🔌 Schaltungen", "Hier kommen Grundschaltungen hin, z.B. Spannungsteiler, RC-Glied, OPV-Schaltungen. Dieser Bereich ist noch im Aufbau. 🚧")
+INHALTE_PFAD = os.path.join(config.BASIS_PFAD, 'schaltungen', 'inhalte')
 
 
 def create(parent, app):
-    bereich = SeitenBereich(parent, app)
-    bereich.eintrag_hinzufuegen("Übersicht", _uebersicht, text_kurz="🔌")
-    bereich.seite_zeigen("Übersicht")
-    return bereich
+    parent.grid_rowconfigure(0, weight=1)
+    parent.grid_columnconfigure(0, weight=1)
+    wiki = WikiBereich(parent, app, INHALTE_PFAD, titel="🔌 Schaltungen",
+                       beschreibung="Funktion, Dimensionierung, Messpunkte und typische Fehler – mit interaktivem Schaltplan",
+                       suchtext="z.B. Spannungsteiler, Pull-up, Brücke, Stromteiler")
+    wiki.grid(row=0, column=0, sticky="nsew")
+    return wiki

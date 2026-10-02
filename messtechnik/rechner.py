@@ -27,6 +27,7 @@ import math
 from bauteile import einheiten                                                   # -> bauteile/einheiten.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, anzahl_gegeben, fmt   # -> bauteile/rechner/basis.py
 from messtechnik.grafiken import AbtastGrafik                                   # -> messtechnik/grafiken.py
+from schaltungen import netzwerk_mathe as nm                                    # -> schaltungen/netzwerk_mathe.py
 
 # ---- Zusätzliche Einheiten nur für diesen Bereich (bauteile/einheiten.py bleibt unverändert) ----
 einheiten.EINHEITEN.setdefault("volumenstrom", {
@@ -457,7 +458,7 @@ def _bruecke(w):
                 "Abgleichbedingung: R1 / R2 = R3 / R4"]
     if ue is None:
         raise RechnerFehler("Für die Ausgangsspannung auch Ue eingeben")
-    ua = ue * (r2 / (r1 + r2) - r4 / (r3 + r4))
+    ua = nm.bruecke(ue, r1, r2, r3, r4)["u_d"]            # -> schaltungen/netzwerk_mathe.py
     return [f"Ua = Ue · (R2/(R1+R2) − R4/(R3+R4)) = {fmt(ua, 'spannung')}",
             f"= {ua / ue * 1000:.4g} mV/V",
             "Abgeglichen (Ua ≈ 0)" if abs(ua) < 1e-9 * abs(ue) + 1e-12 else f"Abgleichwert R4 wäre {fmt(r3 * r2 / r1, 'widerstand')}"]

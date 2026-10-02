@@ -61,7 +61,7 @@ SystemLab soll:
 | **Messtechnik** | ✅ vorhanden | Messunsicherheit, Signalkenngrössen, Multimeter, Oszilloskop, Temperatur, Brücke/DMS, Durchfluss, AD-Wandler |
 | **Programmieren** | ✅ vorhanden | 31 Themen, Beispiele in Python, C++ und C# im Vergleich |
 | **Server / Linux** | ✅ vorhanden | 35 Seiten Ubuntu Server: Konsole, Dateien, Rechte, Dienste, Netzwerk, Sicherheit, Praxis; Spickzettel mit 60 Befehlen, Kopier-Knopf pro Befehl, Markierung gefährlicher Befehle |
-| **Schaltungen** | 🚧 Platzhalter | – |
+| **Schaltungen** | 🟡 im Aufbau | Widerstandsnetzwerke fertig (Spannungsteiler, Stromteiler, Pull-up/-down, Potentiometer, Wheatstone-Brücke) – je mit interaktivem Schaltplan; weitere Kategorien folgen |
 | **Rechner** | ✅ vorhanden | alle 65 Rechner an einem Ort: Suche, nach Thema oder A–Z, Link zur Wissensseite (`gui/rechner_gui.py`, Metadaten in `bauteile/rechner/rechner_info.py`) |
 | **Messwerte** | 🚧 Platzhalter | **offen:** mit Messtechnik zusammenlegen oder streichen |
 
@@ -799,12 +799,16 @@ bauteile/inhalte/           Bauteil-Seiten (nur Daten), ein Ordner pro Kategorie
 bauteile/rechner/           Rechner + zentrale Registry (__init__.py), Mathe in *_mathe.py,
                             Metadaten für den Rechner-Tab in rechner_info.py
 bauteile/grafiken/          Schaltzeichen und interaktive Grafiken
-bauteile/engine/            zeichnet eine Bauteil-Seite
+bauteile/engine/            zeichnet eine Seite (seite.py) und den ganzen Wiki-Bereich (wiki_bereich.py,
+                            gemeinsam für Bauteile, Messtechnik, Schaltungen)
 messtechnik/                Messtechnik-Seiten, Rechner und Grafiken
 programmieren/engine/       Wiki-Engine (Lader, Suche, Seite, Codeblock, Befehlsliste)
 programmieren/inhalte/      Programmier-Seiten (nur Daten)
 server/inhalte/             Server-/Linux-Seiten (nur Daten, gleiche Engine)
 images/                     Bilder und Icons
+schaltungen/inhalte/        Schaltungs-Seiten (nur Daten, Vorlage _vorlage.py mit Pflichtabschnitten)
+schaltungen/grafiken.py     interaktive Schaltpläne (Basis SchaltungsKarte aus bauteile/grafiken/schaltplan.py)
+schaltungen/netzwerk_mathe.py  Rechnung Teiler, Pull-up, Poti, Brücke (ohne GUI, testbar)
 pruefen.py                  prüft, ob alle wichtigen Dateien vorhanden sind
 pruefen_rechner.py          prüft alle Rechner: bekannte Werte, Grenzfälle, Verweise (-v, --gui)
 pruefung/rechner_faelle.py  Beispielwerte (von Hand gerechnet) für pruefen_rechner.py
@@ -939,7 +943,8 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 4 | RC- und RL-Lernansicht: Spannung und Strom, zwei Diagramme, `τ_ein` / `τ_aus` (`kurven.py` neu, Rechnung in `schaltvorgaenge_mathe.py`; Eingang als Rechteck, Startspannung U_C0, Vorzeichen erklärt, Ausschalten ohne Freilaufdiode (Modell R_aus), mit Freilaufdiode und mit Diode + Z-Diode) | ✅ erledigt |
 | 5 | Prüfskript für alle Rechner mit bekannten Beispielwerten und Grenzfällen (`python pruefen_rechner.py`, Fälle in `pruefung/rechner_faelle.py`; zentrale Eingabeprüfung in `basis.formel_auswerten()`; dabei gefundene Fehler behoben, siehe unten) | ✅ erledigt |
 | 6 | Rechner-Tab mit `RECHNER_INFO` (Formel-Tab ersetzt; Kategorien Grundlagen/Bauteile/Schaltungen/Messtechnik/Digitaltechnik mit Unterkategorien, Suche, A–Z, Knopf zur Wissensseite + „auch auf“; Validierung in `pruefen_rechner.py`) | ✅ erledigt |
-| 7+ | Schaltungen, Operationsverstärker und Versorgung, Digitaltechnik | offen |
+| 7a | Schaltungen-Tab: gemeinsamer Wiki-Baustein (`bauteile/engine/wiki_bereich.py`, ersetzt 3 Kopien), Schaltplan-Zeichner (`bauteile/grafiken/schaltplan.py`, Raster, Spannung blau / Strom rot / Messpunkte orange), `SchaltungsKarte` für interaktive Pläne, Kategorie Widerstandsnetzwerke mit 5 Seiten, Pflichtabschnitte werden geprüft | ✅ erledigt |
+| 7b+ | Weitere Schaltungen (Dioden/Schutz, Transistor/MOSFET, RC/RL, OPV, Netzteile), dann Digitaltechnik | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 
@@ -961,6 +966,10 @@ python pruefen_rechner.py --gui    # zusätzlich jede Rechner-Karte aufbauen
 | LED-Anzahl −1 oder 1.5 wurde gerechnet | `widerstand_rechner.py` | nur ganze Zahl ab 1 |
 | ADC mit 10.5 Bit wurde still abgerundet | `messtechnik/rechner.py` | nur ganze Bitzahl |
 | Netzteil/Gleichrichter mit zu kleiner Trafospannung ergab negative Gleichspannung | `trafo_rechner.py`, `halbleiter_rechner.py` | Meldung „U2 zu klein“ |
+
+### Schritt 7a: Aufbau einer Schaltungsseite
+
+Jede Schaltung hat die Pflichtabschnitte **Funktion, Dimensionierung, Betriebszustände, Messpunkte, Grenzfälle**, dazu typische Fehler, passende Rechner und einen interaktiven Schaltplan. `python pruefen_rechner.py` meldet fehlende Abschnitte. Weitere Neuerungen: `WertRegler(..., log=True)` für Widerstände/Kapazitäten über mehrere Dekaden, Stromeinheit nA.
 
 ### Schritt 6: Offene Punkte aus dem Rechner-Tab
 

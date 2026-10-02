@@ -31,6 +31,8 @@
 #        internen Namen von tkinter/CustomTkinter kollidieren (siehe _configure-Fehler!).
 # =============================================================================
 
+import math
+
 import customtkinter as ctk
 
 import config                                            # -> config.py
@@ -290,6 +292,8 @@ class WertRegler(ctk.CTkFrame):
                    aber innerhalb der Grenzen, wird er angenommen und der Slider wächst mit.
                    Standard: (von, bis)
     ganzzahl       True -> nur ganze Zahlen (z.B. Windungen)
+    log            True -> logarithmischer Slider (gleicher Weg für 100 Ω → 1 kΩ wie für 10 kΩ → 100 kΩ),
+                   sinnvoll bei Widerständen, Kapazitäten, Frequenzen. Werte auf 3 Stellen gerundet.
     schritte       Raststufen des Sliders (None = stufenlos, bei ganzzahl automatisch)
     bei_aenderung  Funktion ohne Argumente, wird nach jeder GÜLTIGEN Änderung aufgerufen
 
@@ -303,8 +307,11 @@ class WertRegler(ctk.CTkFrame):
     ROT = ("#DC2626", "#F87171")
 
     def __init__(self, master, text, typ, von, bis, start, einheit=None, grenzen=None, ganzzahl=False,
-                 schritte=None, bei_aenderung=None, text_breite=150):
+                 schritte=None, bei_aenderung=None, text_breite=150, log=False):
         super().__init__(master, fg_color="transparent", corner_radius=0)
+        if log and von <= 0:
+            raise ValueError("Logarithmischer Regler braucht einen Bereich über 0")
+        self.wr_log = log
         self.wr_typ = typ
         self.wr_von, self.wr_bis = von, bis
         self.wr_grenzen = grenzen or (von, bis)
@@ -315,8 +322,8 @@ class WertRegler(ctk.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(self, text=text, anchor="w", width=text_breite).grid(row=0, column=0, sticky="w")
-        self.wr_slider = ctk.CTkSlider(self, from_=von, to=bis, number_of_steps=self._wr_stufen(),
-                                       command=self._wr_slider_bewegt)
+        self.wr_slider = ctk.CTkSlider(self, from_=self._wr_s(von), to=self._wr_s(bis),
+                                       number_of_steps=self._wr_stufen(), command=self._wr_slider_bewegt)
         self.wr_slider.grid(row=0, column=1, sticky="ew", padx=8, pady=3)
 
         self.wr_feld = EinheitenEingabe(self, typ, "", einheit, breite=72)      # -> Klasse oben
@@ -329,7 +336,7 @@ class WertRegler(ctk.CTkFrame):
 
         self.wr_meldung = WrapLabel(self, text="", font=config.FONT_KLEIN, text_color=self.ROT)
 
-        self.wr_slider.set(self._wr_im_slider(start))
+        self.wr_slider.set(self._wr_s(self._wr_im_slider(start)))
         self._wr_feld_schreiben()
 
     # ---- von aussen ---------------------------------------------------------
@@ -339,7 +346,7 @@ class WertRegler(ctk.CTkFrame):
     def setzen(self, wert):
         self._wr_bereich_erweitern(wert)
         self.wr_wert = wert
-        self.wr_slider.set(wert)
+        self.wr_slider.set(self._wr_s(wert))
         self._wr_feld_schreiben()
         self._wr_ok()
 
@@ -347,12 +354,16 @@ class WertRegler(ctk.CTkFrame):
         """Slider-Bereich und Grenzen neu setzen, z.B. wenn sich τ ändert."""
         self.wr_von, self.wr_bis = von, bis
         self.wr_grenzen = (von, bis)
-        self.wr_slider.configure(from_=von, to=bis, number_of_steps=self._wr_stufen())
+        self.wr_slider.configure(from_=self._wr_s(von), to=self._wr_s(bis), number_of_steps=self._wr_stufen())
         if self.wr_feld.ee_menue is not None and bis > 0:      # Einheit passend zum Bereich (5 s statt 5000 ms)
             self.wr_feld.ee_menue.set(einheiten.stufe_waehlen(bis, self.wr_typ)[0])
         self.setzen(min(max(self.wr_wert if wert is None else wert, von), bis))
 
     # ---- intern -------------------------------------------------------------
+    def _wr_s(self, wert):
+        """Wert -> Slider-Position (bei log: Zehnerlogarithmus)."""
+        return math.log10(wert) if self.wr_log else wert
+
     def _wr_stufen(self):
         if self.wr_ganzzahl:
             return max(1, int(round(self.wr_bis - self.wr_von)))
@@ -365,10 +376,13 @@ class WertRegler(ctk.CTkFrame):
         """Wert ausserhalb des Sliders (aber erlaubt) -> Slider-Bereich wächst mit."""
         if wert < self.wr_von or wert > self.wr_bis:
             self.wr_von, self.wr_bis = min(self.wr_von, wert), max(self.wr_bis, wert)
-            self.wr_slider.configure(from_=self.wr_von, to=self.wr_bis, number_of_steps=self._wr_stufen())
+            self.wr_slider.configure(from_=self._wr_s(self.wr_von), to=self._wr_s(self.wr_bis),
+                                     number_of_steps=self._wr_stufen())
 
     def _wr_slider_bewegt(self, wert):
         wert = float(wert)
+        if self.wr_log:
+            wert = float(f"{10 ** wert:.3g}")            # 4'712.3 -> 4'710: glatte Werte beim Schieben
         if self.wr_ganzzahl:
             wert = float(round(wert))
         self.wr_wert = wert

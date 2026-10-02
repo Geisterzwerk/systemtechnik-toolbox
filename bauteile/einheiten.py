@@ -28,7 +28,7 @@ import re
 EINHEITEN = {
     "widerstand":    {"stufen": [("mΩ", 1e-3), ("Ω", 1), ("kΩ", 1e3), ("MΩ", 1e6)], "standard": "Ω", "vorsatz": True},
     "spannung":      {"stufen": [("µV", 1e-6), ("mV", 1e-3), ("V", 1), ("kV", 1e3)], "standard": "V", "vorsatz": True},
-    "strom":         {"stufen": [("µA", 1e-6), ("mA", 1e-3), ("A", 1), ("kA", 1e3)], "standard": "A", "vorsatz": True},
+    "strom":         {"stufen": [("nA", 1e-9), ("µA", 1e-6), ("mA", 1e-3), ("A", 1), ("kA", 1e3)], "standard": "A", "vorsatz": True},
     "leistung":      {"stufen": [("µW", 1e-6), ("mW", 1e-3), ("W", 1), ("kW", 1e3)], "standard": "W", "vorsatz": True},
     "kapazitaet":    {"stufen": [("pF", 1e-12), ("nF", 1e-9), ("µF", 1e-6), ("mF", 1e-3), ("F", 1)], "standard": "µF", "vorsatz": True},
     "induktivitaet": {"stufen": [("nH", 1e-9), ("µH", 1e-6), ("mH", 1e-3), ("H", 1)], "standard": "mH", "vorsatz": True},

@@ -25,6 +25,7 @@
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
+from schaltungen import netzwerk_mathe as nm
 
 
 def fehler(text):
@@ -298,6 +299,20 @@ FAELLE = [
      ["1'024 Stufen", "4.883 mV", "± 2.441 mV", "62.0 dB", "Code 512  (0x200, binär 1000000000)", "fs > 2 · fmax = 2 kHz"],
      "5 V / 1024;  6.02 · 10 + 1.76;  2.5 V / 4.883 mV = 512"),
     ("adc", {"n": "10.5", "Uref": "5"}, fehler("ganze Zahl"), "halbe Bits gibt es nicht"),
+    # ------------------------------------------------------------ Schaltungen
+    ("stromteiler", {"I": "100", "liste": "100 300"},
+     ["R_ges = 75 Ω", "U = I · R_ges = 7.5 V", "= 75 mA  (75.0 %),  P = 562.5 mW", "= 25 mA  (25.0 %),  P = 187.5 mW"],
+     "100 Ω || 300 Ω = 75 Ω;  U = 100 mA · 75 Ω;  I1 = 7.5 V / 100 Ω;  P = U² / R"),
+    ("stromteiler", {"I": "100", "liste": "100"}, fehler("mindestens zwei"), "ein Widerstand ist kein Teiler"),
+    ("pull_widerstand", {"Ub": "3.3", "Imax": "1", "Ileck": "1", "C": "100", "tr": "1"},
+     ["R_min = U_B / I_max = 3.3 kΩ", "= 990 kΩ", "= 4.551 kΩ", "Vorschlag (E12): 3.9 kΩ", "846.2 µA", "2.792 mW"],
+     "3.3 V / 1 mA;  0.3 · 3.3 V / 1 µA;  1 µs / (2.2 · 100 pF);  Mitte √(3.3k · 4.55k) = 3.88 kΩ -> 3.9 kΩ"),
+    ("pull_widerstand", {"Ub": "5", "Imax": "10", "C": "1000", "tr": "0.1"}, fehler("Kein Widerstand passt"),
+     "R_min = 500 Ω > R_max = 0.1 µs / (2.2 · 1 nF) = 45 Ω"),
+    ("poti_last", {"Ue": "10", "Rp": "10", "RL": "100", "a": "50"},
+     ["Ua = 4.878 V", "ohne Last 5 V", "Fehler -122 mV", "ca. 67 %", "R_L / R_P = 10"],
+     "R_u = 5k || 100k = 4.762 kΩ;  Ua = 10 V · 4.762 / (5 + 4.762);  grösster Fehler bei ≈ 2/3"),
+    ("poti_last", {"Ue": "10", "Rp": "10", "RL": "10"}, ["R_L < 10 · R_P"], "Last so gross wie das Poti"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -345,6 +360,23 @@ FUNKTIONEN = [
     ("MOSFET: U_GS über 20 V erkannt", lambda: mosfet_mathe.schalter("N", 12, 24, 25, 2, 0.05, 10)["zu_hoch"], True),
     ("Gate umladen: Strom", lambda: mosfet_mathe.gate_umladen(30e-9, 10, 10)["i_g"], 1.0),
     ("Gate umladen: Zeit", lambda: mosfet_mathe.gate_umladen(30e-9, 10, 10)["t_schalt"], 30e-9),
+
+    # ---- Widerstandsnetzwerke (Schaltungen) ----
+    ("Spannungsteiler belastet: Ua", lambda: nm.spannungsteiler(12, 10e3, 10e3, 10e3)["ua"], 4.0),
+    ("Spannungsteiler belastet: q = I2 / I_L", lambda: nm.spannungsteiler(12, 10e3, 10e3, 10e3)["q"], 1.0),
+    ("Spannungsteiler unbelastet: kein q", lambda: nm.spannungsteiler(12, 10e3, 10e3)["q"], None),
+    ("Spannungsteiler R2 = 0", lambda: nm.spannungsteiler(12, 10e3, 0), wirft(ValueError)),
+    ("Stromteiler 100 Ω / 300 Ω", lambda: nm.stromteiler(0.1, 100, 300)["stroeme"], [0.075, 0.025]),
+    ("Pull-up gedrückt: Strom U_B / R", lambda: nm.pull_widerstand("pullup", 5, 10e3, True)["i_r"], 5e-4),
+    ("Pull-up offen mit 1 µA Leckstrom", lambda: nm.pull_widerstand("pullup", 5, 10e3, False, 1e-6)["u_pin"], 4.99),
+    ("Pull-down 10 kΩ, 100 µA Leck: noch LOW", lambda: nm.pull_widerstand("pulldown", 5, 10e3, False, 100e-6)["pegel"], "LOW"),
+    ("Pull-down 20 kΩ, 100 µA Leck: unsicher", lambda: nm.pull_widerstand("pulldown", 5, 20e3, False, 100e-6)["pegel"], "unsicher"),
+    ("Pull-Flanke 10 kΩ · 100 pF · ln 9", lambda: nm.pull_widerstand("pullup", 5, 10e3, False, 0, 100e-12)["t_flanke"], 2.1972e-6),
+    ("Poti Mitte mit R_L = R_P", lambda: nm.poti_teiler(10, 10e3, 0.5, 10e3)["ua"], 4.0),
+    ("Poti Anschlag oben: Last egal", lambda: nm.poti_teiler(10, 10e3, 1.0, 100.0)["ua"], 10.0),
+    ("Poti Stellung 120 %", lambda: nm.poti_teiler(10, 10e3, 1.2), wirft(ValueError)),
+    ("Brücke: U_d", lambda: nm.bruecke(10, 1e3, 1e3, 1e3, 1.01e3)["u_d"], -0.0248756),
+    ("Brücke: Abgleichwert R4", lambda: nm.bruecke(10, 1e3, 2e3, 3e3, 1e3)["r4_abgleich"], 6e3),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

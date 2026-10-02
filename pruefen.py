@@ -12,8 +12,8 @@ def check(text, ok):
 
 print("Projektordner:", basis)
 alles = True
-alles &= check("gui/bauteile_gui.py ist die NEUE Version (Wiki wie Programmieren)",
-               "class BauteilWiki" in open(os.path.join(basis, "gui", "bauteile_gui.py"), encoding="utf-8").read())
+alles &= check("gui/bauteile_gui.py ist die NEUE Version (gemeinsamer WikiBereich)",
+               "WikiBereich" in open(os.path.join(basis, "gui", "bauteile_gui.py"), encoding="utf-8").read())
 for pfad in ["bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rechner/basis.py",
              "bauteile/inhalte/01_passiv/widerstand.py", "bauteile/grafiken/trafo_animation.py",
              "bauteile/inhalte/03_transistoren/bipolartransistor.py", "bauteile/rechner/halbleiter_rechner.py",
@@ -24,7 +24,9 @@ for pfad in ["bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rech
              "gui/server_gui.py", "programmieren/engine/befehlsliste.py",
              "server/inhalte/00_schnellstart/spickzettel.py",
              "pruefen_rechner.py", "pruefung/rechner_faelle.py",
-             "gui/rechner_gui.py", "bauteile/rechner/rechner_info.py"]:
+             "gui/rechner_gui.py", "bauteile/rechner/rechner_info.py",
+             "bauteile/engine/wiki_bereich.py", "bauteile/grafiken/schaltplan.py",
+             "schaltungen/rechner.py", "schaltungen/inhalte/_vorlage.py"]:
     alles &= check(pfad, os.path.exists(os.path.join(basis, pfad)))
 doppelt = os.path.join(basis, "SystemtechnikToolbox")
 if os.path.isdir(doppelt):

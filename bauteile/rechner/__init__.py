@@ -11,6 +11,7 @@
 #   transistor_rechner.py    ... Zusatz-Rechner Bipolartransistor (PNP, Schaltzustand, PWM-Verluste)
 #   relais_rechner.py        ... "Relais" (inkl. Freilauf-Vergleich, auch auf Diode/MOSFET)
 #   messtechnik/rechner.py   ... Bereich Messtechnik (liegt im Ordner messtechnik/)
+#   schaltungen/rechner.py   ... Bereich Schaltungen (inkl. interaktive Schaltpläne)
 #
 #   *_mathe.py               reine Rechenfunktionen (ohne GUI, einzeln testbar):
 #                            transistor_mathe.py, relais_mathe.py
@@ -40,6 +41,7 @@ _MODULE = [
     "bauteile.rechner.transistor_rechner",     # -> rechner/transistor_rechner.py
     "bauteile.rechner.relais_rechner",         # -> rechner/relais_rechner.py
     "messtechnik.rechner",                     # -> messtechnik/rechner.py
+    "schaltungen.rechner",                     # -> schaltungen/rechner.py
 ]
 
 _REGISTRY = {}

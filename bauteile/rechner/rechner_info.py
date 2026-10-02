@@ -14,7 +14,7 @@
 #       "beschreibung":   ein Satz: Was rechnet er aus?
 #       "stichworte":     Suchwörter (Fachbegriffe, Abkürzungen, Bauteilnamen)
 #       "wissensseite":   ID der Seite, die das Thema erklärt (Dateiname ohne .py,
-#                         aus bauteile/inhalte/ oder messtechnik/inhalte/)
+#                         aus bauteile/, messtechnik/ oder schaltungen/inhalte/)
 #   }
 #
 # NEUER RECHNER?  1. in *_rechner.py registrieren   2. hier eintragen
@@ -33,7 +33,8 @@ KATEGORIEN = {
 }
 
 # Diese Bereiche enthalten Wissensseiten (Tab-Name -> Ordner mit den Seiten)
-WISSENS_BEREICHE = {"Bauteile": "bauteile/inhalte", "Messtechnik": "messtechnik/inhalte"}
+WISSENS_BEREICHE = {"Bauteile": "bauteile/inhalte", "Messtechnik": "messtechnik/inhalte",
+                    "Schaltungen": "schaltungen/inhalte"}
 
 RECHNER_INFO = {
     # =========================================================================
@@ -237,28 +238,53 @@ RECHNER_INFO = {
     # =========================================================================
     # SCHALTUNGEN
     # =========================================================================
-    "gleichrichter": {
-        "titel": "Gleichrichter mit Ladeelko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
-        "beschreibung": "Gleichspannung, Welligkeit und Sperrspannung für Einweg, Brücke und Mittelpunkt.",
-        "stichworte": ["Brücke", "Einweg", "Mittelpunkt", "Elko", "Brummspannung", "Graetz"],
-        "wissensseite": "diode"},
-    "netzteil": {
-        "titel": "Trafo + Gleichrichter + Elko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
-        "beschreibung": "Was kommt nach Trafo und Brückengleichrichter heraus? Ladeelko dimensionieren.",
-        "stichworte": ["Netzteil", "Ladeelko", "Welligkeit", "Brücke", "Spitzenwert"],
-        "wissensseite": "transformator"},
-    "zdiode_stabi": {
-        "titel": "Z-Dioden-Stabilisierung", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
-        "beschreibung": "Vorwiderstand und Belastung der Z-Diode im ungünstigsten Fall.",
-        "stichworte": ["Z-Diode", "Zener", "Stabilisierung", "Vorwiderstand", "Glättungsfaktor"],
-        "wissensseite": "z_diode"},
+    "schaltung_spannungsteiler": {
+        "titel": "Spannungsteiler (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Schaltplan mit Werten: Widerstände verändern, Last zuschalten, Querstromverhältnis sehen.",
+        "stichworte": ["Spannungsteiler", "belastet", "Querstrom", "Schaltplan", "Last"],
+        "wissensseite": "spannungsteiler"},
     "spannungsteiler": {
-        "titel": "Spannungsteiler", "kategorie": "Schaltungen", "unterkategorie": "Teiler & Vorwiderstände",
+        "titel": "Spannungsteiler", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
         "beschreibung": "Ausgangsspannung oder fehlender Widerstand, auch mit Last.",
         "stichworte": ["Teiler", "Spannungsteiler", "Belastung", "Querstrom", "Potentiometer"],
-        "wissensseite": "widerstand"},
+        "wissensseite": "spannungsteiler"},
+    "schaltung_stromteiler": {
+        "titel": "Stromteiler (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Wie teilt sich ein Strom auf zwei parallele Zweige auf? Werte direkt im Schaltplan.",
+        "stichworte": ["Stromteiler", "Parallelschaltung", "Knotenregel", "Schaltplan"],
+        "wissensseite": "stromteiler"},
+    "stromteiler": {
+        "titel": "Stromteiler", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Zweigströme und Leistungen beliebig vieler paralleler Widerstände.",
+        "stichworte": ["Stromteiler", "Parallelschaltung", "Zweigstrom", "Knotenregel", "Shunt"],
+        "wissensseite": "stromteiler"},
+    "schaltung_pull": {
+        "titel": "Pull-up / Pull-down (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Taster am µC-Eingang: Pegel, Strom, Leckstrom und Flanke im Schaltplan.",
+        "stichworte": ["Pull-up", "Pull-down", "Taster", "Mikrocontroller", "Eingang", "Schaltplan"],
+        "wissensseite": "pull_up_down"},
+    "pull_widerstand": {
+        "titel": "Pull-up / Pull-down dimensionieren", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Grenzen für den Pull-Widerstand aus Strom, Leckstrom und Flankenzeit, mit E12-Vorschlag.",
+        "stichworte": ["Pull-up", "Pull-down", "I2C", "Leckstrom", "Anstiegszeit", "Taster"],
+        "wissensseite": "pull_up_down"},
+    "schaltung_poti": {
+        "titel": "Potentiometer als Teiler (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Schleifer drehen, Last zuschalten – Schaltplan und Kennlinie nebeneinander.",
+        "stichworte": ["Potentiometer", "Poti", "Schleifer", "Kennlinie", "Lastfehler", "Schaltplan"],
+        "wissensseite": "potentiometer"},
+    "poti_last": {
+        "titel": "Potentiometer mit Last", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Ausgangsspannung und grösster Fehler eines belasteten Potentiometers.",
+        "stichworte": ["Potentiometer", "Poti", "Lastfehler", "Schleifer", "Trimmer"],
+        "wissensseite": "potentiometer"},
+    "schaltung_bruecke": {
+        "titel": "Wheatstone-Brücke (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Widerstandsnetzwerke",
+        "beschreibung": "Vier Widerstände verstellen und die Diagonalspannung beobachten.",
+        "stichworte": ["Wheatstone", "Brücke", "Abgleich", "Diagonalspannung", "Schaltplan"],
+        "wissensseite": "wheatstone_bruecke"},
     "led_vorwiderstand": {
-        "titel": "LED-Vorwiderstand", "kategorie": "Schaltungen", "unterkategorie": "Teiler & Vorwiderstände",
+        "titel": "LED-Vorwiderstand", "kategorie": "Schaltungen", "unterkategorie": "Vorwiderstände",
         "beschreibung": "Vorwiderstand für eine oder mehrere LEDs in Reihe, mit Normwert.",
         "stichworte": ["LED", "Vorwiderstand", "Leuchtdiode", "Uf", "If"],
         "wissensseite": "led"},
@@ -293,6 +319,21 @@ RECHNER_INFO = {
         "stichworte": ["Emitterschaltung", "Arbeitspunkt", "Basisteiler", "Verstärker", "Gegenkopplung"],
         "wissensseite": "bipolartransistor"},
 
+    "gleichrichter": {
+        "titel": "Gleichrichter mit Ladeelko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Gleichspannung, Welligkeit und Sperrspannung für Einweg, Brücke und Mittelpunkt.",
+        "stichworte": ["Brücke", "Einweg", "Mittelpunkt", "Elko", "Brummspannung", "Graetz"],
+        "wissensseite": "diode"},
+    "netzteil": {
+        "titel": "Trafo + Gleichrichter + Elko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Was kommt nach Trafo und Brückengleichrichter heraus? Ladeelko dimensionieren.",
+        "stichworte": ["Netzteil", "Ladeelko", "Welligkeit", "Brücke", "Spitzenwert"],
+        "wissensseite": "transformator"},
+    "zdiode_stabi": {
+        "titel": "Z-Dioden-Stabilisierung", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
+        "beschreibung": "Vorwiderstand und Belastung der Z-Diode im ungünstigsten Fall.",
+        "stichworte": ["Z-Diode", "Zener", "Stabilisierung", "Vorwiderstand", "Glättungsfaktor"],
+        "wissensseite": "z_diode"},
     # =========================================================================
     # MESSTECHNIK
     # =========================================================================
