@@ -739,6 +739,36 @@ RECHNER_INFO = {
         "beschreibung": "Adresse wählen, lesen und schreiben, Steuersignale CS/OE/WE sehen.",
         "stichworte": ["Speicher", "RAM", "Adresse", "CS", "OE", "WE", "Werkzeug"],
         "wissensseite": "speicher"},
+    "lc_filter": {
+        "titel": "LC-Tiefpass mit Last", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "f0, Kennwiderstand, Güte Q aus der Last, Überhöhung, −3-dB-Frequenz.",
+        "stichworte": ["LC-Filter", "Tiefpass", "Güte", "Überhöhung", "Filter 2. Ordnung", "Z0"],
+        "wissensseite": "lc_tiefpass"},
+    "schwingkreis_filter": {
+        "titel": "Schwingkreis als Bandpass / Bandsperre", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "RLC-Reihenkreis: f0, Q, Bandbreite und die beiden −3-dB-Frequenzen.",
+        "stichworte": ["Bandpass", "Bandsperre", "Kerbfilter", "Schwingkreis", "Bandbreite", "Güte"],
+        "wissensseite": "bandpass_bandsperre"},
+    "sallen_key": {
+        "titel": "Sallen-Key-Filter auslegen", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Aktiver Tief-/Hochpass 2. Ordnung: Bauteile für f0 und Bessel/Butterworth/Tschebyscheff, mit Normwerten.",
+        "stichworte": ["Sallen-Key", "aktives Filter", "Butterworth", "Bessel", "Tschebyscheff", "OPV-Filter"],
+        "wissensseite": "aktive_filter_sallen_key"},
+    "schaltung_lc_filter": {
+        "titel": "LC-Tiefpass (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Bode-Diagramm und Sprungantwort: Wie die Last die Güte und das Überschwingen bestimmt.",
+        "stichworte": ["LC-Tiefpass", "Bode", "Sprungantwort", "Güte", "Simulation"],
+        "wissensseite": "lc_tiefpass"},
+    "schaltung_schwingkreis": {
+        "titel": "Schwingkreis Bandpass/Bandsperre (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "RLC-Reihenkreis mit Ausgang am R oder an L + C, Bode-Diagramm und Zeitverlauf.",
+        "stichworte": ["Bandpass", "Bandsperre", "Schwingkreis", "Bode", "Simulation"],
+        "wissensseite": "bandpass_bandsperre"},
+    "schaltung_sallen_key": {
+        "titel": "Sallen-Key-Filter (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Tief- und Hochpass mit OPV: Q über die Bauteile einstellen, Bode und Sprungantwort.",
+        "stichworte": ["Sallen-Key", "aktives Filter", "Bode", "Sprungantwort", "Simulation"],
+        "wissensseite": "aktive_filter_sallen_key"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",

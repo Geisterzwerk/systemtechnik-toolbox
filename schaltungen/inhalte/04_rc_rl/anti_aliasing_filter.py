@@ -52,6 +52,6 @@ Nach dem Abtasten ist der Alias nicht mehr vom echten Signal zu unterscheiden �
         "Das Filter erst digital nach dem ADC eingebaut – der Alias ist dann schon im Signal.",
         "f_s genau 2 · f_max gewählt – ein reales Filter hat dann keinen Platz zum Abfallen.",
     ],
-    "siehe_auch": ["rc_tiefpass_hochpass"],
+    "siehe_auch": ["rc_tiefpass_hochpass", "aktive_filter_sallen_key"],
     "rechner": ["anti_aliasing", "rc_frequenzgang", "rc_filter"],
 }

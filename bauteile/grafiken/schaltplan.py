@@ -544,6 +544,8 @@ class SchaltungsKarte(Karte):
                             optionen: einheit, log, grenzen, ganzzahl, schritte (siehe WertRegler)
       RASTER                (spalten, zeilen) des Schaltplans
       sk_raster(breite)     (optional) anderes Raster bei schmaler Zeichenfläche, z.B. ohne Diagramm
+      STARTWERTE            (optional) {variante: {regler: wert}} - beim Umschalten der Variante gesetzt,
+                            z.B. Buck U_a < U_e, Boost U_a > U_e
       SEITENVERHAELTNIS     Höhe / Breite der Zeichenfläche
       ERKLAERUNG            Text unter der Grafik: Was zeigt sie physikalisch?
       sk_rechnen(w, v)      -> dict mit Ergebnissen  (w = Reglerwerte, v = Variante)
@@ -556,6 +558,7 @@ class SchaltungsKarte(Karte):
 
     TITEL = UNTERTITEL = ERKLAERUNG = ""
     VARIANTEN = []
+    STARTWERTE = {}
     SCHALTER = []
     REGLER = []
     RASTER = (12, 8)
@@ -614,6 +617,11 @@ class SchaltungsKarte(Karte):
 
     def sk_neu(self):
         """Nach jeder Änderung: neu rechnen, Text setzen, Plan neu zeichnen."""
+        v = self.sk_v()
+        if v != getattr(self, "sk_letzte_variante", v):                   # Variante gewechselt -> Startwerte
+            for schluessel, wert in self.STARTWERTE.get(v, {}).items():
+                self.sk_regler[schluessel].setzen(wert)
+        self.sk_letzte_variante = v
         w = self._sk_werte()
         try:
             self.sk_e = self.sk_rechnen(w, self.sk_v())

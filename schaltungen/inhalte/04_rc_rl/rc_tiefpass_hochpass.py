@@ -55,6 +55,7 @@ Im Zeitbereich ist der Tiefpass ein **Integrierglied** (glättet, Rechteck → a
         "Tiefpass am Ausgang mit einer niederohmigen Last betrieben – die Spannung bricht schon bei Gleichspannung ein.",
         "Erwartet, dass bei fg nichts mehr durchkommt – dort sind es noch 70.7 %.",
     ],
-    "siehe_auch": ["rc_laden_entladen", "anti_aliasing_filter", "spannungsteiler"],
+    "siehe_auch": ["rc_laden_entladen", "anti_aliasing_filter", "spannungsteiler", "lc_tiefpass",
+                   "aktive_filter_sallen_key"],
     "rechner": ["rc_frequenzgang", "rc_filter", "blindwiderstand_c"],
 }

@@ -449,17 +449,9 @@ class SchaltreglerSchaltung(_MitDiagramm):
         "Mittelwert, ΔI = Rippelstrom), unten die Spannung am Schaltknoten. Wird der Strom 0 (Lückbetrieb, DCM), "
         "gelten die einfachen Formeln nicht mehr. Ideal gerechnet (ohne Verluste).")
 
-    # Beim Umschalten typische Werte setzen (Buck braucht U_a < U_e, Boost U_a > U_e) - sichtbar in den Reglern
+    # Beim Umschalten typische Werte setzen (Buck braucht U_a < U_e, Boost U_a > U_e) -> SchaltungsKarte.sk_neu
     STARTWERTE = {ntm.SCHALTREGLER_ARTEN[0]: {"ue": 12.0, "ua": 5.0, "ia": 1.0},
                   ntm.SCHALTREGLER_ARTEN[1]: {"ue": 5.0, "ua": 12.0, "ia": 0.5}}
-
-    def sk_neu(self):
-        v = self.sk_v()
-        if v != getattr(self, "_sr_variante", v) and getattr(self, "sk_regler", None):
-            for schluessel, wert in self.STARTWERTE[v].items():
-                self.sk_regler[schluessel].setzen(wert)
-        self._sr_variante = v
-        super().sk_neu()
 
     def sk_rechnen(self, w, v):
         return ntm.schaltregler(v, w["ue"], w["ua"], w["ia"], w["f"], w["l"], w["c"])

@@ -617,9 +617,9 @@ Der Schaltungen-Bereich soll keine reine Bildergalerie werden. Jede Schaltung be
 
 ## Priorität 2: Sehr wichtige Ergänzungen
 
-- Filter zweiter Ordnung
-- LC-Tiefpass
-- aktive Filter
+- Filter zweiter Ordnung ✅ (9a)
+- LC-Tiefpass ✅ (9a)
+- aktive Filter ✅ (9a, Sallen-Key)
 - Pt100 in 2-, 3- und 4-Leiter-Schaltung
 - NTC-Spannungsteiler
 - DMS-Brücken
@@ -956,6 +956,8 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 8d | Schaltwerke: 4 Seiten (Flipflops, Zähler, Schieberegister, synchroner Zählerentwurf); Werkzeuge Flipflop mit Takt und Zeitdiagramm, Zähler asynchron/synchron mit Zwischenzuständen, Schieberegister/Ring/Johnson; Zählerentwurf mit D/JK und Selbststart-Prüfung in `digitaltechnik/schaltwerke_mathe.py`; 3 Rechner | ✅ erledigt |
 | 8e | Busse und Speicher: 4 Seiten (UART/RS-232/RS-485, SPI, I²C, Halbleiterspeicher); Werkzeuge UART-Rahmen (TTL + RS-232), SPI-Modi 0 … 3, I²C mit START/ACK/NACK/Sr/STOP, Speicherbaustein mit CS/OE/WE; Rechnung in `digitaltechnik/busse_mathe.py`; 6 Rechner (UART-Timing, Baudraten-Teiler, SPI, I²C-Dauer, Speicher-Organisation, Speicher erweitern) | ✅ erledigt |
 | 8f | Überarbeitung: Server-Beispiele mit allgemeinen Platzhaltern + Einstiegsseite „Erste Schritte“; alle Diagramme mit Skalenwerten und Einheiten, Skala nach Signal (kleine Spannungen/Ströme gut sichtbar): Trafo-Animation, Schaltungsdiagramme, Diodenkennlinien, Abtastung | ✅ erledigt |
+| 9a | Filter 2. Ordnung: 3 Seiten (LC-Tiefpass, Bandpass/Bandsperre mit Schwingkreis, aktive Sallen-Key-Filter); 3 interaktive Pläne mit Bode-Diagramm und umschaltbarer Sprungantwort (exakt gelöst, stabil für jedes Q); Rechnung in `schaltungen/filter_mathe.py`; 3 Rechner (LC-Tiefpass, Schwingkreis, Sallen-Key auslegen mit Normwerten); `STARTWERTE` je Variante jetzt in `SchaltungsKarte` | ✅ erledigt |
+| 9b+ | Priorität 2 weiter: Sensor-Messschaltungen (Pt100 2/3/4-Leiter, NTC-Teiler, DMS-Brücke + Instrumentenverstärker), dann Schnittstellen/Leistung (Pegelwandler, Optokoppler, H-Brücke, Gate-Treiber, ADC-Eingangsschutz) | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

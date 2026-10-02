@@ -26,7 +26,7 @@ from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as 
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
-from schaltungen import netzteil_mathe as ntm
+from schaltungen import netzteil_mathe as ntm, filter_mathe as fim
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
 from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm, busse_mathe as bm
 from schaltungen import verstaerker_mathe as vm
@@ -581,6 +581,20 @@ FAELLE = [
      ["= 4 Reihen", "Decoder an A16 … A15 (2 Bit → 4"], "128K aus 4 × 32K"),
     ("speicher_erweitern", {"ziel": "60K", "zb": "8", "chip": "32K", "cb": "8"}, fehler("Zweierpotenz"),
      "60K keine Zweierpotenz"),
+    ("lc_filter", {"L": "1", "C": "1", "R": "33", "f": "50k"},
+     ["= 5.033 kHz", "Z0 = √(L / C) = 31.62 Ω", "Q = R_L / Z0 = 1.04", "Überhöhung 1.5 dB", "-39.8 dB"],
+     "1 mH / 1 µF / 33 Ω"),
+    ("lc_filter", {"L": "1", "C": "1", "R": "22.36"}, ["Q = R_L / Z0 = 0.707", "−3 dB bei 5.033 kHz"],
+     "Butterworth: −3 dB genau bei f0"),
+    ("schwingkreis_filter", {"art": "Bandpass", "R": "10", "L": "1", "C": "1"},
+     ["Q = Z0 / R = 3.16", "B = f0 / Q = 1.592 kHz", "4.3 kHz und 5.891 kHz"], "RLC 10 Ω / 1 mH / 1 µF"),
+    ("sallen_key", {"art": "Tiefpass", "typ": "Butterworth (Q = 0.707)", "f0": "1k", "R": "10"},
+     ["= 22.51 nF → Normwert 22 nF", "= 11.25 nF → Normwert 12 nF", "f0 = 979.5 Hz (-2.0 %), Q = 0.677"],
+     "C1 = 2Q/(ω0R), C2 = 1/(2Qω0R)"),
+    ("sallen_key", {"art": "Hochpass", "typ": "Bessel (Q = 0.577)", "f0": "100", "C": "100"},
+     ["= 13.78 kΩ → Normwert 13 kΩ", "= 18.38 kΩ → Normwert 18 kΩ"], "Hochpass gleiche C"),
+    ("sallen_key", {"art": "Hochpass", "typ": "Bessel (Q = 0.577)", "f0": "100"}, fehler("Kapazität C"),
+     "Hochpass ohne C"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -858,6 +872,19 @@ FUNKTIONEN = [
     ("I²C: Lesen, letztes Byte NACK", lambda: bm.i2c_rahmen(0x48, True, [1, 2])[-2][0], "NACK"),
     ("I²C: Adresse 0x78 reserviert", lambda: bm.i2c_rahmen(0x78), wirft(ValueError)),
     ("Speicher 32K = 2^15", lambda: bm.worte_einlesen("32K"), 32768),
+
+    # ---- Filter 2. Ordnung ----
+    ("Butterworth: −3 dB genau bei f0", lambda: fim.kennwerte("Tiefpass", 1e3, 2 ** -0.5)["f_3db"], 1000.0),
+    ("Q = 0.5: −3 dB bei 0.644 · f0", lambda: fim.kennwerte("Tiefpass", 1e3, 0.5)["f_3db"], 643.594),
+    ("Q = 1: Überhöhung 1.155", lambda: fim.kennwerte("Tiefpass", 1e3, 1.0)["ueberhoehung"], 1.1547),
+    ("Butterworth: 4.32 % Überschwingen", lambda: fim.sprungantwort("Tiefpass", 1e3, 2 ** -0.5)["ueberschwingen"], 4.321),
+    ("Q = 1: 16.3 % Überschwingen", lambda: fim.sprungantwort("Tiefpass", 1e3, 1.0)["ueberschwingen"], 16.303),
+    ("Sprungantwort stabil bei Q = 0.0002", lambda: abs(fim.sprungantwort("Hochpass", 1e3, 2e-4)["endwert"]) < 0.01, True),
+    ("Hochpass 2. Ordnung: −40 dB bei f0/10", lambda: round(fim.frequenzgang("Hochpass", 1e3, 2 ** -0.5, 100)["db"]), -40),
+    ("Bandsperre: 0 bei f0", lambda: fim.frequenzgang("Bandsperre", 1e3, 5, 1e3)["betrag"], 0.0),
+    ("Bandpass: Bandbreite f0 / Q", lambda: fim.kennwerte("Bandpass", 1e3, 10)["bandbreite"], 100.0),
+    ("Sallen-Key TP: C1 = 22 n, C2 = 11 n -> Q = 0.707", lambda: fim.sallen_key("Tiefpass", 1e4, 1e4, 22e-9, 11e-9)["q"], 0.70711),
+    ("LC-Tiefpass: Q = R_L / Z0", lambda: fim.lc_tiefpass(1e-3, 1e-6, 31.623)["q"], 1.0),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

@@ -26,6 +26,9 @@
 #   strombegrenzung      Shunt für einen Maximalstrom, Verlust bei Kurzschluss
 #   stromquelle_opv      geregelte Stromsenke OPV + MOSFET + Shunt
 #   schaltregler         Buck / Boost: Tastgrad, Spule, Rippelstrom, Spitzenstrom, Welligkeit
+#   lc_filter            LC-Tiefpass mit Last: f0, Q, Überhöhung, −3-dB-Frequenz, Dämpfung bei f
+#   schwingkreis_filter  RLC-Reihenkreis als Bandpass / Bandsperre: f0, Q, Bandbreite, Grenzfrequenzen
+#   sallen_key           aktives Filter 2. Ordnung für f0 und Charakteristik auslegen (mit Normwerten)
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
@@ -34,7 +37,8 @@
 # Die Grenzfrequenz allein rechnet schon "rc_filter" (bauteile/rechner/kondensator_rechner.py).
 #
 # Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py, rc_mathe.py,
-#           opv_mathe.py, netzteil_mathe.py (ohne GUI, testbar)
+#           opv_mathe.py, netzteil_mathe.py, filter_mathe.py (ohne GUI, testbar)
+# Die Resonanzfrequenz allein rechnet schon "lc_resonanz" (bauteile/rechner/spule_rechner.py).
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
 
@@ -43,11 +47,14 @@ import math
 from bauteile.rechner import normreihen                                          # -> bauteile/rechner/normreihen.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
+from schaltungen import filter_mathe as fm                                       # -> schaltungen/filter_mathe.py
 from schaltungen import netzteil_mathe as ntm                                    # -> schaltungen/netzteil_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
 from schaltungen import opv_mathe as om                                          # -> schaltungen/opv_mathe.py
 from schaltungen import rc_mathe as rm                                           # -> schaltungen/rc_mathe.py
 from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
+from schaltungen.grafiken_filter import (LcFilterSchaltung, SallenKeySchaltung,  # -> schaltungen/grafiken_filter.py
+                                         SchwingkreisSchaltung)
 from schaltungen.grafiken_netzteil import (LinearreglerSchaltung, QuelleSchaltung,  # -> schaltungen/grafiken_netzteil.py
                                            SchaltreglerSchaltung, StrombegrenzungSchaltung,
                                            StromquelleOpvSchaltung, VirtuelleMasseSchaltung)
@@ -965,6 +972,110 @@ def schaltregler(master):
 
 
 # =============================================================================
+# FILTER 2. ORDNUNG
+# =============================================================================
+def _filter_bei_f(art, f0, q, w, zeilen):
+    """Gemeinsam: Dämpfung und Ausgangsspannung bei einer Frequenz f (falls eingegeben)."""
+    if w["f"] is None:
+        return
+    g = _fehler_umwandeln(fm.frequenzgang, art, f0, q, w["f"])
+    zeilen.append(f"Bei f = {fmt(w['f'], 'frequenz')}: |H| = {g['betrag']:.4g} = {g['db']:.1f} dB   ·   "
+                  f"φ = {g['phase']:+.0f}°" + (f"   ·   Ua = {fmt(g['betrag'] * w['Ue'], 'spannung')}"
+                                               if w.get("Ue") is not None else ""))
+
+
+def _lc_filter(w):
+    if None in (w["L"], w["C"], w["R"]):
+        raise RechnerFehler("L, C und den Lastwiderstand R_L eingeben")
+    e = _fehler_umwandeln(fm.lc_tiefpass, w["L"], w["C"], w["R"])
+    k = fm.kennwerte("Tiefpass", e["f0"], e["q"])
+    zeilen = [f"f0 = 1 / (2π · √(L · C)) = {fmt(e['f0'], 'frequenz')}",
+              f"Z0 = √(L / C) = {fmt(e['z0'], 'widerstand')}   ·   Q = R_L / Z0 = {e['q']:.3g}  → {k['charakter']}",
+              f"−3 dB bei {fmt(k['f_3db'], 'frequenz')}   ·   darüber −40 dB pro Dekade"]
+    if k["f_max"]:
+        zeilen.append(f"⚠ Überhöhung {20 * math.log10(k['ueberhoehung']):.1f} dB (×{k['ueberhoehung']:.2f}) bei "
+                      f"{fmt(k['f_max'], 'frequenz')} – für Q = 0.707 bräuchte es R_L = {fmt(0.7071 * e['z0'], 'widerstand')}")
+    _filter_bei_f("Tiefpass", e["f0"], e["q"], w, zeilen)
+    return zeilen
+
+
+def lc_filter(master):
+    return FormelRechner(
+        master, "LC-Tiefpass mit Last", "Grenzfrequenz, Güte und Überhöhung – die Last bestimmt die Dämpfung",
+        felder=[("L", "Induktivität L", "induktivitaet", {"einheit": "mH"}),
+                ("C", "Kapazität C", "kapazitaet", {"einheit": "µF"}),
+                ("R", "Lastwiderstand R_L", "widerstand", {"einheit": "Ω"}),
+                ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "optional"})],
+        berechnen=_lc_filter, formel="f0 = 1 / (2π√(LC))     Q = R_L · √(C/L)     |H| = 1 / √((1 − x²)² + (x/Q)²)")
+
+
+def _schwingkreis_filter(w):
+    if None in (w["R"], w["L"], w["C"]):
+        raise RechnerFehler("R, L und C eingeben")
+    e = _fehler_umwandeln(fm.rlc_reihe, w["R"], w["L"], w["C"])
+    k = fm.kennwerte(w["art"], e["f0"], e["q"])
+    zeilen = [f"f0 = 1 / (2π · √(L · C)) = {fmt(e['f0'], 'frequenz')}   ·   Z0 = √(L / C) = {fmt(e['z0'], 'widerstand')}",
+              f"Q = Z0 / R = {e['q']:.3g}   ·   Bandbreite B = f0 / Q = {fmt(k['bandbreite'], 'frequenz')}",
+              f"−3-dB-Frequenzen: {fmt(k['f_unten'], 'frequenz')} und {fmt(k['f_oben'], 'frequenz')}"]
+    if w["art"] == "Bandpass":
+        zeilen.append("Bei f0 heben sich X_L und X_C auf: Der Kreis wirkt wie R allein → Ua = Ue")
+    else:
+        zeilen.append("Bei f0 ist die Reihenschaltung L + C ein Kurzschluss → Ua = 0 (ideal, ohne Spulenwiderstand)")
+    _filter_bei_f(w["art"], e["f0"], e["q"], w, zeilen)
+    return zeilen
+
+
+def schwingkreis_filter(master):
+    return FormelRechner(
+        master, "Schwingkreis als Bandpass / Bandsperre", "RLC-Reihenkreis: Resonanz, Güte und Bandbreite",
+        felder=[("art", "Ausgang", "auswahl", {"werte": ["Bandpass", "Bandsperre"]}),
+                ("R", "Widerstand R", "widerstand", {"einheit": "Ω"}),
+                ("L", "Induktivität L", "induktivitaet", {"einheit": "mH"}),
+                ("C", "Kapazität C", "kapazitaet", {"einheit": "µF"}),
+                ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "optional"})],
+        berechnen=_schwingkreis_filter, formel="f0 = 1 / (2π√(LC))     Q = √(L/C) / R     B = f0 / Q")
+
+
+def _sallen_key(w):
+    if w["f0"] is None:
+        raise RechnerFehler("Grenzfrequenz f0 eingeben")
+    q = fm.CHARAKTERISTIKEN[w["typ"]]
+    tiefpass = w["art"] == "Tiefpass"
+    if tiefpass and w["R"] is None:
+        raise RechnerFehler("Beim Tiefpass den Widerstand R (= R1 = R2) vorgeben, z.B. 10 kΩ")
+    if not tiefpass and w["C"] is None:
+        raise RechnerFehler("Beim Hochpass die Kapazität C (= C1 = C2) vorgeben, z.B. 10 nF")
+    e = _fehler_umwandeln(fm.sallen_key_auslegen, w["art"], w["f0"], q, w["R"], w["C"])
+    i, n = e["ideal"], e["norm"]
+    w0 = f"ω0 = 2π · {fmt(w['f0'], 'frequenz')}"
+    if tiefpass:
+        zeilen = [f"R1 = R2 = {fmt(n['r1'], 'widerstand')}   ·   {w0}   ·   Q = {q:.3f}",
+                  f"C1 = 2Q / (ω0 · R) = {fmt(i['c1'], 'kapazitaet')} → Normwert {fmt(n['c1'], 'kapazitaet')}",
+                  f"C2 = 1 / (2Q · ω0 · R) = {fmt(i['c2'], 'kapazitaet')} → Normwert {fmt(n['c2'], 'kapazitaet')}"]
+    else:
+        zeilen = [f"C1 = C2 = {fmt(n['c1'], 'kapazitaet')}   ·   {w0}   ·   Q = {q:.3f}",
+                  f"R1 = 1 / (2Q · ω0 · C) = {fmt(i['r1'], 'widerstand')} → Normwert {fmt(n['r1'], 'widerstand')}",
+                  f"R2 = 2Q / (ω0 · C) = {fmt(i['r2'], 'widerstand')} → Normwert {fmt(n['r2'], 'widerstand')}"]
+    zeilen.append(f"Mit Normwerten: f0 = {fmt(e['f0_ist'], 'frequenz')} ({(e['f0_ist'] / w['f0'] - 1) * 100:+.1f} %), "
+                  f"Q = {e['q_ist']:.3f}")
+    if (n["c1"] if tiefpass else n["r1"]) != (i["c1"] if tiefpass else i["r1"]) and abs(e["q_ist"] / q - 1) > 0.05:
+        zeilen.append("Hinweis: Q weicht > 5 % ab – Kondensatoren aus E24 oder zwei parallel schalten")
+    return zeilen
+
+
+def sallen_key(master):
+    return FormelRechner(
+        master, "Sallen-Key-Filter auslegen", "Aktiver Tief- oder Hochpass 2. Ordnung mit OPV als Spannungsfolger",
+        felder=[("art", "Filter", "auswahl", {"werte": ["Tiefpass", "Hochpass"]}),
+                ("typ", "Charakteristik", "auswahl", {"werte": list(fm.CHARAKTERISTIKEN), "standard":
+                                                      "Butterworth (Q = 0.707)"}),
+                ("f0", "Grenzfrequenz f0", "frequenz", {"platzhalter": "z.B. 1k"}),
+                ("R", "R1 = R2 (Tiefpass)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("C", "C1 = C2 (Hochpass)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 10"})],
+        berechnen=_sallen_key, formel="TP: C1 = 2Q / (ω0·R), C2 = 1 / (2Q·ω0·R)     HP: R1 = 1 / (2Q·ω0·C), R2 = 2Q / (ω0·C)")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -1021,4 +1132,10 @@ RECHNER = {
     "schaltung_stromquelle_opv": StromquelleOpvSchaltung,
     "schaltung_virtuelle_masse": VirtuelleMasseSchaltung,
     "schaltung_schaltregler": SchaltreglerSchaltung,
+    "lc_filter": lc_filter,
+    "schwingkreis_filter": schwingkreis_filter,
+    "sallen_key": sallen_key,
+    "schaltung_lc_filter": LcFilterSchaltung,
+    "schaltung_sallen_key": SallenKeySchaltung,
+    "schaltung_schwingkreis": SchwingkreisSchaltung,
 }
