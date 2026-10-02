@@ -9,12 +9,14 @@
 #   eingangsschutz       Serienwiderstand vor einem IC-Eingang (Injektionsstrom begrenzen)
 #   verpolschutz         Si-Diode, Schottky und P-MOSFET im Vergleich
 #   tvs_auswahl          passt eine TVS-Diode zu Betriebsspannung und Störimpuls?
+#   emitterfolger        Kollektorschaltung: Ua, Ströme, Ein-/Ausgangswiderstand
+#   konstantstrom        Konstantstromquelle mit Transistor + Z-Diode oder JFET + R_S dimensionieren
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
 # -> die Seiten benutzen diese Rechner per ID, hier wird nichts kopiert.
 #
-# Rechnung: schaltungen/netzwerk_mathe.py und dioden_mathe.py (ohne GUI, testbar)
+# Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
 
@@ -22,6 +24,9 @@ from bauteile.rechner import normreihen                                         
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
+from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
+from schaltungen.grafiken_transistor import (EmitterfolgerSchaltung, EmitterSchaltung,  # -> schaltungen/grafiken_transistor.py
+                                             KonstantstromSchaltung, LastTreiberSchaltung)
 from schaltungen.grafiken_dioden import (BegrenzerSchaltung, EingangsschutzSchaltung,   # -> schaltungen/grafiken_dioden.py
                                          FreilaufSchaltung, GleichrichterSchaltung, TvsSchaltung,
                                          VerpolSchaltung, ZStabiSchaltung)
@@ -265,6 +270,86 @@ def tvs_auswahl(master):
         berechnen=_tvs, formel="U_WM ≥ U_B     I ≈ (U_peak − U_C) / R_q ≤ I_PP     U_C ≤ U_max")
 
 # =============================================================================
+# 7) EMITTERFOLGER
+# =============================================================================
+def _emitterfolger(w):
+    if None in (w["Ub"], w["Ue"], w["Re"]):
+        raise RechnerFehler("U_B, Eingangsspannung und R_E eingeben")
+    beta = 200.0 if w["beta"] is None else w["beta"]
+    e = _fehler_umwandeln(vm.emitterfolger, w["Ub"], w["Ue"], w["Re"], w["RL"], beta)
+    if not e["leitet"]:
+        raise RechnerFehler("Ue unter 0.7 V – der Transistor sperrt, Ausgang 0 V")
+    zeilen = [f"Ua = Ue − 0.7 V = {fmt(e['u_a'], 'spannung')}" + ("  (oben begrenzt)" if e["begrenzt"] else ""),
+              f"I_E = Ua / (R_E || R_L) = {fmt(e['i_e'], 'strom')}   ·   I_B = I_E / (β + 1) = {fmt(e['i_b'], 'strom')}",
+              f"Vu = {e['vu']:.3f}   ·   r_ein ≈ (β + 1) · (r_e + R) = {fmt(e['r_ein'], 'widerstand')}   ·   "
+              f"r_aus ≈ r_e = {fmt(e['r_aus'], 'widerstand')}",
+              f"Verlust im Transistor: (U_B − Ua) · I_E = {fmt(e['p_t'], 'leistung')}"]
+    if e["p_t"] > 0.5:
+        zeilen.append("⚠ Über 0.5 W – TO-92 ist überfordert → Leistungstransistor mit Kühlkörper")
+    return zeilen
+
+
+def emitterfolger(master):
+    return FormelRechner(
+        master, "Emitterfolger", "Kollektorschaltung als Impedanzwandler",
+        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+                ("Ue", "Eingang (Basis)", "spannung", {"platzhalter": "z.B. 6"}),
+                ("Re", "R_E", "widerstand", {"einheit": "kΩ"}),
+                ("RL", "Last R_L (opt.)", "widerstand", {"platzhalter": "optional"}),
+                ("beta", "β (opt.)", "zahl", {"platzhalter": "200"})],
+        berechnen=_emitterfolger, formel="Ua = Ue − 0.7 V     I_B = I_E / (β + 1)     r_ein ≈ β · R_E")
+
+
+# =============================================================================
+# 8) KONSTANTSTROMQUELLE
+# =============================================================================
+KONSTANT_ARTEN = ["Transistor + Z-Diode (oder LED / 2 Dioden)", "JFET mit Source-Widerstand"]
+
+
+def _konstantstrom(w):
+    i_soll, ub = w["I"], w["Ub"]
+    if i_soll is None or ub is None:
+        raise RechnerFehler("Gewünschten Strom und U_B eingeben")
+    if i_soll <= 0 or ub <= 0:
+        raise RechnerFehler("Strom und U_B müssen grösser als 0 sein")
+    if w["art"] == KONSTANT_ARTEN[0]:
+        u_ref = w["Uref"]
+        if u_ref is None:
+            raise RechnerFehler("Referenzspannung an der Basis eingeben (Z-Diode, 2 Dioden ≈ 1.4 V, rote LED ≈ 1.8 V)")
+        if u_ref <= vm.U_BE:
+            raise RechnerFehler("U_ref muss über 0.7 V liegen")
+        r_e = (u_ref - vm.U_BE) / i_soll
+        r_norm = normreihen.naechste_werte(r_e, "E24")[2]
+        e = _fehler_umwandeln(vm.konstantstrom_bjt, ub, u_ref, r_norm, 0.0)
+        return [f"R_E = (U_ref − 0.7 V) / I = {fmt(r_e, 'widerstand')}   →  E24: {fmt(r_norm, 'widerstand')} "
+                f"(I = {fmt(e['i'], 'strom')})",
+                f"Konstant bis zu einer Lastspannung von {fmt(e['u_last_max'], 'spannung')} "
+                f"(R_L ≤ {fmt(e['r_last_max'], 'widerstand')})",
+                f"Verlust im Transistor bei Kurzschluss der Last: {fmt(e['p_t'], 'leistung')}",
+                "Z-Diode über einen Widerstand von U_B speisen (I_Z ≈ 1 … 5 mA); Dioden/LED driften mit −2 mV/K"]
+    if w["IDSS"] is None or w["UP"] is None:
+        raise RechnerFehler("I_DSS und |U_P| aus dem Datenblatt eingeben (streuen stark – Exemplar messen!)")
+    r_s, u_gs = _fehler_umwandeln(vm.r_s_fuer_jfet, i_soll, w["IDSS"], abs(w["UP"]))
+    r_norm = normreihen.naechste_werte(r_s, "E24")[2] if r_s > 0 else 0.0
+    e = _fehler_umwandeln(vm.konstantstrom_jfet, ub, w["IDSS"], abs(w["UP"]), r_norm, 0.0)
+    return [f"U_GS = −U_P · (1 − √(I / I_DSS)) = {fmt(u_gs, 'spannung')}",
+            f"R_S = |U_GS| / I = {fmt(r_s, 'widerstand')}   →  E24: {fmt(r_norm, 'widerstand')} (I = {fmt(e['i'], 'strom')})",
+            f"Konstant bis zu einer Lastspannung von {fmt(e['u_last_max'], 'spannung')} (U_B − |U_P|)",
+            "Nur 2 Anschlüsse nötig – aber I_DSS und U_P streuen pro Exemplar oft um Faktor 2"]
+
+
+def konstantstrom(master):
+    return FormelRechner(
+        master, "Konstantstromquelle dimensionieren", "Transistor + Referenz oder JFET + R_S",
+        felder=[("art", "Schaltung", "auswahl", {"werte": KONSTANT_ARTEN}),
+                ("I", "Gewünschter Strom", "strom", {"einheit": "mA", "platzhalter": "z.B. 10"}),
+                ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+                ("Uref", "U_ref an der Basis", "spannung", {"platzhalter": "Transistor: z.B. 3.3"}),
+                ("IDSS", "JFET I_DSS", "strom", {"einheit": "mA", "platzhalter": "JFET: z.B. 10"}),
+                ("UP", "JFET |U_P|", "spannung", {"platzhalter": "JFET: z.B. 2.5"})],
+        berechnen=_konstantstrom, formel="Transistor: I = (U_ref − 0.7 V) / R_E     JFET: I = I_DSS · (1 − U_GS / U_P)²")
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -286,4 +371,10 @@ RECHNER = {
     "schaltung_gleichrichter": GleichrichterSchaltung,
     "schaltung_zstabi": ZStabiSchaltung,
     "schaltung_tvs": TvsSchaltung,
+    "emitterfolger": emitterfolger,
+    "konstantstrom": konstantstrom,
+    "schaltung_lasttreiber": LastTreiberSchaltung,
+    "schaltung_emitter": EmitterSchaltung,
+    "schaltung_emitterfolger": EmitterfolgerSchaltung,
+    "schaltung_konstantstrom": KonstantstromSchaltung,
 }

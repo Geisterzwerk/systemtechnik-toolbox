@@ -25,6 +25,7 @@ from bauteile.grafiken.schalter_simulator import BjtSchalter, MosfetSchalter    
 from bauteile.rechner import normreihen                                                 # -> rechner/normreihen.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt                   # -> rechner/basis.py
 from schaltungen import dioden_mathe as dm                                             # -> schaltungen/dioden_mathe.py
+from schaltungen import verstaerker_mathe as vm                                        # -> schaltungen/verstaerker_mathe.py
 
 
 def _standard(wert, standard):
@@ -217,34 +218,31 @@ def _bjt_arbeitspunkt(w):
     if None in (ub, r1, r2, rc, beta):
         raise RechnerFehler("Ub, R1, R2, Rc und β eingeben (Re optional)")
     re = _standard(re, 0.0)
-    ube = _standard(w["Ube"], 0.7)
-    u_th = ub * r2 / (r1 + r2)                 # Ersatzspannungsquelle des Basisteilers
-    r_th = r1 * r2 / (r1 + r2)
-    if u_th <= ube:
-        return [f"Basisspannung {fmt(u_th, 'spannung')} < Ube → Transistor SPERRT (Ic ≈ 0)"]
-    ib = (u_th - ube) / (r_th + (beta + 1) * re)
-    ic = beta * ib
-    ie = ic + ib
-    uce = ub - ic * rc - ie * re
-    zeilen = [f"U_Basis (Thevenin) = {fmt(u_th, 'spannung')}   R_th = {fmt(r_th, 'widerstand')}",
-              f"Ib = {fmt(ib, 'strom')}   Ic = {fmt(ic, 'strom')}"]
-    if uce < 0.3:
-        if rc + re <= 0 or ub <= 0.2:
-            raise RechnerFehler("Ub zu klein für einen Arbeitspunkt (Uce,sat ≈ 0.2 V)")
-        ic_sat = (ub - 0.2) / (rc + re)
+    try:                                                      # Rechnung: schaltungen/verstaerker_mathe.py
+        e = vm.emitterschaltung(ub, r1, r2, rc, re, beta, _standard(w["Ube"], 0.7))
+    except ValueError as fehler:
+        raise RechnerFehler(str(fehler)) from None
+    if e["zustand"] == "sperrt":
+        return [f"Basisspannung {fmt(e['u_th'], 'spannung')} < Ube → Transistor SPERRT (Ic ≈ 0)"]
+    zeilen = [f"U_Basis (Thevenin) = {fmt(e['u_th'], 'spannung')}   R_th = {fmt(e['r_th'], 'widerstand')}",
+              f"Ib = {fmt(e['i_b'], 'strom')}   Ic = {fmt(e['i_c'], 'strom')}"]
+    if e["zustand"] == "gesättigt":
         zeilen.append(f"⚠ Rechnerisch würde Uce unter 0.3 V fallen → Transistor ist GESÄTTIGT "
-                      f"(Ic wird von Rc/Re auf ca. {fmt(ic_sat, 'strom')} begrenzt). "
+                      f"(Ic wird von Rc/Re auf ca. {fmt(e['i_c_sat'], 'strom')} begrenzt). "
                       "Als Verstärker ungeeignet: Basisspannung oder Rc verkleinern")
         return zeilen
-    zeilen.append(f"Uce = Ub − Ic·Rc − Ie·Re = {fmt(uce, 'spannung')}   (ideal ≈ Ub/2 = {fmt(ub / 2, 'spannung')})")
-    zeilen.append(f"Verlust: P = Uce · Ic = {fmt(uce * ic, 'leistung')}")
-    i_quer = (ub - u_th) / r1
-    if i_quer < 10 * ib:
-        zeilen.append(f"⚠ Querstrom durch den Teiler ({fmt(i_quer, 'strom')}) < 10 · Ib → Arbeitspunkt hängt stark von β ab")
+    zeilen.append(f"Uce = Ub − Ic·Rc − Ie·Re = {fmt(e['u_ce'], 'spannung')}   (ideal ≈ Ub/2 = {fmt(ub / 2, 'spannung')})")
+    zeilen.append(f"Verlust: P = Uce · Ic = {fmt(e['p_t'], 'leistung')}")
+    if e["i_quer"] < 10 * e["i_b"]:
+        zeilen.append(f"⚠ Querstrom durch den Teiler ({fmt(e['i_quer'], 'strom')}) < 10 · Ib → Arbeitspunkt hängt stark von β ab")
     if re > 0:
         zeilen.append(f"Spannungsverstärkung ohne C_E: Vu ≈ −Rc/Re = {-rc / re:.1f}  (stabil dank Gegenkopplung)")
+        mit_ce = vm.emitterschaltung(ub, r1, r2, rc, re, beta, _standard(w["Ube"], 0.7), c_e=True)
+        zeilen.append(f"Mit C_E (Re überbrückt): Vu ≈ −Rc / r_e = {mit_ce['vu']:.0f}   "
+                      f"(r_e = 26 mV / Ie = {fmt(mit_ce['r_e_diff'], 'widerstand')}, hängt von Temperatur und Ic ab)")
     else:
         zeilen.append("Ohne Re: Arbeitspunkt driftet mit Temperatur und β → Re einbauen (Gegenkopplung)")
+    zeilen.append(f"Eingangswiderstand ≈ {fmt(e['r_ein'], 'widerstand')}   ·   Ausgangswiderstand ≈ Rc = {fmt(rc, 'widerstand')}")
     return zeilen
 
 

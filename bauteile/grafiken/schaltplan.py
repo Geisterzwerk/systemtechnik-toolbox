@@ -274,6 +274,56 @@ class Schaltplan:
         if name:
             self.text(x + (0.3 if seite == "rechts" else -1.2), y, name, "w" if seite == "rechts" else "e", fett=True)
 
+    def nmosfet(self, x, y, name="", seite="rechts"):
+        """N-MOSFET senkrecht: Gate links bei (x - 0.9, y), Drain oben (x, y - 1), Source unten (x, y + 1)."""
+        xk = x - 0.3                                      # Kanal
+        self.leitung((x - 0.9, y), (x - 0.48, y))
+        self.leitung((x - 0.48, y - 0.45), (x - 0.48, y + 0.45), dick=self.dick + 1)     # Gate-Platte
+        for y0, y1 in ((-0.55, -0.22), (-0.12, 0.12), (0.22, 0.55)):                      # Anreicherung: unterbrochen
+            self.leitung((xk, y + y0), (xk, y + y1), dick=self.dick + 1)
+        self.leitung((xk, y - 0.38), (x, y - 0.38), (x, y - 1))                          # Drain
+        self.leitung((xk, y + 0.38), (x, y + 0.38), (x, y + 1))                          # Source
+        self.leitung((x, y), (x, y + 0.38))                                              # Bulk an Source
+        (a, b), (c, d) = self.p(x, y), self.p(xk + 0.02, y)
+        self.c.create_line(a, b, c, d, fill=self.linie, width=self.dick, arrow="last",       # N-Kanal: Pfeil hinein
+                           arrowshape=(self.u * 0.18, self.u * 0.22, self.u * 0.08))
+        if name:
+            self.text(x + (0.3 if seite == "rechts" else -1.2), y, name, "w" if seite == "rechts" else "e", fett=True)
+
+    def njfet(self, x, y, name="", seite="rechts"):
+        """N-Kanal-JFET senkrecht: Gate links bei (x - 0.9, y), Drain oben (x, y - 1), Source unten (x, y + 1)."""
+        xk = x - 0.3
+        self.leitung((xk, y - 0.5), (xk, y + 0.5), dick=self.dick + 1)                  # durchgehender Kanal
+        self.leitung((xk, y - 0.35), (x, y - 0.35), (x, y - 1))                          # Drain
+        self.leitung((xk, y + 0.35), (x, y + 0.35), (x, y + 1))                          # Source
+        (a, b), (c, d) = self.p(x - 0.9, y), self.p(xk - 0.02, y)
+        self.c.create_line(a, b, c, d, fill=self.linie, width=self.dick, arrow="last",       # N-Kanal: Pfeil zum Kanal
+                           arrowshape=(self.u * 0.2, self.u * 0.24, self.u * 0.09))
+        if name:
+            self.text(x + (0.3 if seite == "rechts" else -1.2), y, name, "w" if seite == "rechts" else "e", fett=True)
+
+    def kondensator_waagrecht(self, x1, x2, y, name="", wert=""):
+        """Kondensator waagrecht zwischen (x1,y) und (x2,y), z.B. Koppelkondensator."""
+        xm, abstand, halb = (x1 + x2) / 2, 0.14, 0.38
+        self.leitung((x1, y), (xm - abstand, y))
+        self.leitung((xm + abstand, y), (x2, y))
+        for dx in (-abstand, abstand):
+            self.leitung((xm + dx, y - halb), (xm + dx, y + halb), dick=self.dick + 1)
+        if name or wert:
+            self._beschriftung(xm, y - 0.05, name, wert, "oben")
+
+    def motor(self, x, y1, y2, name="M", wert="", seite="rechts"):
+        """Gleichstrommotor senkrecht zwischen (x,y1) und (x,y2): Kreis mit M."""
+        ym, r = (y1 + y2) / 2, 0.5
+        self.leitung((x, y1), (x, ym - r))
+        self.leitung((x, ym + r), (x, y2))
+        (ax, ay), (bx, by) = self.p(x - r, ym - r), self.p(x + r, ym + r)
+        self.c.create_oval(ax, ay, bx, by, outline=self.linie, width=self.dick, fill=self.bg)
+        self.text(x, ym, "M", "center", fett=True)
+        if wert:
+            self._beschriftung(x + (r + 0.25 if seite == "rechts" else -r - 0.25), ym, name if name != "M" else "Motor",
+                               wert, seite)
+
     def pmosfet(self, x, y, name="", gate_unten=1.4):
         """
         P-MOSFET waagrecht in einer Leitung: DRAIN links (x - 1, y), SOURCE rechts (x + 1, y),

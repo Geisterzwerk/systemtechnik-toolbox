@@ -364,11 +364,41 @@ RECHNER_INFO = {
         "beschreibung": "Nur Diode oder Diode + Z-Diode: Spannung am Transistor gegen Abfallzeit.",
         "stichworte": ["Freilaufdiode", "Z-Diode", "Abschalten", "Induktive Last", "Abfallzeit"],
         "wissensseite": "freilaufdiode"},
+    "schaltung_lasttreiber": {
+        "titel": "LED, Relais, Motor am µC (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schalten",
+        "beschreibung": "Low-Side-Schalter mit NPN oder N-MOSFET: Vorwiderstand, Freilaufdiode, Anlaufstrom, Pin-Strom.",
+        "stichworte": ["Low-Side", "Relais", "Motor", "LED", "Treiber", "MOSFET", "Mikrocontroller"],
+        "wissensseite": "lasten_ansteuern"},
+    "schaltung_emitter": {
+        "titel": "Emitterschaltung (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
+        "beschreibung": "Arbeitspunkt, Verstärkung mit/ohne C_E und Übersteuerung im Zeitdiagramm.",
+        "stichworte": ["Emitterschaltung", "Verstärker", "Arbeitspunkt", "C_E", "Übersteuerung", "Phasendrehung"],
+        "wissensseite": "emitterschaltung"},
+    "schaltung_emitterfolger": {
+        "titel": "Emitterfolger (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
+        "beschreibung": "Ua = Ue − 0.7 V, Strom- statt Spannungsverstärkung, Abschneiden bei 0 V.",
+        "stichworte": ["Emitterfolger", "Kollektorschaltung", "Impedanzwandler", "Puffer"],
+        "wissensseite": "emitterfolger"},
+    "emitterfolger": {
+        "titel": "Emitterfolger", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
+        "beschreibung": "Ausgangsspannung, Ströme, Ein- und Ausgangswiderstand und Verlust der Kollektorschaltung.",
+        "stichworte": ["Emitterfolger", "Kollektorschaltung", "Impedanzwandler", "Eingangswiderstand"],
+        "wissensseite": "emitterfolger"},
+    "schaltung_konstantstrom": {
+        "titel": "Konstantstromquelle (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Stromquellen",
+        "beschreibung": "Transistor + Z-Diode oder JFET + R_S: Strom über der Last mit Arbeitsbereich.",
+        "stichworte": ["Konstantstromquelle", "Stromquelle", "JFET", "Arbeitsbereich", "Kennlinie"],
+        "wissensseite": "konstantstromquelle"},
+    "konstantstrom": {
+        "titel": "Konstantstromquelle dimensionieren", "kategorie": "Schaltungen", "unterkategorie": "Stromquellen",
+        "beschreibung": "R_E bzw. R_S für einen gewünschten Strom, mit Normwert und Arbeitsbereich.",
+        "stichworte": ["Konstantstromquelle", "Stromquelle", "JFET", "R_S", "LED-Treiber"],
+        "wissensseite": "konstantstromquelle"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
         "stichworte": ["Emitterschaltung", "Arbeitspunkt", "Basisteiler", "Verstärker", "Gegenkopplung"],
-        "wissensseite": "bipolartransistor"},
+        "wissensseite": "emitterschaltung"},
 
     "gleichrichter": {
         "titel": "Gleichrichter mit Ladeelko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",

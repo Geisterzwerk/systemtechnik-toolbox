@@ -25,7 +25,7 @@
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
-from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm
+from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, verstaerker_mathe as vm
 
 
 def fehler(text):
@@ -333,6 +333,19 @@ FAELLE = [
      "(60 − 45.4) V / 2 Ω = 7.3 A < 13.2 A;  45.4 V ≤ 50 V"),
     ("tvs_auswahl", {"Ub": "24", "Uwm": "26", "Uc": "20", "Ipp": "14", "Up": "500"}, fehler("Datenblattwerte"),
      "U_C kann nicht unter U_WM liegen"),
+    ("emitterfolger", {"Ub": "12", "Ue": "6", "Re": "1"},
+     ["Ua = Ue − 0.7 V = 5.3 V", "I_E = Ua / (R_E || R_L) = 5.3 mA", "I_B = I_E / (β + 1) = 26.37 µA",
+      "Vu = 0.995", "= 202 kΩ", "r_aus ≈ r_e = 4.906 Ω", "35.51 mW"],
+     "5.3 V / 1 kΩ;  5.3 mA / 201;  r_e = 26 mV / 5.3 mA;  r_ein = 201 · 1004.9 Ω;  P = 6.7 V · 5.3 mA"),
+    ("emitterfolger", {"Ub": "12", "Ue": "0.5", "Re": "1"}, fehler("sperrt"), "Ue < 0.7 V"),
+    ("konstantstrom", {"art": "Transistor + Z-Diode (oder LED / 2 Dioden)", "I": "10", "Ub": "12", "Uref": "3.3"},
+     ["R_E = (U_ref − 0.7 V) / I = 260 Ω", "E24: 270 Ω (I = 9.582 mA)", "9.2 V", "960.2 Ω", "90.19 mW"],
+     "2.6 V / 10 mA = 260 Ω -> 270 Ω;  I_C = 2.6/270 · 200/201;  12 − 2.6 − 0.2 = 9.2 V"),
+    ("konstantstrom", {"art": "JFET mit Source-Widerstand", "I": "4", "Ub": "12", "IDSS": "10", "UP": "2.5"},
+     ["U_GS = −U_P · (1 − √(I / I_DSS)) = -918.9 mV", "R_S = |U_GS| / I = 229.7 Ω", "E24: 220 Ω", "9.5 V"],
+     "−2.5 V · (1 − √0.4);  0.9189 V / 4 mA;  Arbeitsbereich U_B − |U_P|"),
+    ("konstantstrom", {"art": "JFET mit Source-Widerstand", "I": "20", "Ub": "12", "IDSS": "10", "UP": "2.5"},
+     fehler("I_DSS"), "mehr als I_DSS geht nicht"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -421,6 +434,22 @@ FUNKTIONEN = [
     ("TVS unidirektional, −500 V: nur einige Volt", lambda: dm.tvs(-500, 2, 26, 0.5)["u_klemm"], -5.644),
     ("TVS bidirektional, −500 V: symmetrisch", lambda: dm.tvs(-500, 2, 26, 0.5, True)["u_klemm"], -123.09),
     ("TVS: U_B über U_WM erkannt", lambda: dm.tvs(500, 2, 26, 0.5, u_b=28)["betrieb_ok"], False),
+
+    # ---- Transistor-Grundschaltungen (Schaltungen) ----
+    ("Emitterschaltung: U_CE", lambda: vm.emitterschaltung(12, 47e3, 10e3, 2.2e3, 1e3)["u_ce"], 7.695),
+    ("Emitterschaltung ohne C_E: Vu ≈ −R_C / R_E", lambda: vm.emitterschaltung(12, 47e3, 10e3, 2.2e3, 1e3)["vu"], -2.1477),
+    ("Emitterschaltung mit C_E: Vu = −β · R_C / r_be",
+     lambda: vm.emitterschaltung(12, 47e3, 10e3, 2.2e3, 1e3, c_e=True)["vu"], -113.65),
+    ("Emitterschaltung übersteuert bei 50 mV mit C_E",
+     lambda: vm.emitterschaltung(12, 47e3, 10e3, 2.2e3, 1e3, c_e=True, u_hat=0.05)["uebersteuert"], True),
+    ("Emitterschaltung: Basisteiler zu klein -> sperrt", lambda: vm.emitterschaltung(12, 1e6, 10e3, 2.2e3)["zustand"], "sperrt"),
+    ("Emitterfolger: Ua = Ue − 0.7 V", lambda: vm.emitterfolger(12, 6, 1e3)["u_a"], 5.3),
+    ("Emitterfolger: Ue < 0.7 V -> 0 V", lambda: vm.emitterfolger(12, 0.3, 1e3)["u_a"], 0.0),
+    ("Konstantstrom BJT im Regelbereich", lambda: vm.konstantstrom_bjt(12, 3.3, 270, 100)["i"], 9.5817e-3),
+    ("Konstantstrom BJT: Last zu gross", lambda: vm.konstantstrom_bjt(12, 3.3, 270, 2000)["regelt"], False),
+    ("JFET mit R_S = 0: I = I_DSS", lambda: vm.jfet_strom(10e-3, 2.5, 0), 10e-3),
+    ("JFET mit R_S = 229.7 Ω: 4 mA", lambda: vm.jfet_strom(10e-3, 2.5, 229.71), 4e-3),
+    ("JFET: mehr als I_DSS", lambda: vm.r_s_fuer_jfet(20e-3, 10e-3, 2.5), wirft(ValueError)),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),
