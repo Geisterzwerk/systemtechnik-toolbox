@@ -107,7 +107,7 @@ class BegrenzerSchaltung(_MitDiagramm):
             if e["unten"] > -1e9:
                 marken.append((e["unten"], f"{e['unten']:+.2g} V"))
             p.diagramm(12.4, 1.4, 19.6, 7.4, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
-                       -grenze, grenze, "u_e (gestrichelt)  ·  u_a (blau)", marken)
+                       -grenze, grenze, "u_e (gestrichelt)  ·  u_a (blau)", marken, einheit="spannung")
 
     def sk_info(self, w, e, v):
         unten = "–" if e["unten"] < -1e9 else _u(e["unten"])
@@ -420,7 +420,8 @@ class GleichrichterSchaltung(_MitDiagramm):
             g = e["u_spitze"] * 1.12
             p.diagramm(13.6, 1.6, 21.8, 7.8, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
                        -g, g, "u2 (gestrichelt)  ·  U_DC am Elko (blau)  ·  2 Netzperioden",
-                       [(e["u_dc"], _u(e["u_dc"])), (e["u_min_sim"], _u(e["u_min_sim"]))])
+                       [(e["u_dc"], _u(e["u_dc"])), (e["u_min_sim"], _u(e["u_min_sim"]))], einheit="spannung",
+                       t_ende=2 / 50.0)
 
     def sk_info(self, w, e, v):
         zeilen = [f"Û = {_u(e['u_spitze'])}   ·   U_DC (Spitze) = {_u(e['u_dc'])}   ·   Brumm {fmt(e['f_brumm'], 'frequenz', 3)}",
@@ -557,7 +558,7 @@ class TvsSchaltung(_MitDiagramm):
             marken = [(e["u_klemm"], _u(e["u_klemm"]))] if e["leitet"] else []
             p.diagramm(14.4, 1.4, 21.0, 7.6, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
                        -g if w["negativ"] else -g * 0.08, g if not w["negativ"] else g * 0.08,
-                       "ohne TVS (gestrichelt)  ·  am Gerät (blau)", marken, zeit_text=f"t (0 … {e['t_ende'] * 1e6:.0f} µs)")
+                       "ohne TVS (gestrichelt)  ·  am Gerät (blau)", marken, einheit="spannung", t_ende=e["t_ende"])
 
     def sk_info(self, w, e, v):
         zeilen = [f"U_BR ≈ 1.11 · U_WM = {_u(e['u_br'])}   ·   Klemmspannung am Gerät {_u(e['u_klemm'])}",

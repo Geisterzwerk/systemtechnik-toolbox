@@ -10,6 +10,8 @@
 #   ───────┘   Primär N1    Sekundär N2 └───────
 #
 #   ① U1 (Primär)      ② Φ (Magnetfeld)      ③ U2 (Sekundär)    <- 3 "Oszilloskope"
+#   Jedes Oszilloskop hat seine EIGENE Skala (bauteile/grafiken/skala.py): Endwerte mit Einheit links,
+#   Momentanwert oben rechts. So sind auch kleine Sekundärspannungen (z.B. 5 V) gut zu sehen.
 #   Regler: U1, N1, N2      Umschalter: AC / DC      ⏸ Pause
 #
 # WAS MAN SIEHT:
@@ -35,11 +37,14 @@ import customtkinter as ctk
 
 import config                                                   # -> config.py
 from bauteile.rechner.basis import WertRegler                   # -> bauteile/rechner/basis.py
+from bauteile.grafiken.skala import schoene_grenze, wert_text   # -> bauteile/grafiken/skala.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel      # -> core/layout.py
 
 F_ANIM = 0.4            # Animationsfrequenz in Hz (stark verlangsamt, echt 50 Hz)
 FRAME_MS = 40           # 25 Bilder pro Sekunde
-U_SKALA = 400.0         # Spannung, die in den Kurven dem vollen Ausschlag entspricht
+U_SKALA = 400.0         # Bezugsspannung für Strom-Punkte und Lampe (nicht mehr für die Kurven)
+SAETTIGUNG = 1.6        # Fluss bei DC nach dem Einschalten (relativ zum Nennfluss, Kern gesättigt)
+WURZEL2 = math.sqrt(2)
 NOMINAL_V_PRO_WDG = 230 / 500   # "Normaler" Fluss (für die Sättigungs-Anzeige, vereinfacht)
 TAU_DC = 0.5            # Abklingzeit des Impulses beim Umschalten auf DC (Animationszeit)
 
@@ -140,6 +145,8 @@ class TrafoAnimation(Karte):
             "② Dieser Strom erzeugt im Eisenkern ein Magnetfeld Φ (blaue Pfeile), das ständig die Richtung wechselt.   "
             "③ Der Kern leitet das Feld durch die Sekundärspule.   "
             "④ Weil sich das Feld dort ständig ändert, wird eine Spannung U2 induziert → die Lampe leuchtet.   "
+            "Oszilloskope: Zeit läuft nach rechts (rechts = jetzt), jedes mit eigener Skala; Φ in % vom "
+            "Nennfluss.   "
             f"Animation stark verlangsamt (echt: 50 Hz = 50 Schwingungen pro Sekunde).")).grid(
             row=4, column=0, sticky="ew", pady=(6, 0))
 
@@ -154,8 +161,8 @@ class TrafoAnimation(Karte):
         self.ta_U1 = self.ta_regler["U1"].wert()
         self.ta_N1 = max(1.0, self.ta_regler["N1"].wert())
         self.ta_N2 = max(1.0, self.ta_regler["N2"].wert())
-        if alt_n != (round(self.ta_N1), round(self.ta_N2)):
-            self._ta_neu_zeichnen()               # Anzahl gezeichneter Windungen ändert sich
+        if alt_n != (round(self.ta_N1), round(self.ta_N2)) or self.ta_geo is not None:
+            self._ta_neu_zeichnen()               # Windungen und Skalen der Oszilloskope ändern sich
         self._ta_info_setzen()
 
     def _ta_art_geaendert(self):
@@ -191,19 +198,33 @@ class TrafoAnimation(Karte):
     # SIGNALE (normiert, für Kurven und Animation)
     # =========================================================================
     def _ta_signale(self, t):
-        """(u1, phi, u2) zum Zeitpunkt t, normiert auf −1..+1 (u2 kann darüber hinaus -> wird abgeschnitten)."""
-        a1 = self.ta_U1 / U_SKALA
-        a2 = self.ta_U1 * self.ta_N2 / self.ta_N1 / U_SKALA
-        aphi = min(self._ta_fluss() * 0.6, 1.0)
+        """
+        (u1 in V, phi relativ zum Nennfluss, u2 in V) zum Zeitpunkt t - echte Momentanwerte.
+        U1 und U2 sind Effektivwerte -> Scheitelwert û = √2 · U.
+        """
+        u1_dach = WURZEL2 * self.ta_U1
+        u2_dach = WURZEL2 * self.ta_U1 * self.ta_N2 / self.ta_N1
         t_w, vorher_dc = self.ta_wechsel
         dc = self.ta_dc if t >= t_w else vorher_dc
         w = 2 * math.pi * F_ANIM
         if not dc:
-            return a1 * math.sin(w * t), -aphi * math.cos(w * t), a2 * math.sin(w * t)
+            return u1_dach * math.sin(w * t), -self._ta_fluss() * math.cos(w * t), u2_dach * math.sin(w * t)
         # DC: Fluss baut sich einmal auf (bis Sättigung), U2 nur als kurzer Impuls
         dt = t - t_w if t >= t_w else 1e9
         abkling = math.exp(-dt / TAU_DC)
-        return a1, 1.0 - abkling, a2 * abkling
+        return self.ta_U1, SAETTIGUNG * (1.0 - abkling), u2_dach * abkling
+
+    def _ta_skalen(self):
+        """Skalenendwerte der drei Oszilloskope: (U1 in V, Φ relativ, U2 in V)."""
+        u1 = WURZEL2 * self.ta_U1                         # auch bei DC: die AC-Kurve davor bleibt sichtbar
+        u2 = WURZEL2 * self.ta_U1 * self.ta_N2 / self.ta_N1
+        return (schoene_grenze(max(u1, 1e-3)), schoene_grenze(max(self._ta_fluss(), SAETTIGUNG if self.ta_dc else 0.1)),
+                schoene_grenze(max(u2, 1e-3)))
+
+    def _ta_wert_text(self, idx, wert):
+        if idx == 1:
+            return f"{wert * 100:+.0f} %".replace("-", "−")
+        return ("+" if wert > 0 else "") + wert_text(wert, "spannung")
 
     # =========================================================================
     # ZEICHNEN - statisch
@@ -259,20 +280,25 @@ class TrafoAnimation(Karte):
         c.create_text(xl, y1 + 0.035 * h, text=f"Primär  N1 = {self.ta_N1:.0f}", fill=GRUEN, font=schrift)
         c.create_text(xr, y1 + 0.035 * h, text=f"Sekundär  N2 = {self.ta_N2:.0f}", fill=ORANGE, font=schrift)
 
-        # ---- Rahmen der drei Kurven ----
+        # ---- Rahmen der drei Kurven (jede mit eigener Skala) ----
         kurven = []
-        for k, (titel, farbe) in enumerate((("① U1 (primär)", GRUEN), ("② Φ Magnetfeld", BLAU),
-                                            ("③ U2 (sekundär)", ORANGE))):
+        u2 = self.ta_U1 * self.ta_N2 / self.ta_N1
+        art = " ═" if self.ta_dc else " ~"
+        titel_liste = ((f"① U1 = {wert_text(self.ta_U1, 'spannung')}{art}", GRUEN), ("② Magnetfeld Φ", BLAU),
+                       ("③ U2 → 0 V (nur Impuls)" if self.ta_dc else f"③ U2 = {wert_text(u2, 'spannung')} ~", ORANGE))
+        for k, ((titel, farbe), skala) in enumerate(zip(titel_liste, self._ta_skalen())):
             px0 = w * (0.02 + k * 0.33)
             px1 = px0 + 0.30 * w
             py0, py1 = 0.66 * h, 0.97 * h
+            mitte, amp = (py0 + py1) / 2, (py1 - py0) * 0.42
             c.create_rectangle(px0, py0, px1, py1, outline=_modus_farbe(config.FARBEN["rahmen"]))
-            c.create_line(px0, (py0 + py1) / 2, px1, (py0 + py1) / 2, fill=_modus_farbe(config.FARBEN["rahmen"]),
-                          dash=(2, 3))
+            c.create_line(px0, mitte, px1, mitte, fill=_modus_farbe(config.FARBEN["rahmen"]), dash=(2, 3))
             c.create_text(px0 + 4, py0 - 0.02 * h, anchor="w", text=titel, fill=farbe, font=schrift)
-            kurven.append((px0, px1, py0, py1, farbe))
-        c.create_text(w * 0.98, 0.62 * h, anchor="e", fill=leise, font=klein,
-                      text="Zeit →  (rechts = jetzt)")
+            for wert, y in ((skala, mitte - amp), (-skala, mitte + amp)):      # Skala: Endwerte mit Einheit
+                c.create_line(px0, y, px0 + 5, y, fill=leise)
+                c.create_text(px0 + 7, y, anchor="w", fill=leise, font=klein, text=self._ta_wert_text(k, wert))
+            c.create_text(px1 - 3, py1 - 3, anchor="se", fill=leise, font=klein, text="t →")
+            kurven.append((px0, px1, py0, py1, farbe, skala))
 
         # ---- Geometrie merken (für die bewegten Teile) ----
         self.ta_geo = {
@@ -282,6 +308,7 @@ class TrafoAnimation(Karte):
             "pfad2": _Pfad([(ecke_rechts, yb), (ecke_rechts, yt), (xla, yt), (xla, yla - r),
                             (xla, yla + r), (xla, yb), (ecke_rechts, yb)]),
             "text": text, "canvas": c,     # Zeichenfläche merken (self.ta_canvas existiert evtl. noch nicht)
+            "klein": klein,
         }
         self._ta_dynamisch()
 
@@ -295,9 +322,10 @@ class TrafoAnimation(Karte):
         c = g["canvas"]
         c.delete("dyn")
         u1, phi, u2 = self._ta_signale(self.ta_zeit)
+        phi_bild = phi * 0.6                                    # Pfeillänge: Nennfluss = 60 % der vollen Länge
 
         # ---- Magnetfeld: Pfeile im Kern (oben →, unten ← bei positivem Φ) ----
-        laenge = 0.06 * g["w"] * min(abs(phi), 1.0)
+        laenge = 0.06 * g["w"] * min(abs(phi_bild), 1.0)
         if laenge > 2:
             richtung = 1 if phi > 0 else -1
             breite = max(2, int(g["d"] * 0.25))
@@ -308,7 +336,7 @@ class TrafoAnimation(Karte):
                 c.create_line(xm + richtung * laenge / 2, g["yc1"], xm - richtung * laenge / 2, g["yc1"],
                               fill=BLAU, width=breite, arrow="last", arrowshape=(10, 12, 5), tags="dyn")
             c.create_text(0.5 * g["w"], (g["yc0"] + g["yc1"]) / 2, text="Φ", fill=BLAU, tags="dyn",
-                          font=(config.SCHRIFT, max(10, int(g["h"] / 16 * (0.4 + 0.6 * min(abs(phi), 1)))), "bold"))
+                          font=(config.SCHRIFT, max(10, int(g["h"] / 16 * (0.4 + 0.6 * min(abs(phi_bild), 1)))), "bold"))
         if self._ta_fluss() > 1.5 and not self.ta_dc:
             c.create_text(0.5 * g["w"], g["yc1"] - 0.06 * g["h"], text="Sättigung!", fill=ROT, tags="dyn",
                           font=(config.SCHRIFT, max(8, int(g["h"] / 30)), "bold"))
@@ -323,7 +351,7 @@ class TrafoAnimation(Karte):
         # ---- Lampe: Helligkeit nach U2 (AC: Effektivwert, DC: aktueller Impuls) ----
         xla, yla, r = g["lampe"]
         u2_eff = self.ta_U1 * self.ta_N2 / self.ta_N1
-        hell = min(1.0, (abs(u2) * U_SKALA if self.ta_dc else u2_eff) / 230)
+        hell = min(1.0, (abs(u2) / WURZEL2 if self.ta_dc else u2_eff) / 230)
         bg = _modus_farbe(config.FARBEN["flaeche"])
         if hell > 0.05:
             glow = r * (1.3 + 1.2 * hell)
@@ -337,17 +365,22 @@ class TrafoAnimation(Karte):
 
         # ---- Drei "Oszilloskope": die letzten 2.5 Perioden ----
         fenster = 2.5 / F_ANIM
-        for idx, (px0, px1, py0, py1, farbe) in enumerate(g["kurven"]):
+        for idx, (px0, px1, py0, py1, farbe, skala) in enumerate(g["kurven"]):
             mitte, amp = (py0 + py1) / 2, (py1 - py0) * 0.42
             punkte = []
             for i in range(61):
                 t = self.ta_zeit - fenster * (1 - i / 60)
-                wert = max(-1.15, min(1.15, self._ta_signale(t)[idx]))
+                wert = max(-1.15, min(1.15, self._ta_signale(t)[idx] / skala))
                 punkte += [px0 + (px1 - px0) * i / 60, mitte - amp * wert]
             c.create_line(*punkte, fill=farbe, width=2, tags="dyn")
-            aktuell = max(-1.15, min(1.15, (u1, phi, u2)[idx]))
+            momentan = (u1, phi, u2)[idx]
+            aktuell = max(-1.15, min(1.15, momentan / skala))
             c.create_oval(px1 - 4, mitte - amp * aktuell - 4, px1 + 4, mitte - amp * aktuell + 4,
                           fill=farbe, outline="", tags="dyn")
+            if px1 - px0 < 180:                                  # schmal: Titel zeigt den Wert, Platz fehlt
+                continue
+            c.create_text(px1 - 6, py0 + 3, anchor="ne", fill=farbe, font=g["klein"], tags="dyn",   # Momentanwert
+                          text=("Φ" if idx == 1 else f"u{1 if idx == 0 else 2}") + " = " + self._ta_wert_text(idx, momentan))
 
     # =========================================================================
     # ANIMATIONS-SCHLEIFE
@@ -364,6 +397,7 @@ class TrafoAnimation(Karte):
         if self.ta_laeuft:
             self.ta_zeit += dt
             u1, _phi, u2 = self._ta_signale(self.ta_zeit)
+            u1, u2 = u1 / (WURZEL2 * U_SKALA), u2 / (WURZEL2 * U_SKALA)     # Geschwindigkeit der Punkte
             # Stromgeschwindigkeit: AC ~ Momentanwert; DC primär: konstant hoher Strom
             i1 = 0.9 if self.ta_dc and self.ta_U1 > 0 else u1
             self.ta_s1 = (self.ta_s1 + i1 * dt * 0.35) % 1.0

@@ -215,7 +215,7 @@ class EmitterSchaltung(_MitDiagramm):
                           if abs(m) <= g]
                 p.diagramm(14.8, 1.6, 22.8, 8.6, [(e["kurve_ideal"], p.leise, 1, True),
                                                    (e["kurve_aus"], SPANNUNG, None, False)],
-                           -g, g, f"u_a ideal (gestrichelt)  ·  tatsächlich (blau)  ·  ±{_u(g)}", marken)
+                           -g, g, "u_a ideal (gestrichelt)  ·  tatsächlich (blau)", marken, einheit="spannung")
 
     def sk_info(self, w, e, v):
         if e["zustand"] == "sperrt":
@@ -288,7 +288,8 @@ class EmitterfolgerSchaltung(_MitDiagramm):
         if getattr(self, "mit_diagramm", True):
             g = max(w["ue"] + w["uh"], w["ub"] * 0.3, 1.0) * 1.12
             p.diagramm(14.0, 1.6, 21.8, 8.2, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
-                       0.0, g, "u_e (gestrichelt)  ·  u_a (blau)", [(w["ub"] - 0.2, "U_B")] if g > w["ub"] else [])
+                       0.0, g, "u_e (gestrichelt)  ·  u_a (blau)", [(w["ub"] - 0.2, "U_B")] if g > w["ub"] else [],
+                       einheit="spannung")
 
     def sk_info(self, w, e, v):
         if not e["leitet"]:
@@ -370,7 +371,7 @@ class KonstantstromSchaltung(_MitDiagramm):
             gx0, gy0, gx1, gy1 = 14.2, 1.6, 21.8, 8.2
             p.diagramm(gx0, gy0, gx1, gy1, [(e["kurve"], SPANNUNG, None, False)],
                        0.0, i_max, "Strom über R_Last  ·  roter Punkt = jetzt",
-                       [(e["i_soll"], _i(e["i_soll"]))], zeit_text=f"R_L (0 … {_r(e['r_achse'])})")
+                       [(e["i_soll"], _i(e["i_soll"]))], einheit="strom", zeit_text=f"R_L (0 … {_r(e['r_achse'])})")
             px, py = p.p(gx0 + w["rl"] / e["r_achse"] * (gx1 - gx0), gy1 - e["i"] / i_max * (gy1 - gy0))
             r = max(4, p.u * 0.14)
             p.c.create_oval(px - r, py - r, px + r, py + r, fill=STROM, outline="")

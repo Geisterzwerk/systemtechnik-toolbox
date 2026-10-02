@@ -105,7 +105,7 @@ class RcFilterSchaltung(_MitDiagramm):
         # ---- Zeitbereich: zwei Perioden bei f ----
         g = w["ue"] * 1.15
         p.diagramm(gx0, 5.8, gx1, 9.4, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
-                   -g, g, "u_e (gestrichelt)  ·  u_a (blau)  ·  2 Perioden", zeit_text="t")
+                   -g, g, "u_e (gestrichelt)  ·  u_a (blau)  ·  2 Perioden", einheit="spannung", t_ende=2 / w["f"])
 
     def sk_info(self, w, e, v):
         zeilen = [f"fg = 1 / (2π · R · C) = {_f(e['fg'])}   ·   τ = R · C = {_t(e['tau'])}",
@@ -181,7 +181,7 @@ class EntprellSchaltung(_MitDiagramm):
                    "Kontakt S1 (oben = geschlossen)", zeit_text="")
         marken = [(e["u_tp"], "U_T+"), (e["u_tm"], "U_T−")] if mit_rc else [(e["u_tp"], "U_B/2")]
         p.diagramm(gx0, 3.6, gx1, 6.8, [(e["u_c"], SPANNUNG, None, False)], 0.0, w["ub"] * 1.1,
-                   "Spannung am Eingang (M1)", marken, zeit_text="")
+                   "Spannung am Eingang (M1)", marken, zeit_text="", einheit="spannung")
         farbe = STROM if e["sauber"] else FEHLER[1]
         p.diagramm(gx0, 8.0, gx1, 9.4, [(e["ausgang"], farbe, None, False)], -0.15, 1.15,
                    f"erkannt: {e['druecke']}× gedrückt, {e['loslassen']}× losgelassen",

@@ -102,10 +102,11 @@ class OpvVerstaerkerSchaltung(_MitDiagramm):
         p.text(x_a + 0.2, y_o + 0.55, f"Vu = {e['vu']:.3g}", "w", fett=True, farbe=farbe)
         if not getattr(self, "mit_diagramm", True):
             return
-        g = max(max(abs(u) for _, u in e["kurve_ideal"]), max(abs(u) for _, u in e["kurve_ein"]), 0.5) * 1.15
+        g = max(max(abs(u) for _, u in e["kurve_ideal"]), max(abs(u) for _, u in e["kurve_ein"]), 1e-4) * 1.15
         p.diagramm(14.0, 1.4, 22.8, 8.6, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_ideal"], p.leise, 1, True),
                                          (e["kurve_aus"], SPANNUNG, None, False)],
-                   -g, g, "u_e und u_a ideal (gestrichelt)  ·  u_a tatsächlich (blau)", _marken(e, g))
+                   -g, g, "u_e und u_a ideal (gestrichelt)  ·  u_a tatsächlich (blau)", _marken(e, g),
+                   einheit="spannung")
 
     def sk_info(self, w, e, v):
         r_ein = "≈ ∞ (nur der + Eingang, z.B. 10¹² Ω)" if e["r_ein"] == float("inf") else _r(e["r_ein"])
@@ -376,11 +377,12 @@ class SchmittSchaltung(_MitDiagramm):
         schwellen = [(e["u_tp"], "U_T+"), (e["u_tm"], "U_T−")] if art != "Komparator" else [(e["u_tp"], "U_ref")]
         p.diagramm(gx0, 1.0, gx1, 5.2, [(e["kurve_ein"], SPANNUNG, 1, False)], -g, g,
                    "Eingang mit Störung  ·  Schaltschwellen", [(m, t) for m, t in schwellen if abs(m) <= g],
-                   zeit_text="")
+                   zeit_text="", einheit="spannung")
         farbe = STROM if e["wechsel"] <= e["wechsel_soll"] else FEHLER[1]
         ga = max(e["u_max"], 1.0) * 1.15
         p.diagramm(gx0, 6.6, gx1, 9.6, [(e["kurve_aus"], farbe, None, False)], -ga, ga,
-                   f"Ausgang: {e['wechsel']} Umschaltungen (ohne Störung {e['wechsel_soll']})", zeit_text="t")
+                   f"Ausgang: {e['wechsel']} Umschaltungen (ohne Störung {e['wechsel_soll']})", zeit_text="t",
+                   einheit="spannung")
 
     def sk_info(self, w, e, v):
         if v == "Komparator":
@@ -480,9 +482,10 @@ class IntegratorSchaltung(_MitDiagramm):
         if not getattr(self, "mit_diagramm", True):
             return
         werte = [abs(u) for _, u in e["kurve_aus"]] + [abs(u) for _, u in e["kurve_ein"]]
-        g = max(max(werte), 0.2) * 1.15
+        g = max(max(werte), 1e-4) * 1.15
         p.diagramm(14.0, 1.4, 22.8, 8.6, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
-                   -g, g, "u_e (gestrichelt)  ·  u_a (blau)  ·  2 Perioden", _marken(e, g))
+                   -g, g, "u_e (gestrichelt)  ·  u_a (blau)  ·  2 Perioden", _marken(e, g), einheit="spannung",
+                   t_ende=2 / w["f"])
 
     def sk_info(self, w, e, v):
         if v == "Integrator":

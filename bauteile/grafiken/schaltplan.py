@@ -32,6 +32,7 @@ import customtkinter as ctk
 import config                                                            # -> config.py
 from bauteile.grafiken.halbleiter_grafiken import (BLAU, GRUEN, ORANGE,  # -> grafiken/halbleiter_grafiken.py
                                                    ROT, _farbe)
+from bauteile.grafiken.skala import wert_text                             # -> grafiken/skala.py
 from bauteile.rechner.basis import WertRegler                            # -> rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel               # -> core/layout.py
 
@@ -441,12 +442,19 @@ class Schaltplan:
         return {"plus": (x - 1.2, y_plus), "minus": (x - 1.2, y_minus), "aus": (x + 1.2, y)}
 
     # ---- Zeitdiagramm ---------------------------------------------------------
-    def diagramm(self, x0, y0, x1, y1, kurven, y_min, y_max, titel="", marken=(), zeit_text="t"):
+    def diagramm(self, x0, y0, x1, y1, kurven, y_min, y_max, titel="", marken=(), zeit_text="t", einheit=None,
+                 t_ende=None):
         """
         Kleines Zeitdiagramm im Rechteck (x0,y0)-(x1,y1), Raster-Einheiten.
           kurven  [(punkte, farbe, dick, gestrichelt), ...]   punkte = [(t 0…1, wert), ...]
           marken  [(wert, text), ...] waagrechte Hilfslinien mit Text links (z.B. Begrenzungspegel)
+          einheit Einheiten-Typ der y-Achse ("spannung", "strom" …) -> Skalenwerte mit Einheit an der Achse
+                  (nur dort, wo keine Marke steht). -> bauteile/grafiken/skala.py
+          t_ende  Dauer der Zeitachse in s -> "t (0 … 40 ms)"
+        Die Skala (y_min, y_max) wählt der Aufrufer aus dem Signal - so füllen auch mV- oder µA-Kurven das Bild.
         """
+        if t_ende is not None and zeit_text == "t":
+            zeit_text = f"t (0 … {wert_text(t_ende, 'zeit')})"
         def pixel(t, wert):
             anteil = (wert - y_min) / (y_max - y_min) if y_max > y_min else 0.5
             return self.p(x0 + t * (x1 - x0), y1 - min(max(anteil, -0.02), 1.02) * (y1 - y0))
@@ -463,6 +471,13 @@ class Schaltplan:
             if all(abs(zeile - z) > 0.4 for z in belegt):
                 self.text(x0 - 0.12, zeile, text, "e", klein=True, farbe=self.leise)
                 belegt.append(zeile)
+        if einheit:                                       # Skala: Endwerte (und 0) mit Einheit
+            skala = [y_max, y_min] + ([0.0] if y_min < 0 < y_max else [])
+            for wert in skala:
+                zeile = (pixel(0, wert)[1] - self.y0) / self.u
+                if all(abs(zeile - z) > 0.4 for z in belegt):
+                    self.text(x0 - 0.12, zeile, wert_text(wert, einheit), "e", klein=True, farbe=self.leise)
+                    belegt.append(zeile)
         for punkte, farbe, dick, gestrichelt in kurven:
             koordinaten = [k for t, wert in punkte for k in pixel(t, wert)]
             if len(koordinaten) >= 4:

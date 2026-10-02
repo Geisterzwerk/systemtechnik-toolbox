@@ -188,7 +188,7 @@ class LinearreglerSchaltung(_MitDiagramm):
         g = max(w["ue"], w["ua"]) * 1.15
         marken = [(w["ua"] + self.DROPOUT[v], "+U_D"), (w["ua"], "U_aus")]
         p.diagramm(15.2, 1.2, 22.8, 8.2, [(e["kurve_ein"], p.leise, 1, True), (e["kurve_aus"], SPANNUNG, None, False)],
-                   0.0, g, "U_ein (gestrichelt)  ·  U_aus (blau)  ·  U_D = Dropout", marken)
+                   0.0, g, "U_ein (gestrichelt)  ·  U_aus (blau)  ·  U_D = Dropout", marken, einheit="spannung")
 
     def sk_info(self, w, e, v):
         zeilen = [f"U_ein: Spitze {_u(w['ue'])}, Wellental {_u(e['u_tal'])}, Mittel {_u(e['u_mittel'])}   ·   "
@@ -272,7 +272,7 @@ class StrombegrenzungSchaltung(_MitDiagramm):
         gx0, gy0, gx1, gy1 = 14.2, 1.4, 22.8, 8.4
         g = e["u_a0"] * 1.2
         p.diagramm(gx0, gy0, gx1, gy1, [(e["kurve"], SPANNUNG, None, False)], 0.0, g,
-                   "U_a über dem Laststrom  ·  roter Punkt = jetzt", [(e["u_a0"], _u(e["u_a0"]))],
+                   "U_a über dem Laststrom  ·  roter Punkt = jetzt", [(e["u_a0"], _u(e["u_a0"]))], einheit="spannung",
                    zeit_text=f"I (0 … {_i(e['i_achse'])})")
         _punkt(p, gx0, gy0, gx1, gy1, min(e["i"] / e["i_achse"], 1.0), e["u_a"], 0.0, g)
 
@@ -338,7 +338,7 @@ class StromquelleOpvSchaltung(_MitDiagramm):
         i_max = e["i_soll"] * 1.2
         gx0, gy0, gx1, gy1 = 14.2, 1.4, 22.8, 8.2
         p.diagramm(gx0, gy0, gx1, gy1, [(e["kurve"], STROM, None, False)], 0.0, i_max,
-                   "Strom über R_Last  ·  Punkt = jetzt", [(e["i_soll"], _i(e["i_soll"]))],
+                   "Strom über R_Last  ·  Punkt = jetzt", [(e["i_soll"], _i(e["i_soll"]))], einheit="strom",
                    zeit_text=f"R_L (0 … {_r(e['r_achse'])})")
         _punkt(p, gx0, gy0, gx1, gy1, w["rl"] / e["r_achse"], e["i"], 0.0, i_max, farbe=SPANNUNG)
 
@@ -501,10 +501,12 @@ class SchaltreglerSchaltung(_MitDiagramm):
         i_top = max(i for _, i in e["kurve_i"]) * 1.15 or 1e-3
         farbe = STROM if e["ccm"] else FEHLER[1]
         p.diagramm(gx0, 1.2, gx1, 4.8, [(e["kurve_i"], farbe, None, False)], 0.0, i_top,
-                   f"Spulenstrom i_L  ·  ΔI = {_i(e['delta_i'])}", [(e["i_l"], f"Ø {_i(e['i_l'])}")], zeit_text="")
+                   f"Spulenstrom i_L  ·  ΔI = {_i(e['delta_i'])}", [(e["i_l"], f"Ø {_i(e['i_l'])}")], zeit_text="",
+                   einheit="strom")
         u_top = e["u_sw_max"] * 1.15
         p.diagramm(gx0, 6.2, gx1, 9.4, [(e["kurve_u"], SPANNUNG, None, False)], -0.1 * u_top, u_top,
-                   "Spannung am Schaltknoten SW", [], zeit_text=f"2 Perioden = {fmt(2 / w['f'], 'zeit', 3)}")
+                   "Spannung am Schaltknoten SW", [], zeit_text=f"2 Perioden = {fmt(2 / w['f'], 'zeit', 3)}",
+                   einheit="spannung")
 
     def sk_info(self, w, e, v):
         formel = "D = U_a / U_e" if v == ntm.SCHALTREGLER_ARTEN[0] else "D = 1 − U_e / U_a"
