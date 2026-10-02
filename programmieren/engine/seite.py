@@ -4,8 +4,14 @@
 # Zeichnet EINE Wiki-Seite aus den Daten eines Themas (und die Übersicht).
 #
 # AUFBAU EINER SEITE (alles optional ausser Titel):
-#   Pfad · Titel · Kurzbeschreibung · Erklärung · Bild(er) · Tabelle(n)
-#   · Beispiele (Code) · Sprachunterschiede · Tipps · Häufige Fehler · Siehe auch
+#   Pfad · Titel · Kurzbeschreibung · Erklärung · Bild(er) · Befehlsliste
+#   · Tabelle(n) · Beispiele (Code) · Sprachunterschiede · 🔒 Sicherheit
+#   · Tipps · Häufige Fehler · Siehe auch
+#
+# Wird auch vom Server-Wiki benutzt (gui/server_gui.py, Inhalte in server/inhalte/).
+# Nur dort vorkommende Felder:
+#   "befehle"     Befehle mit Kopier-Knopf pro Zeile  -> engine/befehlsliste.py
+#   "sicherheit"  rote Box "auf keinen Fall"
 #
 # RESPONSIVE: Alles läuft über core/layout.py -> Text bricht um, Bilder und
 #             Tabellen skalieren, "Siehe auch" und Übersicht ordnen sich neu an.
@@ -22,6 +28,7 @@ import config                                                   # -> config.py
 from core.layout import (Karte, ResponsiveBild, ResponsiveGrid,  # -> core/layout.py
                          Stapel, Tabelle, WrapLabel, seiten_kopf)
 from core.widgets import FormatText, info_box                   # -> core/widgets.py
+from programmieren.engine.befehlsliste import BefehlsListe     # -> engine/befehlsliste.py
 from programmieren.engine.codeblock import CodeBlock            # -> engine/codeblock.py
 
 
@@ -48,9 +55,11 @@ class ThemenSeite:
 
         self._erklaerung()
         self._bilder()
+        self._befehle()
         self._tabellen()
         self._beispiele()
         self._sprachunterschiede()
+        self._sicherheit()
         self._tipps_und_fehler()
         self._siehe_auch()
 
@@ -84,6 +93,15 @@ class ThemenSeite:
                           justify="center", text_color=config.FARBEN["text_leise"]).grid(
                     row=1, column=0, sticky="ew", pady=(6, 0))
 
+    def _befehle(self):
+        gruppen = self.daten.get("befehle") or []
+        if not gruppen:
+            return
+        self._abschnitt("⌨️ Wichtige Befehle  ·  📋 kopiert einen Befehl")
+        for gruppe in gruppen:
+            # -> engine/befehlsliste.py (Kopier-Knopf pro Zeile, gefährliche Befehle rot)
+            self.s.add(BefehlsListe(self.master, gruppe.get("titel"), gruppe.get("zeilen", [])))
+
     def _tabellen(self):
         tabellen = list(self.daten.get("tabellen") or [])
         if self.daten.get("tabelle"):
@@ -103,7 +121,8 @@ class ThemenSeite:
         beispiele = self.daten.get("beispiele") or []
         if not beispiele:
             return
-        self._abschnitt("💻 Beispiele" if self.sprache == "Alle" else f"💻 Beispiele in {self.sprache}")
+        self._abschnitt("💻 Beispiele" if self.sprache in ("Alle", config.SERVER_SPRACHE)
+                        else f"💻 Beispiele in {self.sprache}")
         sprachen = config.SPRACHEN if self.sprache == "Alle" else [self.sprache]
 
         for beispiel in beispiele:
@@ -143,6 +162,11 @@ class ThemenSeite:
             self._abschnitt("🔀 Unterschiede Python / C++ / C#")
             self._text_karte(self.daten["unterschiede"])
 
+    def _sicherheit(self):
+        if self.daten.get("sicherheit"):
+            self.s.add(info_box(self.master, "🔒 Sicherheit – auf keinen Fall!", self.daten["sicherheit"],
+                                art="gefahr"), pady=(16, 0))
+
     def _tipps_und_fehler(self):
         if self.daten.get("tipps"):
             self.s.add(info_box(self.master, "💡 Tipps", self.daten["tipps"], art="tipp"), pady=(16, 0))
@@ -165,10 +189,10 @@ class ThemenSeite:
 # =============================================================================
 # ÜBERSICHT (Startansicht des Wikis)
 # =============================================================================
-def uebersicht_zeichnen(master, kategorien, oeffnen, ladefehler=None):
+def uebersicht_zeichnen(master, kategorien, oeffnen, ladefehler=None, titel="💻 Programmieren"):
     s = Stapel(master)
     anzahl = sum(len(k.themen) for k in kategorien)
-    seiten_kopf(s, "💻 Programmieren",
+    seiten_kopf(s, titel,
                 f"{anzahl} Themen in {len(kategorien)} Kategorien  ·  Suche oben benutzen oder links ein Thema wählen")
 
     if ladefehler:

@@ -38,6 +38,11 @@ KEYWORDS = {
         "finally", "throw", "namespace", "using", "true", "false", "null", "this", "base", "get",
         "set", "var", "out", "ref", "is", "as", "interface", "enum", "checked", "unchecked",
     },
+    # Bash (Server-Wiki): Kontrollstrukturen der Shell
+    "Bash": {
+        "if", "then", "else", "elif", "fi", "for", "in", "do", "done", "while", "until", "case", "esac",
+        "function", "return", "exit", "local", "export", "source", "true", "false", "break", "continue",
+    },
 }
 
 # Datentypen (bekommen eine eigene Farbe)
@@ -53,10 +58,60 @@ TYPEN = {
            "long", "ulong", "byte", "sbyte", "string", "object", "List", "Dictionary", "Console",
            "Math", "Exception", "File", "Convert", "Array", "StreamReader", "StreamWriter",
            "FormatException", "DivideByZeroException"},
+    # Bash: die wichtigsten Befehle bekommen die "Typ"-Farbe (blau), sudo sticht so heraus
+    "Bash": {"sudo", "su", "apt", "dpkg", "snap", "systemctl", "journalctl", "service", "ls", "cd", "pwd", "cp",
+             "mv", "rm", "mkdir", "rmdir", "touch", "ln", "cat", "less", "head", "tail", "nano", "vim", "grep",
+             "find", "locate", "which", "chmod", "chown", "chgrp", "useradd", "adduser", "usermod", "userdel",
+             "deluser", "passwd", "groups", "id", "whoami", "ps", "top", "htop", "kill", "pkill", "killall",
+             "df", "du", "lsblk", "blkid", "mount", "umount", "free", "uname", "uptime", "hostnamectl",
+             "timedatectl", "ip", "ping", "ss", "curl", "wget", "dig", "nslookup", "traceroute", "tracepath",
+             "netplan", "ufw", "ssh", "scp", "rsync", "sftp", "tar", "gzip", "gunzip", "zip", "unzip", "echo",
+             "printf", "tee", "xargs", "sort", "uniq", "wc", "cut", "awk", "sed", "crontab", "reboot",
+             "shutdown", "history", "man", "tldr", "ssh-keygen", "ssh-copy-id", "fail2ban-client", "stat",
+             "chmod", "tree", "file", "diff", "date", "env", "alias", "fsck", "mkfs", "dd", "fdisk", "parted",
+             "lsof", "nc", "nmap", "tmux", "screen", "watch", "test", "read", "set", "unattended-upgrade"},
 }
 
 # Kommentarzeichen pro Sprache
-_KOMMENTAR = {"Python": r"#[^\n]*", "C++": r"//[^\n]*|/\*[\s\S]*?\*/", "C#": r"//[^\n]*|/\*[\s\S]*?\*/"}
+_KOMMENTAR = {"Python": r"#[^\n]*", "C++": r"//[^\n]*|/\*[\s\S]*?\*/", "C#": r"//[^\n]*|/\*[\s\S]*?\*/",
+              "Bash": r"(?<![\w$])#[^\n]*"}          # "$#" (Anzahl Argumente) ist KEIN Kommentar
+
+# -----------------------------------------------------------------------------
+# GEFÄHRLICHE BEFEHLE (Server-Wiki) - werden im Code rot hinterlegt und in
+# Befehlslisten mit ⚠ markiert. Muster = regulärer Ausdruck pro Zeile.
+# -----------------------------------------------------------------------------
+GEFAHR_MUSTER = [
+    r"\brm\s+(-\w*[rR]\w*f\w*|-\w*f\w*[rR]\w*|--recursive\s+--force|-rf|-fr)\b[^\n#]*",   # rm -rf ...
+    r"\bchmod\s+(-R\s+)?[0-7]?777\b[^\n#]*",                                              # chmod 777
+    r"\bchmod\s+(-R\s+)?(a|o)\+w\b[^\n#]*",
+    r"\bdd\s+[^\n#]*\bof=/dev/[^\n#]*",                                                   # dd auf Laufwerk
+    r"\bmkfs(\.\w+)?\b[^\n#]*",                                                           # formatieren
+    r"\b(fdisk|parted|wipefs)\s+/dev/[^\n#]*",
+    r">\s*/dev/sd\w*",
+    r"\bchown\s+-R\s+[^\n#]*\s/(\s|$)",                                                   # chown -R ... /
+    r"\bufw\s+disable\b",
+    r"\bufw\s+allow\s+(from\s+any\s+to\s+any|\d+:\d+)\b[^\n#]*",
+    r"\bPermitRootLogin\s+yes\b",
+    r"\bPasswordAuthentication\s+yes\b",
+    r"\bcurl\s+[^\n#|]*\|\s*(sudo\s+)?(ba)?sh\b",                                         # curl ... | sh
+    r"\bwget\s+[^\n#|]*\|\s*(sudo\s+)?(ba)?sh\b",
+    r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:",                                           # Fork-Bombe
+    r"\bkill\s+-9\s+(-1|1)\b",
+    r"\biptables\s+-F\b",
+    r"\brsync(?![^\n#]*(--dry-run|\s-\w*n\b))\s[^\n#]*\s--delete\b[^\n#]*",             # rsync --delete (ohne -n)
+]
+_GEFAHR = re.compile("|".join(f"(?:{m})" for m in GEFAHR_MUSTER))
+
+
+def gefahr_stellen(zeile):
+    """Liste von (start, ende) aller gefährlichen Stellen in EINER Code-Zeile (Kommentare ausgenommen)."""
+    ohne_kommentar = re.split(r"(?<![\w$])#", zeile, maxsplit=1)[0]
+    return [t.span() for t in _GEFAHR.finditer(ohne_kommentar)]
+
+
+def ist_gefaehrlich(befehl):
+    """True, wenn der Befehl ein gefährliches Muster enthält (für Befehlslisten)."""
+    return bool(gefahr_stellen(befehl))
 
 
 def _regex_fuer(sprache):

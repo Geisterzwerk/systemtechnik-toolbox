@@ -16,7 +16,12 @@ alles &= check("gui/bauteile_gui.py ist die NEUE Version (Wiki wie Programmieren
                "class BauteilWiki" in open(os.path.join(basis, "gui", "bauteile_gui.py"), encoding="utf-8").read())
 for pfad in ["bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rechner/basis.py",
              "bauteile/inhalte/01_passiv/widerstand.py", "bauteile/grafiken/trafo_animation.py",
-             "core/layout.py", "programmieren/engine/lader.py"]:
+             "bauteile/inhalte/03_transistoren/transistor.py", "bauteile/rechner/transistor_rechner.py",
+             "bauteile/inhalte/02_dioden/diode.py", "bauteile/rechner/dioden_rechner.py",
+             "bauteile/inhalte/04_schalten/relais.py", "bauteile/rechner/relais_rechner.py",
+             "core/layout.py", "programmieren/engine/lader.py",
+             "gui/server_gui.py", "programmieren/engine/befehlsliste.py",
+             "server/inhalte/00_schnellstart/spickzettel.py"]:
     alles &= check(pfad, os.path.exists(os.path.join(basis, pfad)))
 doppelt = os.path.join(basis, "SystemtechnikToolbox")
 if os.path.isdir(doppelt):

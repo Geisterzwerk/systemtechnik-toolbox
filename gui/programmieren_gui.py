@@ -11,6 +11,9 @@
 #   └───────────────────┴──────────────────────────────────────────────────┘
 #
 # WER RUFT DAS AUF?  main.py -> programmieren_gui.create(tab, app)
+#                    gui/server_gui.py benutzt dieselbe Klasse ProgrammierSeite
+#                    mit eigenem Inhalts-Ordner und nur EINER Sprache (Bash)
+#                    -> dann gibt es keinen Sprachumschalter oben rechts.
 # BENUTZT:
 #   programmieren/engine/lader.py   -> alle Themen laden
 #   programmieren/engine/suche.py   -> Suchfunktion
@@ -38,18 +41,29 @@ def create(parent, app):
 
 
 class ProgrammierSeite(ctk.CTkFrame):
+    """
+    Wiki mit Navigation, Suche und Themenseiten.
+      inhalte_pfad     Ordner mit den Kategorien (None = programmieren/inhalte)
+      sprachen         Liste der Sprachen. Nur EINE -> kein Umschalter (Server-Wiki: ["Bash"])
+      titel            Überschrift der Übersicht
+      such_platzhalter grauer Text im Suchfeld
+    """
 
-    def __init__(self, master, app):
+    def __init__(self, master, app, inhalte_pfad=None, sprachen=None, titel="💻 Programmieren",
+                 such_platzhalter="🔍  Suchen ... z.B. while, if else, int, klasse  (Ctrl+F)"):
         super().__init__(master, fg_color=config.FARBEN["hintergrund"], corner_radius=0)
         self.app = app
-        self.sprache = config.STANDARD_SPRACHE
+        self.sprachen = sprachen or config.SPRACHEN
+        self.sprache = config.STANDARD_SPRACHE if self.sprache_waehlbar() else self.sprachen[0]
+        self.titel = titel
+        self.such_platzhalter = such_platzhalter
         self.aktuelles_thema = None
         self.verlauf = []
         self.offene_kategorien = set()
         self.themen_buttons = {}
 
         # ---- Daten laden + Suche vorbereiten ----
-        self.kategorien, self.themen, self.ladefehler = lader.alle_laden()
+        self.kategorien, self.themen, self.ladefehler = lader.alle_laden(inhalte_pfad)
         for fehler in self.ladefehler:
             print("[Programmieren] Ladefehler:", fehler)
         self.suchmaschine = Suchmaschine(self.themen)
@@ -69,6 +83,10 @@ class ProgrammierSeite(ctk.CTkFrame):
             self.offene_kategorien.add(self.kategorien[0].ordner)
         self._navigation_baum_zeichnen()
         self._uebersicht_zeigen()
+
+    def sprache_waehlbar(self):
+        """Umschalter nur, wenn es mehr als eine Sprache gibt."""
+        return len(self.sprachen) > 1
 
     # =========================================================================
     # KOPFLEISTE
@@ -92,15 +110,17 @@ class ProgrammierSeite(ctk.CTkFrame):
 
         # ---- Suchfeld (sticky="ew" + weight=1 -> füllt den freien Platz) ----
         self.suchfeld = ctk.CTkEntry(leiste, height=36, width=120, font=config.FONT_TEXT,
-                                     placeholder_text="🔍  Suchen ... z.B. while, if else, int, klasse  (Ctrl+F)")
+                                     placeholder_text=self.such_platzhalter)
         self.suchfeld.grid(row=0, column=3, sticky="ew", padx=10)
         self.suchfeld.bind("<KeyRelease>", self._suche_geaendert)
         self.suchfeld.bind("<Return>", self._suche_enter)
         self.suchfeld.bind("<Escape>", lambda e: self._suche_leeren())
-        self.winfo_toplevel().bind("<Control-f>", lambda e: self.suchfeld.focus_set(), add="+")
+        self.winfo_toplevel().bind("<Control-f>", lambda e: self._suchfeld_fokus(), add="+")
 
-        # ---- Sprachwahl (behält ihre Grösse) ----
-        self.sprachwahl = ctk.CTkSegmentedButton(leiste, values=config.SPRACHEN + ["Alle"],
+        # ---- Sprachwahl (behält ihre Grösse) - nur wenn es etwas zu wählen gibt ----
+        if not self.sprache_waehlbar():
+            return
+        self.sprachwahl = ctk.CTkSegmentedButton(leiste, values=self.sprachen + ["Alle"],
                                                  command=self._sprache_geaendert, height=36,
                                                  font=(config.SCHRIFT, 13, "bold"))
         self.sprachwahl.set(self.sprache)
@@ -181,6 +201,11 @@ class ProgrammierSeite(ctk.CTkFrame):
             zeile = self._themen_button(thema, zeile, mit_kategorie=True)
         self._aktiv_markieren()
 
+    def _suchfeld_fokus(self):
+        """Ctrl+F: nur das Suchfeld des gerade sichtbaren Wikis anspringen."""
+        if self.winfo_ismapped():
+            self.suchfeld.focus_set()
+
     def _suche_enter(self, event=None):
         treffer = self.suchmaschine.suchen(self.suchfeld.get())
         if treffer:
@@ -197,7 +222,8 @@ class ProgrammierSeite(ctk.CTkFrame):
         self.aktuelles_thema = None
         self._aktiv_markieren()
         body = self.inhalt.neue_seite()                      # -> core/layout.py
-        uebersicht_zeichnen(body, self.kategorien, self.thema_oeffnen, self.ladefehler)   # -> engine/seite.py
+        uebersicht_zeichnen(body, self.kategorien, self.thema_oeffnen, self.ladefehler,   # -> engine/seite.py
+                            titel=self.titel)
 
     def thema_oeffnen(self, thema_id, verlauf_merken=True):
         thema = self.themen.get(thema_id)

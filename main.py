@@ -13,6 +13,7 @@
 #   bauteile/                <- die einzelnen Bauteil-Seiten
 #   programmieren/engine/    <- Programmier-Wiki: laden, suchen, anzeigen
 #   programmieren/inhalte/   <- die Wiki-Seiten (NUR Daten)
+#   server/inhalte/          <- Server-/Linux-Wiki (NUR Daten, gleiche Engine wie Programmieren)
 #   images/                  <- alle Bilder
 #
 # ABLAUF BEIM START:
@@ -34,7 +35,7 @@ import customtkinter as ctk
 
 import config                                   # -> config.py
 from gui import (bauteile_gui, formel_gui, messwerte_gui,     # -> Ordner gui/
-                 programmieren_gui, schaltungen_gui, startseite_gui)
+                 programmieren_gui, schaltungen_gui, server_gui, startseite_gui)
 
 ctk.set_appearance_mode("Dark")        # "Dark", "Light" oder "System"
 ctk.set_default_color_theme("blue")
@@ -46,6 +47,7 @@ BEREICHE = [
     ("Formeln",       formel_gui,        "📐", "Formelsammlung und Rechner"),
     ("Messwerte",     messwerte_gui,     "📊", "Messwerte erfassen und auswerten"),
     ("Programmieren", programmieren_gui, "💻", "Python, C++ und C# nachschlagen - mit Suche"),
+    ("Server / Linux", server_gui,       "🐧", "Ubuntu Server per Konsole: Befehle, sudo, Dienste, Netzwerk, Sicherheit"),
 ]
 
 

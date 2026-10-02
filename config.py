@@ -14,6 +14,7 @@ BASIS_PFAD = os.path.dirname(os.path.abspath(__file__))
 BILDER_PFAD = os.path.join(BASIS_PFAD, "images")
 BILDER_PROGRAMMIEREN = os.path.join(BILDER_PFAD, "programmieren")
 INHALTE_PROGRAMMIEREN = os.path.join(BASIS_PFAD, "programmieren", "inhalte")
+INHALTE_SERVER = os.path.join(BASIS_PFAD, "server", "inhalte")          # -> Tab "Server / Linux"
 
 # -----------------------------------------------------------------------------
 # APP
@@ -45,6 +46,7 @@ FARBEN = {
     "akzent_hover":  ("#1858BC", "#2563EB"),
     "tipp":          ("#E8F3FF", "#16283F"),
     "warnung":       ("#FFF4E5", "#3A2A12"),
+    "gefahr":        ("#FDECEC", "#3B1A1A"),       # 🔒 Sicherheits-Box (Server-Wiki)
     "tabelle_kopf":  ("#DCE6F5", "#2C3A52"),
     "tabelle_zeile": ("#F7F8FA", "#262A31"),
 }
@@ -55,11 +57,13 @@ CODE_FARBEN = {
         "hintergrund": "#0F1117", "text": "#E6E8EC", "keyword": "#C792EA",
         "typ": "#82AAFF", "string": "#C3E88D", "kommentar": "#6A7383",
         "zahl": "#F78C6C", "funktion": "#FFCB6B", "zeilennr": "#4B5263",
+        "gefahr": "#FFB4AB", "gefahr_bg": "#5C1F1F",          # gefährliche Befehle (rm -rf ...)
     },
     "Light": {
         "hintergrund": "#F6F8FA", "text": "#24292F", "keyword": "#8250DF",
         "typ": "#0550AE", "string": "#0A7B35", "kommentar": "#6E7781",
         "zahl": "#CF222E", "funktion": "#953800", "zeilennr": "#A0A7B1",
+        "gefahr": "#B42318", "gefahr_bg": "#FEE4E2",
     },
 }
 
@@ -87,3 +91,8 @@ FONT_CODE = (SCHRIFT_CODE, 12)
 # -----------------------------------------------------------------------------
 SPRACHEN = ["Python", "C++", "C#"]
 STANDARD_SPRACHE = "Python"
+
+# -----------------------------------------------------------------------------
+# SERVER-SEITE  (gleiche Wiki-Maschine, aber nur eine "Sprache" -> kein Umschalter)
+# -----------------------------------------------------------------------------
+SERVER_SPRACHE = "Bash"

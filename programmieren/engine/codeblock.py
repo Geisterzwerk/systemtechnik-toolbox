@@ -17,7 +17,7 @@ import customtkinter as ctk
 import config                                  # -> config.py
 from programmieren.engine import syntax        # -> engine/syntax.py
 
-SPRACH_FARBE = {"Python": "#3776AB", "C++": "#00599C", "C#": "#68217A"}
+SPRACH_FARBE = {"Python": "#3776AB", "C++": "#00599C", "C#": "#68217A", "Bash": "#2F7D32"}
 
 
 class CodeBlock(ctk.CTkFrame):
@@ -78,6 +78,9 @@ class CodeBlock(ctk.CTkFrame):
             self.text.tag_configure(tag, foreground=f[tag])
         self.text.tag_configure("zeilennr", foreground=f["zeilennr"])
         self.text.tag_configure("kommentar", font=(config.SCHRIFT_CODE, 12, "italic"))
+        # Gefährliche Befehle (rm -rf, chmod 777 ...): rot hinterlegt, liegt über allen anderen Farben
+        self.text.tag_configure("gefahr", foreground=f["gefahr"], background=f["gefahr_bg"],
+                                font=(config.SCHRIFT_CODE, 12, "bold"))
 
     def _code_einfuegen(self, zeilen, sprache):
         breite = len(str(len(zeilen)))
@@ -95,6 +98,13 @@ class CodeBlock(ctk.CTkFrame):
                 if tag and teil:
                     self.text.tag_add(tag, f"{zeile}.{spalte}", f"{zeile}.{spalte + len(teil)}")
                 spalte += len(teil)
+
+        # Gefährliche Stellen markieren -> engine/syntax.py gefahr_stellen() (nur Bash)
+        if sprache == "Bash":
+            for nr, inhalt in enumerate(zeilen, start=1):
+                for start, ende in syntax.gefahr_stellen(inhalt):
+                    self.text.tag_add("gefahr", f"{nr}.{breite + 2 + start}", f"{nr}.{breite + 2 + ende}")
+            self.text.tag_raise("gefahr")
 
     def _nur_lesen(self, event):
         if event.state & 0x4 and event.keysym.lower() in ("c", "a"):    # Ctrl+C / Ctrl+A erlaubt
