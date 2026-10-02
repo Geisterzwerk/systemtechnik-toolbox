@@ -29,7 +29,7 @@ KATEGORIEN = {
     "Bauteile":       ("🔧", "Kennwerte und Codes einzelner Bauteile"),
     "Schaltungen":    ("🔌", "Netzteile, Teiler, Filter, Schalten, Verstärker"),
     "Messtechnik":    ("📏", "Messunsicherheit, Messgeräte, Sensoren"),
-    "Digitaltechnik": ("💾", "Zahlensysteme, Bitmasken, Logikpegel, AD-Wandler"),
+    "Digitaltechnik": ("💾", "Zahlensysteme, Bitmasken, Logikpegel, Logik, AD-Wandler"),
 }
 
 # Diese Bereiche enthalten Wissensseiten (Tab-Name -> Ordner mit den Seiten)
@@ -584,6 +584,36 @@ RECHNER_INFO = {
         "beschreibung": "Pegelbänder von Sender und Empfänger nebeneinander, Störabstände als Pfeile.",
         "stichworte": ["Logikpegel", "Störabstand", "U_IH", "U_OH", "Werkzeug"],
         "wissensseite": "logikpegel_stoerabstand"},
+    "wahrheitstabelle": {
+        "titel": "Wahrheitstabelle und Normalformen", "kategorie": "Digitaltechnik", "unterkategorie": "Logik",
+        "beschreibung": "Boolescher Ausdruck -> Tabelle, Minterme, kanonische und minimale DNF/KNF.",
+        "stichworte": ["Wahrheitstabelle", "DNF", "KNF", "Minterm", "boolescher Ausdruck"],
+        "wissensseite": "normalformen"},
+    "werkzeug_ausdruck": {
+        "titel": "Ausdruck → Wahrheitstabelle (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Logik",
+        "beschreibung": "Ausdruck eintippen, Symbol-Knöpfe, Tabelle und alle Normalformen sofort.",
+        "stichworte": ["Wahrheitstabelle", "Ausdruck", "Normalform", "Werkzeug"],
+        "wissensseite": "boolesche_algebra"},
+    "ausdruck_vergleichen": {
+        "titel": "Zwei Ausdrücke vergleichen", "kategorie": "Digitaltechnik", "unterkategorie": "Logik",
+        "beschreibung": "Prüft eine Umformung (z.B. De Morgan) über alle Belegungen, sonst Gegenbeispiel.",
+        "stichworte": ["De Morgan", "Umformen", "Äquivalenz", "Vergleichen", "boolesche Algebra"],
+        "wissensseite": "boolesche_algebra"},
+    "kv_minimieren": {
+        "titel": "Minimieren aus Mintermen", "kategorie": "Digitaltechnik", "unterkategorie": "Logik",
+        "beschreibung": "Minimale DNF und KNF aus Mintermen und don't cares (Quine-McCluskey), bis 6 Variablen.",
+        "stichworte": ["KV-Diagramm", "Quine-McCluskey", "Minimieren", "don't care", "Minterm"],
+        "wissensseite": "kv_diagramme"},
+    "werkzeug_kv": {
+        "titel": "KV-Diagramm (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Logik",
+        "beschreibung": "Felder anklicken (0/1/X), Blöcke und minimale Form werden eingezeichnet.",
+        "stichworte": ["KV-Diagramm", "Karnaugh", "Block", "don't care", "Werkzeug"],
+        "wissensseite": "kv_diagramme"},
+    "werkzeug_gatter": {
+        "titel": "Logikgatter-Simulator (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "Logik",
+        "beschreibung": "AND bis XNOR mit 2 oder 3 Eingängen, IEC- und ANSI-Symbol, Wahrheitstabelle.",
+        "stichworte": ["Gatter", "AND", "OR", "XOR", "NAND", "Symbol", "Werkzeug"],
+        "wissensseite": "logikgatter"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",

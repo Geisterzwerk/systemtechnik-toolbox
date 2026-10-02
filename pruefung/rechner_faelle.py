@@ -27,7 +27,7 @@ from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
 from schaltungen import netzteil_mathe as ntm
-from digitaltechnik import pegel_mathe as pm, zahlen_mathe as zm
+from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
 from schaltungen import verstaerker_mathe as vm
 
 
@@ -476,6 +476,27 @@ FAELLE = [
      ["= +0.64 V   ✓", "= +0.47 V   ✓", "✓ Direkt verbindbar"], "2.64 − 2.0;  0.8 − 0.33"),
     ("logikpegel", {"sender": "ATmega328P / Uno (5 V)", "empf": "ESP32 (3.3 V)"}, ["❌ zu hoch", "Pegelwandler nötig"],
      "5 V > 3.6 V"),
+    ("wahrheitstabelle", {"ausdruck": "A·B + /A·C"},
+     ["Gelesen als: Y = A·B + ¬A·C", " 6 │ 1 1 0 │ 1", "Σm(1, 3, 6, 7)", "Πm(0, 2, 4, 5)",
+      "DNF minimal: Y = A·B + ¬A·C", "KNF minimal: Y = (A + C)·(¬A + B)"],
+     "Zeilen 1 und 3: ¬A·C;  Zeilen 6 und 7: A·B"),
+    ("wahrheitstabelle", {"ausdruck": "AB + AB' + A'B"}, ["DNF minimal: Y = A + B"],
+     "A·(B + ¬B) + ¬A·B = A + ¬A·B = A + B"),
+    ("wahrheitstabelle", {"ausdruck": "A XOR B XOR C"}, ["Σm(1, 2, 4, 7)"], "ungerade Anzahl Einsen"),
+    ("wahrheitstabelle", {"ausdruck": "A + (B"}, fehler("Klammer ) fehlt"), "Klammer offen"),
+    ("wahrheitstabelle", {"ausdruck": "A + 1"}, ["DNF minimal: Y = 1", "KNF minimal: Y = 1"], "A + 1 = 1"),
+    ("wahrheitstabelle", {"ausdruck": "1·0"}, ["ist konstant 0"], "ohne Variablen"),
+    ("ausdruck_vergleichen", {"a": "¬(A·B)", "b": "¬A + ¬B"}, ["✓ Gleichwertig – für alle 4 Belegungen"],
+     "De Morgan"),
+    ("ausdruck_vergleichen", {"a": "¬(A+B)", "b": "¬A+¬B"}, ["≠", "Gegenbeispiel: A = 0, B = 1"],
+     "falsches De Morgan: Zeichen nicht gewechselt"),
+    ("ausdruck_vergleichen", {"a": "A + B·C", "b": "(A + B)·(A + C)"}, ["✓ Gleichwertig"], "zweites Distributivgesetz"),
+    ("kv_minimieren", {"n": "4", "m": "0 1 2 3 8 10"},
+     ["DNF minimal: Y = ¬A·¬B + ¬B·¬D", "KNF minimal: Y = (¬A + ¬D)·¬B"], "Zeile AB = 00 und die vier Ecken"),
+    ("kv_minimieren", {"n": "4", "m": "1 2 5 6 9 10", "d": "13 14"}, ["DNF minimal: Y = C·¬D + ¬C·D"],
+     "mit X: zwei Spalten zu je 4 Feldern"),
+    ("kv_minimieren", {"n": "3", "m": "1 9"}, fehler("gibt es mit 3 Variablen nicht"), "9 > 7"),
+    ("kv_minimieren", {"n": "3", "m": "1 2", "d": "2"}, fehler("gleichzeitig 1 und don't care"), "Widerspruch"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -678,6 +699,23 @@ FUNKTIONEN = [
     ("Pegel: 5 V am ESP32 ist zu hoch", lambda: pm.zustand(5.0, "ESP32 (3.3 V)"), "zu hoch"),
     ("74HCT treibt 74HC (5 V) direkt", lambda: pm.kompatibel("74HCT (5 V, TTL-Eingang)", "74HC (5 V, Werte bei 4.5 V)")["ok"],
      True),
+
+    # ---- Digitaltechnik: Logik ----
+    ("NAND mit 3 Eingängen", lambda: [a for _, a in lm.gatter_tabelle("NAND", 3)], [1, 1, 1, 1, 1, 1, 1, 0]),
+    ("XOR mit 3 Eingängen = ungerade Anzahl", lambda: [a for _, a in lm.gatter_tabelle("XOR", 3)],
+     [0, 1, 1, 0, 1, 0, 0, 1]),
+    ("NOT mit 2 Eingängen", lambda: lm.gatter("NOT", [0, 1]), wirft(ValueError)),
+    ("Parser: A' = ¬A", lambda: lm.als_text(lm.parsen("A'B")), "¬A·B"),
+    ("Parser: Wörter UND/ODER/NICHT", lambda: lm.als_text(lm.parsen("A UND NICHT B ODER C")), "A·¬B + C"),
+    ("Parser: UND vor ODER", lambda: lm.analysieren("A + B·C")["minterme"], [3, 4, 5, 6, 7]),
+    ("Parser: X1 X2 sind zwei Variablen", lambda: lm.variablen(lm.parsen("X1X2 + X10")), ["X1", "X2", "X10"]),
+    ("Parser: unbekanntes Zeichen", lambda: lm.parsen("A ? B"), wirft(ValueError)),
+    ("Minimieren: alle Einsen -> 1", lambda: lm.minimieren(range(8), 3), ["---"]),
+    ("Minimieren: keine Einsen -> leer", lambda: lm.minimieren([], 3), []),
+    ("Minimieren: XOR lässt sich nicht vereinfachen", lambda: len(lm.minimieren([1, 2, 4, 7], 3)), 4),
+    ("Minimieren mit don't care", lambda: lm.minimieren([5, 6, 7, 8, 9], 4, range(10, 16)), ["1---", "-11-", "-1-1"]),
+    ("KV: Minterm im Feld Zeile 0, Spalte 2 (4 Var)", lambda: lm.kv_aufbau(4)[2](0, 2), 3),
+    ("KV: Ecken-Block über den Rand", lambda: lm.zusammenhaengend([0, 3], 4), [[0], [3]]),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

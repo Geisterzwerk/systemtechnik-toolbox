@@ -8,18 +8,24 @@
 #   binaer_addieren       a + b mit n Bit: Ergebnis, Carry und Overflow
 #   bitmaske              Register-Operation (AND / OR / AND NOT / XOR / NOT / Schieben)
 #   logikpegel            Passt ein Ausgang zu einem Eingang? Störabstände
+#   wahrheitstabelle      Ausdruck -> Wahrheitstabelle, Minterme, kanonische und minimale DNF/KNF
+#   ausdruck_vergleichen  Sind zwei Ausdrücke gleich (z.B. De Morgan prüfen)? Sonst Gegenbeispiel
+#   kv_minimieren         Minterme (+ don't cares) -> minimale DNF und KNF (Quine-McCluskey)
 #   werkzeug_*            INTERAKTIVE Werkzeuge (digitaltechnik/grafiken.py)
 #
 # AD-Wandler und Abtastung gibt es schon im Bereich Messtechnik ("adc", "abtastung").
-# Rechnung: digitaltechnik/zahlen_mathe.py, digitaltechnik/pegel_mathe.py (ohne GUI, testbar)
+# Rechnung: digitaltechnik/zahlen_mathe.py, pegel_mathe.py, logik_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "zahlensystem")
 # =============================================================================
 
 from bauteile.rechner.basis import FormelRechner, RechnerFehler               # -> bauteile/rechner/basis.py
+from digitaltechnik import logik_mathe as lm                                  # -> digitaltechnik/logik_mathe.py
 from digitaltechnik import pegel_mathe as pm                                  # -> digitaltechnik/pegel_mathe.py
 from digitaltechnik import zahlen_mathe as zm                                 # -> digitaltechnik/zahlen_mathe.py
 from digitaltechnik.grafiken import (BitmaskenKarte, LogikpegelKarte,         # -> digitaltechnik/grafiken.py
                                      ZahlensystemKarte, ZweierkomplementKarte)
+from digitaltechnik.grafiken_logik import (AusdruckKarte, GatterKarte, KVKarte,  # -> digitaltechnik/grafiken_logik.py
+                                           wahrheitstabelle_text)
 
 BITBREITEN = ["8", "16", "32", "4"]
 
@@ -203,6 +209,95 @@ def logikpegel(master):
 
 
 # =============================================================================
+# 6) WAHRHEITSTABELLE
+# =============================================================================
+def _wahrheitstabelle(w):
+    e = _fehler_umwandeln(lm.analysieren, w["ausdruck"])
+    if not e["namen"]:
+        return [f"Y = {e['text']} ist konstant {e['tabelle'][0][1]}"]
+    zeilen = [f"Gelesen als: Y = {e['text']}", ""]
+    zeilen += wahrheitstabelle_text(e["namen"], e["tabelle"]).split("\n")
+    zeilen += ["", f"Minterme: Σm({', '.join(map(str, e['minterme']))})   ·   "
+                   f"Maxterme: Πm({', '.join(map(str, e['maxterme']))})",
+               f"DNF minimal: Y = {e['min_dnf']}",
+               f"KNF minimal: Y = {e['min_knf']}"]
+    if len(e["minterme"]) <= 8:
+        zeilen.append(f"DNF kanonisch: {e['dnf']}")
+    return zeilen
+
+
+def wahrheitstabelle(master):
+    return FormelRechner(
+        master, "Wahrheitstabelle und Normalformen", "Schreibweisen: ¬A !A /A A'  ·  A·B A*B AB  ·  A+B  ·  A⊕B",
+        felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + /A·C"})],
+        berechnen=_wahrheitstabelle, formel="DNF = ODER der Minterme (1-Zeilen)     KNF = UND der Maxterme (0-Zeilen)")
+
+
+# =============================================================================
+# 7) AUSDRÜCKE VERGLEICHEN
+# =============================================================================
+def _ausdruck_vergleichen(w):
+    if w["a"] is None or w["b"] is None:
+        raise RechnerFehler("Beide Ausdrücke eingeben, z.B. ¬(A·B) und ¬A + ¬B")
+    gleich, info = _fehler_umwandeln(lm.vergleichen, w["a"], w["b"])
+    links, rechts = lm.als_text(lm.parsen(w["a"])), lm.als_text(lm.parsen(w["b"]))
+    if gleich:
+        return [f"{links}  =  {rechts}", f"✓ Gleichwertig – für alle {2 ** len(info['namen'])} Belegungen geprüft"]
+    belegung = ", ".join(f"{n} = {v}" for n, v in info["belegung"].items())
+    return [f"{links}  ≠  {rechts}",
+            f"❌ Gegenbeispiel: {belegung}  →  links {info['a']}, rechts {info['b']}"]
+
+
+def ausdruck_vergleichen(master):
+    return FormelRechner(
+        master, "Zwei Ausdrücke vergleichen", "Umformung prüfen (z.B. De Morgan) – alle Belegungen werden durchprobiert",
+        felder=[("a", "Ausdruck 1", "text", {"platzhalter": "z.B. ¬(A·B)"}),
+                ("b", "Ausdruck 2", "text", {"platzhalter": "z.B. ¬A + ¬B"})],
+        berechnen=_ausdruck_vergleichen, formel="De Morgan: ¬(A·B) = ¬A + ¬B     ¬(A + B) = ¬A·¬B")
+
+
+# =============================================================================
+# 8) MINIMIEREN AUS MINTERMEN
+# =============================================================================
+def _kv_minimieren(w):
+    n = int(w["n"])
+    namen = list("ABCDEF"[:n])
+
+    def liste(text):
+        if text is None:
+            return []
+        werte = [_zahl(t) for t in text.replace(",", " ").replace(";", " ").split()]
+        falsch = [m for m in werte if not 0 <= m < 2 ** n]
+        if falsch:
+            raise RechnerFehler(f"Minterm(e) {', '.join(map(str, falsch))} gibt es mit {n} Variablen nicht "
+                                f"(0 … {2 ** n - 1})")
+        return werte
+    if w["m"] is None:
+        raise RechnerFehler("Minterme eingeben (Nummern der 1-Zeilen), z.B. 0 1 2 3 8 10")
+    eins, dc = liste(w["m"]), liste(w["d"])
+    doppelt = sorted(set(eins) & set(dc))
+    if doppelt:
+        raise RechnerFehler(f"Minterm(e) {', '.join(map(str, doppelt))} sind gleichzeitig 1 und don't care")
+    f = lm.minimal_formen(eins, namen, dc)
+    zeilen = [f"Y = Σm({', '.join(map(str, sorted(eins)))})" + (f" + d({', '.join(map(str, sorted(dc)))})" if dc else ""),
+              f"DNF minimal: Y = {f['min_dnf']}",
+              f"KNF minimal: Y = {f['min_knf']}"]
+    for t in f["terme"]:
+        if t != "-" * n:
+            zeilen.append(f"  {lm.produkt(t, namen):<16} deckt {2 ** t.count('-')} Felder  (Muster {t})")
+    return zeilen
+
+
+def kv_minimieren(master):
+    return FormelRechner(
+        master, "Minimieren aus Mintermen (KV / Quine-McCluskey)", "Nummern der 1-Zeilen und der don't-care-Zeilen",
+        felder=[("n", "Anzahl Variablen", "auswahl", {"werte": ["4", "3", "2", "5", "6"]}),
+                ("m", "Minterme (1)", "text", {"platzhalter": "z.B. 0 1 2 3 8 10"}),
+                ("d", "don't care (X, opt.)", "text", {"platzhalter": "z.B. 5 7"})],
+        berechnen=_kv_minimieren, formel="Blöcke aus 2^k Feldern -> k Variablen fallen weg")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -215,4 +310,10 @@ RECHNER = {
     "werkzeug_zweierkomplement": ZweierkomplementKarte,
     "werkzeug_bitmaske": BitmaskenKarte,
     "werkzeug_logikpegel": LogikpegelKarte,
+    "wahrheitstabelle": wahrheitstabelle,
+    "ausdruck_vergleichen": ausdruck_vergleichen,
+    "kv_minimieren": kv_minimieren,
+    "werkzeug_gatter": GatterKarte,
+    "werkzeug_ausdruck": AusdruckKarte,
+    "werkzeug_kv": KVKarte,
 }
