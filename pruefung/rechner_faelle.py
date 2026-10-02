@@ -25,7 +25,7 @@
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
-from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, verstaerker_mathe as vm
+from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, rc_mathe as rm, verstaerker_mathe as vm
 
 
 def fehler(text):
@@ -346,6 +346,28 @@ FAELLE = [
      "−2.5 V · (1 − √0.4);  0.9189 V / 4 mA;  Arbeitsbereich U_B − |U_P|"),
     ("konstantstrom", {"art": "JFET mit Source-Widerstand", "I": "20", "Ub": "12", "IDSS": "10", "UP": "2.5"},
      fehler("I_DSS"), "mehr als I_DSS geht nicht"),
+    ("rc_frequenzgang", {"art": "Tiefpass", "R": "10", "C": "100", "f": "1k", "Ue": "1"},
+     ["= 159.2 Hz", "Xc = 1 / (2π · f · C) = 1.592 kΩ", "|H| = 0.1572  =  -16.07 dB", "φ = -81.0°", "157.2 mV"],
+     "fg = 1/(2π · 10 kΩ · 100 nF);  1/√(1 + 6.283²);  −arctan 6.283"),
+    ("rc_frequenzgang", {"art": "Hochpass", "R": "10", "C": "100", "f": "1k"},
+     ["|H| = 0.9876  =  -0.11 dB", "φ = +9.0°"], "6.283/√(1 + 6.283²);  90° − 81°"),
+    ("rc_frequenzgang", {"art": "Tiefpass", "R": "10", "C": "100"}, fehler("Frequenz f"), "ohne Frequenz"),
+    ("entprellung", {"Ub": "5", "R1": "10", "R2": "4.7", "C": "1", "tp": "5"},
+     ["U_T+ ≈ 2.75 V, U_T− ≈ 1.65 V", "τ = R2 · C = 4.7 ms", "= 5.211 ms", "τ = (R1 + R2) · C = 14.7 ms",
+      "= 11.74 ms", "1.064 mA"],
+     "4.7 ms · ln(5/1.65) = 4.7 ms · 1.1087;  14.7 ms · ln(5/2.25) = 14.7 ms · 0.7985"),
+    ("entprellung", {"Ub": "5", "R1": "10", "R2": "4.7", "tp": "5"}, ["= 959.6 nF   →  E6: 1 µF"],
+     "5 ms / (4.7 kΩ · 1.1087)"),
+    ("entprellung", {"Ub": "5", "R1": "10", "R2": "4.7", "C": "100n", "tp": "5"}, ["⚠ Kürzer als die Prellzeit"],
+     "t_ab = 521 µs < 5 ms"),
+    ("entprellung", {"Ub": "5", "R1": "10", "R2": "4.7"}, fehler("C eingeben"), "weder C noch Prellzeit"),
+    ("anti_aliasing", {"fs": "1k", "f": "900", "R": "10", "C": "100", "N": "12"},
+     ["f_s / 2 = 500 Hz", "|f − n · f_s| = 100 Hz", "|H| = 0.1741 (-15.2 dB)", "bei f_s / 2: -10.4 dB",
+      "= 72.2 dB", "⚠ Störung bleibt sichtbar"],
+     "900 − 1000 = −100 Hz;  1/√(1 + (900/159.2)²);  6.02 · 12"),
+    ("anti_aliasing", {"fs": "1k", "f": "400"}, ["kein Aliasing"], "400 Hz < 500 Hz"),
+    ("anti_aliasing", {"fs": "1k", "f": "400", "R": "1"}, fehler("R UND C"), "nur R gegeben"),
+    ("anti_aliasing", {"fs": "1k", "f": "400", "N": "12.5"}, fehler("ganzen Bit"), "halbe Bit"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -450,6 +472,23 @@ FUNKTIONEN = [
     ("JFET mit R_S = 0: I = I_DSS", lambda: vm.jfet_strom(10e-3, 2.5, 0), 10e-3),
     ("JFET mit R_S = 229.7 Ω: 4 mA", lambda: vm.jfet_strom(10e-3, 2.5, 229.71), 4e-3),
     ("JFET: mehr als I_DSS", lambda: vm.r_s_fuer_jfet(20e-3, 10e-3, 2.5), wirft(ValueError)),
+
+    # ---- RC-Schaltungen (Schaltungen) ----
+    ("Tiefpass bei fg: |H| = 0.707", lambda: rm.rc_glied("Tiefpass", 1e3, 1e-6, 159.15494)["betrag"], 0.70711),
+    ("Tiefpass bei fg: φ = −45°", lambda: rm.rc_glied("Tiefpass", 1e3, 1e-6, 159.15494)["phase"], -45.0),
+    ("Hochpass bei fg: φ = +45°", lambda: rm.rc_glied("Hochpass", 1e3, 1e-6, 159.15494)["phase"], 45.0),
+    ("Tiefpass eine Dekade über fg: ≈ −20 dB", lambda: rm.rc_glied("Tiefpass", 1e3, 1e-6, 1591.5494)["db"], -20.043),
+    ("RC-Glied mit R = 0", lambda: rm.rc_glied("Tiefpass", 0, 1e-6, 100), wirft(ValueError)),
+    ("Bode-Position: f = fg liegt in der Mitte", lambda: rm.bode_position(100, 100), 0.5),
+    ("Alias: 900 Hz bei f_s = 1 kHz -> −100 Hz", lambda: rm.alias_frequenz(900, 1000), -100),
+    ("Alias: 2050 Hz bei f_s = 1 kHz -> 50 Hz", lambda: rm.alias_frequenz(2050, 1000), 50),
+    ("Alias: f = f_s -> 0 Hz (sieht wie DC aus)", lambda: rm.alias_frequenz(1000, 1000), 0),
+    ("Entprellung: t_ab = R2 · C · ln(U_B / U_T−)", lambda: rm.entprell_zeiten(5, 10e3, 4.7e3, 1e-6)["t_ab"], 5.2107e-3),
+    ("Ohne Entprellung: 5 + 4 Prell-Berührungen = 9 Tastendrücke",
+     lambda: rm.entprellung(5, 10e3, 4.7e3, 1e-6, 5e-3, mit_rc=False)["druecke"], 9),
+    ("RC + Schmitt-Trigger: genau 1 Tastendruck", lambda: rm.entprellung(5, 10e3, 4.7e3, 1e-6, 5e-3)["sauber"], True),
+    ("C viel zu klein: Prellen kommt durch", lambda: rm.entprellung(5, 10e3, 10e3, 10e-9, 5e-3)["sauber"], False),
+    ("Anti-Aliasing: 12 Bit brauchen 72.2 dB", lambda: rm.anti_aliasing(1e3, 900, bits=12)["noetig_db"], 72.24),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

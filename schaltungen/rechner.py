@@ -11,20 +11,30 @@
 #   tvs_auswahl          passt eine TVS-Diode zu Betriebsspannung und Störimpuls?
 #   emitterfolger        Kollektorschaltung: Ua, Ströme, Ein-/Ausgangswiderstand
 #   konstantstrom        Konstantstromquelle mit Transistor + Z-Diode oder JFET + R_S dimensionieren
+#   rc_frequenzgang      Tief-/Hochpass bei einer Frequenz: |H|, dB, Phase, Ausgangsspannung
+#   entprellung          Taster mit RC + Schmitt-Trigger: Zeiten bis zur Schwelle, passendes C
+#   anti_aliasing        RC-Tiefpass vor dem ADC: Alias-Frequenz und Dämpfung
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
 # -> die Seiten benutzen diese Rechner per ID, hier wird nichts kopiert.
 #
-# Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py (ohne GUI, testbar)
+# Die Grenzfrequenz allein rechnet schon "rc_filter" (bauteile/rechner/kondensator_rechner.py).
+#
+# Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py, rc_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
+
+import math
 
 from bauteile.rechner import normreihen                                          # -> bauteile/rechner/normreihen.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
+from schaltungen import rc_mathe as rm                                           # -> schaltungen/rc_mathe.py
 from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
+from schaltungen.grafiken_rc import (AntiAliasingSchaltung, EntprellSchaltung,   # -> schaltungen/grafiken_rc.py
+                                     RcFilterSchaltung)
 from schaltungen.grafiken_transistor import (EmitterfolgerSchaltung, EmitterSchaltung,  # -> schaltungen/grafiken_transistor.py
                                              KonstantstromSchaltung, LastTreiberSchaltung)
 from schaltungen.grafiken_dioden import (BegrenzerSchaltung, EingangsschutzSchaltung,   # -> schaltungen/grafiken_dioden.py
@@ -349,6 +359,121 @@ def konstantstrom(master):
                 ("UP", "JFET |U_P|", "spannung", {"platzhalter": "JFET: z.B. 2.5"})],
         berechnen=_konstantstrom, formel="Transistor: I = (U_ref − 0.7 V) / R_E     JFET: I = I_DSS · (1 − U_GS / U_P)²")
 
+
+# =============================================================================
+# 9) RC-FREQUENZGANG
+# =============================================================================
+def _rc_frequenzgang(w):
+    if None in (w["R"], w["C"], w["f"]):
+        raise RechnerFehler("R, C und die Frequenz f eingeben")
+    e = _fehler_umwandeln(rm.rc_glied, w["art"], w["R"], w["C"], w["f"])
+    zeilen = [f"fg = 1 / (2π · R · C) = {fmt(e['fg'], 'frequenz')}   ·   f / fg = {w['f'] / e['fg']:.3g}",
+              f"Xc = 1 / (2π · f · C) = {fmt(e['x_c'], 'widerstand')}",
+              f"|H| = {e['betrag']:.4f}  =  {e['db']:.2f} dB   ·   φ = {e['phase']:+.1f}°"]
+    if w["Ue"] is not None:
+        zeilen.append(f"Ua = |H| · Ue = {fmt(e['betrag'] * w['Ue'], 'spannung')}")
+    if w["art"] == "Tiefpass":
+        zeilen.append("Weit über fg: |H| ≈ fg / f (−20 dB pro Dekade), φ → −90°")
+    else:
+        zeilen.append("Weit unter fg: |H| ≈ f / fg (+20 dB pro Dekade), φ → +90°")
+    return zeilen
+
+
+def rc_frequenzgang(master):
+    return FormelRechner(
+        master, "RC-Tief-/Hochpass: Frequenzgang", "Wie viel kommt bei einer bestimmten Frequenz am Ausgang an?",
+        felder=[("art", "Filter", "auswahl", {"werte": rm.FILTER_ARTEN}),
+                ("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
+                ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}),
+                ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 1k"}),
+                ("Ue", "Eingang Ue (opt.)", "spannung", {"platzhalter": "optional"})],
+        berechnen=_rc_frequenzgang,
+        formel="TP: |H| = 1 / √(1 + (f/fg)²)     HP: |H| = (f/fg) / √(1 + (f/fg)²)     dB = 20 · log|H|")
+
+
+# =============================================================================
+# 10) TASTER ENTPRELLEN
+# =============================================================================
+def _entprellung(w):
+    if None in (w["Ub"], w["R1"], w["R2"]):
+        raise RechnerFehler("U_B, R1 und R2 eingeben (dazu C oder die Prellzeit)")
+    if w["C"] is None and w["tp"] is None:
+        raise RechnerFehler("C eingeben – oder die Prellzeit, dann wird C berechnet")
+    u_tp, u_tm = rm.schwellen(w["Ub"])
+    zeilen = [f"Schmitt-Trigger (74HC14-typisch): U_T+ ≈ {fmt(u_tp, 'spannung')}, U_T− ≈ {fmt(u_tm, 'spannung')}"]
+    c = w["C"]
+    if c is None:
+        # die langsamere Richtung bestimmt: beide Zeiten ≥ Prellzeit
+        if w["tp"] <= 0:
+            raise RechnerFehler("Prellzeit muss grösser als 0 sein")
+        _fehler_umwandeln(rm.entprell_zeiten, w["Ub"], w["R1"], w["R2"], 1.0)
+        c_ab = w["tp"] / (w["R2"] * math.log(w["Ub"] / u_tm))
+        c_auf = w["tp"] / ((w["R1"] + w["R2"]) * math.log(w["Ub"] / (w["Ub"] - u_tp)))
+        c_min = max(c_ab, c_auf)
+        c = normreihen.naechste_werte(c_min, "E6")[2]
+        zeilen.append(f"C ≥ t_prell / (R2 · ln(U_B / U_T−)) = {fmt(c_min, 'kapazitaet')}   →  E6: {fmt(c, 'kapazitaet')}")
+    k = _fehler_umwandeln(rm.entprell_zeiten, w["Ub"], w["R1"], w["R2"], c)
+    zeilen += [f"Drücken: τ = R2 · C = {fmt(k['tau_ab'], 'zeit')},  t bis U_T− = τ · ln(U_B / U_T−) = {fmt(k['t_ab'], 'zeit')}",
+               f"Loslassen: τ = (R1 + R2) · C = {fmt(k['tau_auf'], 'zeit')},  "
+               f"t bis U_T+ = τ · ln(U_B / (U_B − U_T+)) = {fmt(k['t_auf'], 'zeit')}",
+               f"Entladestrom über den Kontakt ≤ U_B / R2 = {fmt(w['Ub'] / w['R2'], 'strom')}"]
+    if w["tp"] is not None and min(k["t_ab"], k["t_auf"]) < w["tp"]:
+        zeilen.append(f"⚠ Kürzer als die Prellzeit ({fmt(w['tp'], 'zeit')}) – mit Hysterese oft noch ok, "
+                      "sicher erst mit t ≥ Prellzeit")
+    return zeilen
+
+
+def entprellung(master):
+    return FormelRechner(
+        master, "Taster entprellen (RC + Schmitt-Trigger)", "Pull-up R1, R2 zum Kondensator, Schmitt-Trigger-Eingang",
+        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 5"}),
+                ("R1", "Pull-up R1", "widerstand", {"einheit": "kΩ"}),
+                ("R2", "R2 (zum C)", "widerstand", {"einheit": "kΩ"}),
+                ("C", "Kapazität C", "kapazitaet", {"platzhalter": "leer = berechnen"}),
+                ("tp", "Prellzeit", "zeit", {"platzhalter": "z.B. 5 (ms)"})],
+        berechnen=_entprellung, formel="t_ab = R2 · C · ln(U_B / U_T−)     t_auf = (R1 + R2) · C · ln(U_B / (U_B − U_T+))")
+
+
+# =============================================================================
+# 11) ANTI-ALIASING
+# =============================================================================
+def _anti_aliasing(w):
+    if w["fs"] is None or w["f"] is None:
+        raise RechnerFehler("Abtastrate f_s und die Signal- bzw. Störfrequenz f eingeben")
+    if (w["R"] is None) != (w["C"] is None):
+        raise RechnerFehler("Für den Filter R UND C eingeben (oder beide leer = ohne Filter)")
+    bits = None if w["N"] is None else w["N"]
+    if bits is not None and bits != int(bits):
+        raise RechnerFehler("Auflösung in ganzen Bit eingeben")
+    e = _fehler_umwandeln(rm.anti_aliasing, w["fs"], w["f"], w["R"], w["C"], bits)
+    zeilen = [f"Nyquist-Frequenz f_s / 2 = {fmt(e['nyquist'], 'frequenz')}"]
+    if e["faltet"]:
+        zeilen.append(f"f liegt darüber → Alias: |f − n · f_s| = {fmt(abs(e['f_alias']), 'frequenz')}")
+    else:
+        zeilen.append("f liegt darunter → wird richtig erfasst (kein Aliasing)")
+    if e["fg"] is not None:
+        zeilen.append(f"RC-Tiefpass: fg = {fmt(e['fg'], 'frequenz')},  bei f: |H| = {e['betrag']:.4f} "
+                      f"({e['db']:.1f} dB),  bei f_s / 2: {e['db_nyquist']:.1f} dB")
+    if bits is not None:
+        zeilen.append(f"Nötige Dämpfung, damit eine Vollausschlag-Störung unter ½ LSB bleibt: "
+                      f"6.02 · N dB = {e['noetig_db']:.1f} dB")
+        if e["faltet"]:
+            zeilen.append("✓ Störung verschwindet unter ½ LSB" if e["unsichtbar"] else
+                          "⚠ Störung bleibt sichtbar → höhere Abtastrate oder Filter höherer Ordnung")
+    return zeilen
+
+
+def anti_aliasing(master):
+    return FormelRechner(
+        master, "Anti-Aliasing (RC vor dem ADC)", "Erscheint eine Frequenz nach dem Abtasten falsch – und wie stark?",
+        felder=[("fs", "Abtastrate f_s", "frequenz", {"platzhalter": "z.B. 1k"}),
+                ("f", "Signal-/Störfrequenz f", "frequenz", {"platzhalter": "z.B. 900"}),
+                ("R", "R (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"}),
+                ("C", "C (opt.)", "kapazitaet", {"einheit": "nF", "platzhalter": "optional"}),
+                ("N", "ADC-Auflösung N (opt.)", "zahl", {"platzhalter": "z.B. 12"})],
+        berechnen=_anti_aliasing, formel="f_alias = |f − n · f_s|     f_s > 2 · f_max     Dämpfung ≥ 6.02 · N dB")
+
+
 # =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
@@ -377,4 +502,10 @@ RECHNER = {
     "schaltung_emitter": EmitterSchaltung,
     "schaltung_emitterfolger": EmitterfolgerSchaltung,
     "schaltung_konstantstrom": KonstantstromSchaltung,
+    "rc_frequenzgang": rc_frequenzgang,
+    "entprellung": entprellung,
+    "anti_aliasing": anti_aliasing,
+    "schaltung_rc_filter": RcFilterSchaltung,
+    "schaltung_entprellung": EntprellSchaltung,
+    "schaltung_anti_aliasing": AntiAliasingSchaltung,
 }

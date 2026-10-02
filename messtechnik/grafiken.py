@@ -21,6 +21,7 @@ import customtkinter as ctk
 import config                                               # -> config.py
 from bauteile.rechner.basis import WertRegler               # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel  # -> core/layout.py
+from schaltungen.rc_mathe import alias_frequenz              # -> schaltungen/rc_mathe.py (mit Vorzeichen)
 
 BLAU = "#3B82F6"
 ORANGE = "#F59E0B"
@@ -30,11 +31,6 @@ ROT = "#EF4444"
 
 def _farbe(paar):
     return paar[1] if ctk.get_appearance_mode() == "Dark" else paar[0]
-
-
-def alias_frequenz(f, fs):
-    """Frequenz, die nach dem Abtasten erscheint (mit Vorzeichen, damit die Kurve durch die Punkte geht)."""
-    return f - fs * round(f / fs)
 
 
 class AbtastGrafik(Karte):

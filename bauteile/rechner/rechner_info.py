@@ -343,7 +343,7 @@ RECHNER_INFO = {
         "titel": "RC-Filter (Tief-/Hochpass)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
         "beschreibung": "Grenzfrequenz oder fehlendes R bzw. C eines RC-Glieds.",
         "stichworte": ["Tiefpass", "Hochpass", "Grenzfrequenz", "fg", "-3 dB", "Filter"],
-        "wissensseite": "kondensator"},
+        "wissensseite": "rc_tiefpass_hochpass"},
     "bjt_schalter": {
         "titel": "Transistor als Schalter: Basiswiderstand (kurz)", "kategorie": "Schaltungen", "unterkategorie": "Schalten",
         "beschreibung": "Basiswiderstand für einen NPN-Schalter mit E24-Normwert.",
@@ -394,6 +394,36 @@ RECHNER_INFO = {
         "beschreibung": "R_E bzw. R_S für einen gewünschten Strom, mit Normwert und Arbeitsbereich.",
         "stichworte": ["Konstantstromquelle", "Stromquelle", "JFET", "R_S", "LED-Treiber"],
         "wissensseite": "konstantstromquelle"},
+    "rc_frequenzgang": {
+        "titel": "RC-Tief-/Hochpass: Frequenzgang", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Betrag, Dämpfung in dB, Phase und Ausgangsspannung bei einer bestimmten Frequenz.",
+        "stichworte": ["Tiefpass", "Hochpass", "Frequenzgang", "Phase", "Dämpfung", "dB", "Bode"],
+        "wissensseite": "rc_tiefpass_hochpass"},
+    "schaltung_rc_filter": {
+        "titel": "RC-Tiefpass und -Hochpass (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Betragsgang mit Punkt für die eingestellte Frequenz und Sinus am Ein- und Ausgang.",
+        "stichworte": ["Tiefpass", "Hochpass", "Bode", "Grenzfrequenz", "Phasenverschiebung"],
+        "wissensseite": "rc_tiefpass_hochpass"},
+    "entprellung": {
+        "titel": "Taster entprellen (RC + Schmitt-Trigger)", "kategorie": "Schaltungen", "unterkategorie": "Digital-Eingänge",
+        "beschreibung": "Zeiten bis zu den Schmitt-Trigger-Schwellen beim Drücken und Loslassen, passendes C.",
+        "stichworte": ["Entprellung", "Prellen", "Debounce", "Schmitt-Trigger", "Taster", "74HC14"],
+        "wissensseite": "tasterentprellung"},
+    "schaltung_entprellung": {
+        "titel": "Taster entprellen (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Digital-Eingänge",
+        "beschreibung": "Prellender Kontakt, Spannung am Kondensator und erkannte Tastendrücke im Zeitdiagramm.",
+        "stichworte": ["Entprellung", "Prellen", "Hysterese", "Schmitt-Trigger", "Zeitdiagramm"],
+        "wissensseite": "tasterentprellung"},
+    "anti_aliasing": {
+        "titel": "Anti-Aliasing (RC vor dem ADC)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Alias-Frequenz nach dem Abtasten, Dämpfung des RC-Tiefpasses und nötige Dämpfung für N Bit.",
+        "stichworte": ["Aliasing", "Nyquist", "Abtastrate", "ADC", "Abtasttheorem", "Tiefpass"],
+        "wissensseite": "anti_aliasing_filter"},
+    "schaltung_anti_aliasing": {
+        "titel": "Anti-Aliasing vor dem ADC (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Filter",
+        "beschreibung": "Abtastpunkte und falsch erkannte Frequenz – mit und ohne RC-Tiefpass.",
+        "stichworte": ["Aliasing", "Nyquist", "Abtastung", "ADC", "Zeitdiagramm"],
+        "wissensseite": "anti_aliasing_filter"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
