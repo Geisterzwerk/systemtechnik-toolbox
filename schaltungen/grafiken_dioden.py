@@ -424,7 +424,8 @@ class GleichrichterSchaltung(_MitDiagramm):
 
     def sk_info(self, w, e, v):
         zeilen = [f"Û = {_u(e['u_spitze'])}   ·   U_DC (Spitze) = {_u(e['u_dc'])}   ·   Brumm {fmt(e['f_brumm'], 'frequenz', 3)}",
-                  f"Welligkeit ΔU ≈ I / (f_Brumm · C) = {_u(e['ripple'])}   (Simulation: {_u(e['ripple_sim'])})   ·   "
+                  f"Welligkeit ΔU ≈ I / (f_Brumm · C) = {_u(e['ripple'])}   (Simulation: {_u(e['ripple_sim'])}, "
+                  f"Formel = sichere Seite)   ·   "
                   f"Minimum {_u(e['u_min_sim'])}",
                   f"Je Diode: Sperrspannung ≥ {_u(e['u_sperr'])}, Mittelwert {_i(e['i_diode'])}"
                   + (f", beim Nachladen ≈ {_i(e['i_laden'])}" if e["i_laden"] else "")]

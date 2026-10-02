@@ -155,6 +155,8 @@ def gleichrichter(art, u2, i_last=None, c=None, f=50.0, u_f=U_F_SI):
       Mittelpunkt  1 Diode,                  Brummfrequenz 2·f, Sperrspannung 2·Û
     Welligkeit (Näherung: Elko entlädt sich linear mit I während einer ganzen Brummperiode):
       ΔU ≈ I / (f_Brumm · C)
+      -> liegt auf der SICHEREN Seite: In Wirklichkeit wird ein Teil der Periode nachgeladen,
+         die echte Welligkeit ist 5 … 35 % kleiner (siehe gleichrichter_kurve()).
     """
     if art not in GLEICHRICHTER:
         raise ValueError(f"Unbekannte Schaltung: {art}")

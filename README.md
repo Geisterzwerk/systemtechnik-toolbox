@@ -61,9 +61,8 @@ SystemLab soll:
 | **Messtechnik** | ✅ vorhanden | Messunsicherheit, Signalkenngrössen, Multimeter, Oszilloskop, Temperatur, Brücke/DMS, Durchfluss, AD-Wandler |
 | **Programmieren** | ✅ vorhanden | 31 Themen, Beispiele in Python, C++ und C# im Vergleich |
 | **Server / Linux** | ✅ vorhanden | 35 Seiten Ubuntu Server: Konsole, Dateien, Rechte, Dienste, Netzwerk, Sicherheit, Praxis; Spickzettel mit 60 Befehlen, Kopier-Knopf pro Befehl, Markierung gefährlicher Befehle |
-| **Schaltungen** | 🟡 im Aufbau | Widerstandsnetzwerke fertig (Spannungsteiler, Stromteiler, Pull-up/-down, Potentiometer, Wheatstone-Brücke) – je mit interaktivem Schaltplan; weitere Kategorien folgen |
+| **Schaltungen** | 🟡 im Aufbau | Widerstandsnetzwerke (5 Seiten) und Dioden & Schutz (7 Seiten: Begrenzung, Eingangsschutz, Verpolschutz, Freilauf, Gleichrichter, Z-Stabilisierung, TVS) – je mit interaktivem Schaltplan; weitere Kategorien folgen |
 | **Rechner** | ✅ vorhanden | alle 65 Rechner an einem Ort: Suche, nach Thema oder A–Z, Link zur Wissensseite (`gui/rechner_gui.py`, Metadaten in `bauteile/rechner/rechner_info.py`) |
-| **Messwerte** | 🚧 Platzhalter | **offen:** mit Messtechnik zusammenlegen oder streichen |
 
 Alle Bauteil-, Messtechnik-, Programmier- und Server-Seiten sind reine Daten (`THEMA = {...}`) und werden von einer gemeinsamen Engine dargestellt. Neue Dateien erscheinen automatisch in Navigation und Suche.
 
@@ -944,7 +943,8 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 5 | Prüfskript für alle Rechner mit bekannten Beispielwerten und Grenzfällen (`python pruefen_rechner.py`, Fälle in `pruefung/rechner_faelle.py`; zentrale Eingabeprüfung in `basis.formel_auswerten()`; dabei gefundene Fehler behoben, siehe unten) | ✅ erledigt |
 | 6 | Rechner-Tab mit `RECHNER_INFO` (Formel-Tab ersetzt; Kategorien Grundlagen/Bauteile/Schaltungen/Messtechnik/Digitaltechnik mit Unterkategorien, Suche, A–Z, Knopf zur Wissensseite + „auch auf“; Validierung in `pruefen_rechner.py`) | ✅ erledigt |
 | 7a | Schaltungen-Tab: gemeinsamer Wiki-Baustein (`bauteile/engine/wiki_bereich.py`, ersetzt 3 Kopien), Schaltplan-Zeichner (`bauteile/grafiken/schaltplan.py`, Raster, Spannung blau / Strom rot / Messpunkte orange), `SchaltungsKarte` für interaktive Pläne, Kategorie Widerstandsnetzwerke mit 5 Seiten, Pflichtabschnitte werden geprüft | ✅ erledigt |
-| 7b+ | Weitere Schaltungen (Dioden/Schutz, Transistor/MOSFET, RC/RL, OPV, Netzteile), dann Digitaltechnik | offen |
+| 7b | Dioden & Schutz: 7 Seiten mit interaktiven Schaltplänen (Zeitdiagramm bei Begrenzer, Gleichrichter, TVS), Rechnung in `schaltungen/dioden_mathe.py` (auch vom Gleichrichter-Rechner genutzt), neue Rechner Eingangsschutz, Verpolschutz-Vergleich, TVS prüfen; Messwerte-Tab entfernt | ✅ erledigt |
+| 7c+ | Weitere Schaltungen (Transistor/MOSFET, RC/RL, OPV, Netzteile), dann Digitaltechnik | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

@@ -25,7 +25,7 @@
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
-from schaltungen import netzwerk_mathe as nm
+from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm
 
 
 def fehler(text):
@@ -313,6 +313,26 @@ FAELLE = [
      ["Ua = 4.878 V", "ohne Last 5 V", "Fehler -122 mV", "ca. 67 %", "R_L / R_P = 10"],
      "R_u = 5k || 100k = 4.762 kΩ;  Ua = 10 V · 4.762 / (5 + 4.762);  grösster Fehler bei ≈ 2/3"),
     ("poti_last", {"Ue": "10", "Rp": "10", "RL": "10"}, ["R_L < 10 · R_P"], "Last so gross wie das Poti"),
+    ("eingangsschutz", {"Umax": "24", "Udd": "3.3", "Iinj": "1"},
+     ["R ≥ (U_max − U_DD − U_F) / I_inj = 20 kΩ", "E12: 22 kΩ", "18.18 mW"],
+     "(24 − 3.3 − 0.7) V / 1 mA = 20 kΩ -> 22 kΩ;  P = (20 V)² / 22 kΩ"),
+    ("eingangsschutz", {"Umax": "24", "Umin": "-24", "Udd": "3.3", "Iinj": "1"},
+     ["= 23.3 kΩ", "E12: 27 kΩ", "20.11 mW"],
+     "negativ: (24 − 0.7) V / 1 mA = 23.3 kΩ ist grösser -> 27 kΩ;  P = (23.3 V)² / 27 kΩ"),
+    ("eingangsschutz", {"Umax": "3.3", "Udd": "3.3"}, ["leiten nie"], "bleibt im erlaubten Bereich"),
+    ("verpolschutz", {"Ub": "12", "I": "2"},
+     ["Si-Diode: ΔU = 700 mV,  P = 1.318 W", "Schottky: ΔU = 450 mV,  P = 866.3 mW",
+      "P-MOSFET: ΔU = 39.87 mV,  P = 79.47 mW"],
+     "R_L = 6 Ω;  Si: (12 − 0.7)/6 = 1.883 A · 0.7 V;  Schottky 1.925 A · 0.45 V;  MOS: 12/6.02 Ω = 1.993 A, I² · 20 mΩ"),
+    ("verpolschutz", {"Ub": "24", "I": "1"}, ["Z-Diode"], "24 V > U_GS,max 20 V"),
+    ("tvs_auswahl", {"Ub": "24", "Uwm": "26", "Uc": "42.1", "Ipp": "14.3", "Up": "500"},
+     ["U_WM nur 8 % über U_B", "Pulsstrom ≈ (U_peak − U_C) / R_q = 228.9 A", "9.639 kW", "grösser als I_PP"],
+     "SMBJ26A: (500 − 42.1) V / 2 Ω = 229 A > 14.3 A;  P = 42.1 V · 229 A"),
+    ("tvs_auswahl", {"Ub": "24", "Uwm": "28", "Uc": "45.4", "Ipp": "13.2", "Up": "60", "Umax": "50"},
+     ["✅ U_WM 28 V ≥ 1.1 · U_B", "= 7.3 A", "Reserve 1.8×", "✅ Klemmspannung"],
+     "(60 − 45.4) V / 2 Ω = 7.3 A < 13.2 A;  45.4 V ≤ 50 V"),
+    ("tvs_auswahl", {"Ub": "24", "Uwm": "26", "Uc": "20", "Ipp": "14", "Up": "500"}, fehler("Datenblattwerte"),
+     "U_C kann nicht unter U_WM liegen"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -377,6 +397,30 @@ FUNKTIONEN = [
     ("Poti Stellung 120 %", lambda: nm.poti_teiler(10, 10e3, 1.2), wirft(ValueError)),
     ("Brücke: U_d", lambda: nm.bruecke(10, 1e3, 1e3, 1e3, 1.01e3)["u_d"], -0.0248756),
     ("Brücke: Abgleichwert R4", lambda: nm.bruecke(10, 1e3, 2e3, 3e3, 1e3)["r4_abgleich"], 6e3),
+
+    # ---- Dioden & Schutz (Schaltungen) ----
+    ("Begrenzer zweiseitig: Pegel", lambda: dm.begrenzer("zweiseitig", 5, 1e3)["oben"], 0.7),
+    ("Begrenzer zweiseitig: Diodenstrom", lambda: dm.begrenzer("zweiseitig", 5, 1e3)["i_spitze"], 4.3e-3),
+    ("Begrenzer Z-Dioden 3.3 V: Pegel", lambda: dm.begrenzer("z", 5, 1e3, u_z=3.3)["oben"], 4.0),
+    ("Begrenzer einseitig: unten keine Grenze", lambda: dm.begrenzer("einseitig", 5, 1e3)["kurve_aus"][180][1], -5.0),
+    ("Eingangsschutz 12 V an 3.3-V-Pin: U_Pin", lambda: dm.eingangsschutz(12, 10e3, 3.3)["u_pin"], 4.0),
+    ("Eingangsschutz 12 V: Injektionsstrom", lambda: dm.eingangsschutz(12, 10e3, 3.3)["i_inj"], 0.8e-3),
+    ("Eingangsschutz −5 V: Strom aus GND", lambda: dm.eingangsschutz(-5, 10e3, 3.3)["i_inj"], -0.43e-3),
+    ("Verpolschutz Si 12 V / 1 A: U_Last", lambda: dm.verpolschutz("Si-Diode", 12, 1)["u_last"], 11.3),
+    ("Verpolschutz P-MOSFET verpolt: sperrt", lambda: dm.verpolschutz("P-MOSFET", 12, 1, True)["gesperrt"], True),
+    ("Ohne Schutz verpolt: zerstört", lambda: dm.verpolschutz("ohne Schutz", 12, 1, True)["zerstoert"], True),
+    ("Gleichrichter Brücke 12 V: U_DC", lambda: dm.gleichrichter("Brücke", 12)["u_dc"], 12 * 2 ** 0.5 - 1.4),
+    ("Gleichrichter Einweg: Sperrspannung 2 · Û", lambda: dm.gleichrichter("Einweg", 12)["u_sperr"], 24 * 2 ** 0.5),
+    ("Gleichrichter Mittelpunkt: 100 Hz", lambda: dm.gleichrichter("Mittelpunkt", 12)["f_brumm"], 100.0),
+    ("Gleichrichter: Simulation 60 … 100 % der Formel (Formel = sichere Seite)",
+     lambda: 0.6 < dm.gleichrichter_kurve("Brücke", 12, 0.5, 2.2e-3)[2] / (0.5 / (100 * 2.2e-3)) <= 1.0, True),
+    ("Z-Stabi mit Last: Ua", lambda: dm.z_arbeitspunkt(12, 220, 5.1, 1e3)["u_a"], 5.2278),
+    ("Z-Stabi mit Last: I_Z", lambda: dm.z_arbeitspunkt(12, 220, 5.1, 1e3)["i_z"], 25.56e-3),
+    ("Z-Stabi Ue zu klein: Teiler", lambda: dm.z_arbeitspunkt(5, 220, 5.1, 1e3)["u_a"], 5 * 1000 / 1220),
+    ("TVS 500 V / 2 Ω, U_WM 26 V: Klemmspannung", lambda: dm.tvs(500, 2, 26, 0.5)["u_klemm"], 123.09),
+    ("TVS unidirektional, −500 V: nur einige Volt", lambda: dm.tvs(-500, 2, 26, 0.5)["u_klemm"], -5.644),
+    ("TVS bidirektional, −500 V: symmetrisch", lambda: dm.tvs(-500, 2, 26, 0.5, True)["u_klemm"], -123.09),
+    ("TVS: U_B über U_WM erkannt", lambda: dm.tvs(500, 2, 26, 0.5, u_b=28)["betrieb_ok"], False),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

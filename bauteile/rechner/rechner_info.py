@@ -283,6 +283,57 @@ RECHNER_INFO = {
         "beschreibung": "Vier Widerstände verstellen und die Diagonalspannung beobachten.",
         "stichworte": ["Wheatstone", "Brücke", "Abgleich", "Diagonalspannung", "Schaltplan"],
         "wissensseite": "wheatstone_bruecke"},
+    "schaltung_begrenzer": {
+        "titel": "Diodenbegrenzung (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Sinus über Vorwiderstand an Dioden: einseitig, zweiseitig oder mit Z-Dioden begrenzt.",
+        "stichworte": ["Begrenzer", "Clipper", "Diodenbegrenzung", "Z-Diode", "Zeitdiagramm"],
+        "wissensseite": "diodenbegrenzung"},
+    "schaltung_eingangsschutz": {
+        "titel": "Eingangsschutz µC (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Überspannung am Pin: Klemmdioden, Injektionsstrom und Rückspeisung in U_DD.",
+        "stichworte": ["Eingangsschutz", "Klemmdiode", "ESD", "Injektionsstrom", "Mikrocontroller"],
+        "wissensseite": "eingangsschutz"},
+    "eingangsschutz": {
+        "titel": "Eingangsschutz: Serienwiderstand", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Mindestwert des Serienwiderstands aus Überspannung und erlaubtem Injektionsstrom.",
+        "stichworte": ["Eingangsschutz", "Serienwiderstand", "Injektionsstrom", "Klemmdiode", "BAT54S"],
+        "wissensseite": "eingangsschutz"},
+    "schaltung_verpol": {
+        "titel": "Verpolschutz (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Ohne Schutz, Si-Diode, Schottky oder P-MOSFET – Batterie richtig oder verpolt.",
+        "stichworte": ["Verpolschutz", "P-MOSFET", "Schottky", "Batterie", "Body-Diode"],
+        "wissensseite": "verpolschutz"},
+    "verpolschutz": {
+        "titel": "Verpolschutz im Vergleich", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Spannungsfall, Verlustleistung und Wirkungsgrad von Diode, Schottky und P-MOSFET.",
+        "stichworte": ["Verpolschutz", "Verlustleistung", "P-MOSFET", "Schottky", "RDS(on)"],
+        "wissensseite": "verpolschutz"},
+    "schaltung_freilauf": {
+        "titel": "Freilaufdiode am Relais (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Transistor schaltet eine Spule ab: ohne Diode, mit Freilaufdiode, mit Diode + Z-Diode.",
+        "stichworte": ["Freilaufdiode", "Relais", "Abschaltspannung", "Z-Diode", "Spule"],
+        "wissensseite": "freilaufdiode"},
+    "schaltung_gleichrichter": {
+        "titel": "Gleichrichter mit Ladeelko (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Einweg, Brücke, Mittelpunkt: Spannung am Elko über der Zeit, Welligkeit, Sperrspannung.",
+        "stichworte": ["Gleichrichter", "Brückengleichrichter", "Graetz", "Mittelpunkt", "Ladeelko", "Brummspannung"],
+        "wissensseite": "gleichrichter_ladeelko"},
+    "schaltung_zstabi": {
+        "titel": "Z-Dioden-Stabilisierung (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Eingangsspannung und Last verändern – wann reisst die Stabilisierung ab?",
+        "stichworte": ["Z-Diode", "Zener", "Stabilisierung", "Vorwiderstand", "Schaltplan"],
+        "wissensseite": "z_stabilisierung"},
+    "schaltung_tvs": {
+        "titel": "TVS-Diode gegen Spannungsspitzen (interaktiv)", "kategorie": "Schaltungen",
+        "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Stossspannung 1.2/50 µs mit und ohne TVS, Klemmspannung, Pulsstrom, Pulsleistung.",
+        "stichworte": ["TVS", "Suppressordiode", "Surge", "Überspannung", "Transient", "ESD"],
+        "wissensseite": "tvs_schutz"},
+    "tvs_auswahl": {
+        "titel": "TVS-Diode prüfen", "kategorie": "Schaltungen", "unterkategorie": "Dioden & Schutz",
+        "beschreibung": "Passen U_WM, U_C und I_PP zu Betriebsspannung, Störspitze und Gerät?",
+        "stichworte": ["TVS", "Suppressordiode", "Stand-off", "Klemmspannung", "IPP"],
+        "wissensseite": "tvs_schutz"},
     "led_vorwiderstand": {
         "titel": "LED-Vorwiderstand", "kategorie": "Schaltungen", "unterkategorie": "Vorwiderstände",
         "beschreibung": "Vorwiderstand für eine oder mehrere LEDs in Reihe, mit Normwert.",
@@ -312,7 +363,7 @@ RECHNER_INFO = {
         "titel": "Freilaufdiode & Abschalten", "kategorie": "Schaltungen", "unterkategorie": "Schalten",
         "beschreibung": "Nur Diode oder Diode + Z-Diode: Spannung am Transistor gegen Abfallzeit.",
         "stichworte": ["Freilaufdiode", "Z-Diode", "Abschalten", "Induktive Last", "Abfallzeit"],
-        "wissensseite": "relais"},
+        "wissensseite": "freilaufdiode"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
@@ -323,7 +374,7 @@ RECHNER_INFO = {
         "titel": "Gleichrichter mit Ladeelko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
         "beschreibung": "Gleichspannung, Welligkeit und Sperrspannung für Einweg, Brücke und Mittelpunkt.",
         "stichworte": ["Brücke", "Einweg", "Mittelpunkt", "Elko", "Brummspannung", "Graetz"],
-        "wissensseite": "diode"},
+        "wissensseite": "gleichrichter_ladeelko"},
     "netzteil": {
         "titel": "Trafo + Gleichrichter + Elko", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
         "beschreibung": "Was kommt nach Trafo und Brückengleichrichter heraus? Ladeelko dimensionieren.",
@@ -333,7 +384,7 @@ RECHNER_INFO = {
         "titel": "Z-Dioden-Stabilisierung", "kategorie": "Schaltungen", "unterkategorie": "Netzteile",
         "beschreibung": "Vorwiderstand und Belastung der Z-Diode im ungünstigsten Fall.",
         "stichworte": ["Z-Diode", "Zener", "Stabilisierung", "Vorwiderstand", "Glättungsfaktor"],
-        "wissensseite": "z_diode"},
+        "wissensseite": "z_stabilisierung"},
     # =========================================================================
     # MESSTECHNIK
     # =========================================================================

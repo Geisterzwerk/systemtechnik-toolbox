@@ -6,18 +6,25 @@
 #   stromteiler          Zweigströme beliebig vieler paralleler Widerstände
 #   pull_widerstand      Pull-up/-down dimensionieren: R_min (Strom), R_max (Leckstrom, Flanke)
 #   poti_last            Fehler eines belasteten Potentiometers
+#   eingangsschutz       Serienwiderstand vor einem IC-Eingang (Injektionsstrom begrenzen)
+#   verpolschutz         Si-Diode, Schottky und P-MOSFET im Vergleich
+#   tvs_auswahl          passt eine TVS-Diode zu Betriebsspannung und Störimpuls?
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
 # -> die Seiten benutzen diese Rechner per ID, hier wird nichts kopiert.
 #
-# Rechnung: schaltungen/netzwerk_mathe.py (ohne GUI, testbar)
+# Rechnung: schaltungen/netzwerk_mathe.py und dioden_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
 
 from bauteile.rechner import normreihen                                          # -> bauteile/rechner/normreihen.py
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
+from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
+from schaltungen.grafiken_dioden import (BegrenzerSchaltung, EingangsschutzSchaltung,   # -> schaltungen/grafiken_dioden.py
+                                         FreilaufSchaltung, GleichrichterSchaltung, TvsSchaltung,
+                                         VerpolSchaltung, ZStabiSchaltung)
 from schaltungen.grafiken import (BrueckeSchaltung, PotiSchaltung,               # -> schaltungen/grafiken.py
                                   PullSchaltung, SpannungsteilerSchaltung, StromteilerSchaltung)
 
@@ -138,6 +145,126 @@ def poti_last(master):
 
 
 # =============================================================================
+# 4) EINGANGSSCHUTZ
+# =============================================================================
+def _eingangsschutz(w):
+    u_max, u_dd = w["Umax"], w["Udd"]
+    if None in (u_max, u_dd):
+        raise RechnerFehler("Grösste Spannung am Eingang und U_DD eingeben")
+    i_inj = 1e-3 if w["Iinj"] is None else w["Iinj"]
+    u_f = dm.U_F_SI if w["Uf"] is None else w["Uf"]
+    if i_inj <= 0 or u_dd <= 0:
+        raise RechnerFehler("U_DD und Injektionsstrom müssen grösser als 0 sein")
+    u_min = w["Umin"]
+    grenzen, zeilen = [], []
+    if u_max > u_dd + u_f:
+        r_pos = (u_max - u_dd - u_f) / i_inj
+        grenzen.append(r_pos)
+        zeilen.append(f"Positiv: R ≥ (U_max − U_DD − U_F) / I_inj = {fmt(r_pos, 'widerstand')}")
+    if u_min is not None and u_min < -u_f:
+        r_neg = (-u_min - u_f) / i_inj
+        grenzen.append(r_neg)
+        zeilen.append(f"Negativ: R ≥ (|U_min| − U_F) / I_inj = {fmt(r_neg, 'widerstand')}")
+    if not grenzen:
+        return ["Die Spannung bleibt zwischen −U_F und U_DD + U_F – die Schutzdioden leiten nie.",
+                "Ein Serienwiderstand (z.B. 1 kΩ) schützt trotzdem gegen ESD und Verdrahtungsfehler."]
+    r_min = max(grenzen)
+    r = normreihen.naechste_werte(r_min, "E12")[1]                   # nächst GRÖSSERER Normwert
+    zeilen.append(f"→ R ≥ {fmt(r_min, 'widerstand')}   E12: {fmt(r, 'widerstand')}")
+    u_r = max(u_max - u_dd - u_f, (-u_min - u_f) if u_min is not None else 0.0)
+    zeilen.append(f"Dauerleistung im Widerstand: {fmt(u_r * u_r / r, 'leistung')}  (bei anhaltender Überspannung)")
+    zeilen.append("Für ADC-Eingänge: grosses R verfälscht die Messung → Kondensator direkt am Pin "
+                  "oder externe Schottky-/TVS-Dioden und kleineres R")
+    return zeilen
+
+
+def eingangsschutz(master):
+    return FormelRechner(
+        master, "Eingangsschutz: Serienwiderstand", "Wie gross muss R sein, damit die Klemmdioden überleben?",
+        felder=[("Umax", "Grösste Spannung am Eingang", "spannung", {"platzhalter": "z.B. 24"}),
+                ("Umin", "Kleinste Spannung (opt.)", "spannung", {"platzhalter": "z.B. −24"}),
+                ("Udd", "Versorgung U_DD", "spannung", {"platzhalter": "z.B. 3.3"}),
+                ("Iinj", "Injektionsstrom max.", "strom", {"einheit": "mA", "platzhalter": "Datenblatt, leer = 1"}),
+                ("Uf", "U_F der Dioden (opt.)", "spannung", {"platzhalter": "0.7 (Schottky 0.3)"})],
+        berechnen=_eingangsschutz, formel="R ≥ (U_max − U_DD − U_F) / I_inj")
+
+
+# =============================================================================
+# 5) VERPOLSCHUTZ IM VERGLEICH
+# =============================================================================
+def _verpolschutz(w):
+    if w["Ub"] is None or w["I"] is None:
+        raise RechnerFehler("Batteriespannung und Laststrom eingeben")
+    r_ds = 0.02 if w["Rds"] is None else w["Rds"]
+    zeilen = []
+    for art in dm.VERPOL_ARTEN[1:]:
+        e = _fehler_umwandeln(dm.verpolschutz, art, w["Ub"], w["I"], False, r_ds)
+        zeilen.append(f"{art}: ΔU = {fmt(e['u_element'], 'spannung')},  P = {fmt(e['p_element'], 'leistung')},  "
+                      f"Last bekommt {fmt(e['u_last'], 'spannung')} ({e['wirkungsgrad'] * 100:.1f} %)")
+        if e["gate_warnung"]:
+            zeilen.append("⚠ " + e["gate_warnung"])
+    zeilen.append("Verpolt sperren alle drei. Sperrspannung des Bauteils ≥ U_B wählen (mit Reserve).")
+    return zeilen
+
+
+def verpolschutz(master):
+    return FormelRechner(
+        master, "Verpolschutz im Vergleich", "Si-Diode, Schottky oder P-MOSFET in der Plusleitung?",
+        felder=[("Ub", "Batterie U_B", "spannung", {"platzhalter": "z.B. 12"}),
+                ("I", "Laststrom (Nenn)", "strom", {"einheit": "A"}),
+                ("Rds", "R_DS(on) P-MOSFET", "widerstand", {"einheit": "mΩ", "platzhalter": "leer = 20"})],
+        berechnen=_verpolschutz, formel="Diode: P = U_F · I     P-MOSFET: P = I² · R_DS(on)")
+
+
+# =============================================================================
+# 6) TVS-DIODE PRÜFEN
+# =============================================================================
+def _tvs(w):
+    ub, uwm, uc, ipp, up = w["Ub"], w["Uwm"], w["Uc"], w["Ipp"], w["Up"]
+    if None in (ub, uwm, uc, ipp, up):
+        raise RechnerFehler("U_B, U_WM, U_C und I_PP (Datenblatt) sowie die Störspitze eingeben")
+    rq = 2.0 if w["Rq"] is None else w["Rq"]
+    if min(ub, uwm, uc, ipp, rq) <= 0:
+        raise RechnerFehler("Alle Werte müssen grösser als 0 sein")
+    if uc <= uwm:
+        raise RechnerFehler("U_C (Klemmspannung) liegt immer über U_WM – Datenblattwerte prüfen")
+    zeilen = []
+    if uwm < ub:
+        zeilen.append(f"❌ U_WM {fmt(uwm, 'spannung')} < U_B {fmt(ub, 'spannung')}: Die TVS leitet schon im Betrieb")
+    elif uwm < 1.1 * ub:
+        zeilen.append(f"⚠ U_WM nur {(uwm / ub - 1) * 100:.0f} % über U_B – Toleranz der Versorgung (+10 %) beachten")
+    else:
+        zeilen.append(f"✅ U_WM {fmt(uwm, 'spannung')} ≥ 1.1 · U_B – sperrt im Betrieb sicher")
+    i_puls = max(0.0, (up - uc) / rq)
+    zeilen.append(f"Pulsstrom ≈ (U_peak − U_C) / R_q = {fmt(i_puls, 'strom')}   (Datenblatt I_PP = {fmt(ipp, 'strom')})")
+    zeilen.append(f"Spitzenleistung ≈ U_C · I = {fmt(uc * i_puls, 'leistung')}")
+    if i_puls == 0:
+        zeilen.append("Die Störspitze liegt unter U_C – die TVS wird kaum belastet")
+    elif i_puls > ipp:
+        zeilen.append("❌ Pulsstrom grösser als I_PP → grössere TVS, Vorwiderstand oder Vorstufe (Varistor)")
+    else:
+        zeilen.append(f"✅ Pulsstrom unter I_PP (Reserve {ipp / i_puls:.1f}×)")
+    if w["Umax"] is not None:
+        passt = uc <= w["Umax"]
+        zeilen.append(("✅" if passt else "❌") + f" Klemmspannung U_C {fmt(uc, 'spannung')} "
+                      + ("≤" if passt else ">") + f" U_max des Geräts {fmt(w['Umax'], 'spannung')}")
+    zeilen.append("I_PP gilt für eine bestimmte Pulsform (meist 10/1000 µs) – mit der erwarteten Störung vergleichen")
+    return zeilen
+
+
+def tvs_auswahl(master):
+    return FormelRechner(
+        master, "TVS-Diode prüfen", "Passt die TVS zu Betriebsspannung, Störspitze und Gerät?",
+        felder=[("Ub", "Betriebsspannung U_B", "spannung", {"platzhalter": "z.B. 24"}),
+                ("Uwm", "TVS U_WM (Stand-off)", "spannung", {"platzhalter": "Datenblatt, z.B. 26"}),
+                ("Uc", "TVS U_C bei I_PP", "spannung", {"platzhalter": "Datenblatt, z.B. 42.1"}),
+                ("Ipp", "TVS I_PP", "strom", {"einheit": "A", "platzhalter": "Datenblatt, z.B. 14.3"}),
+                ("Up", "Störspitze U_peak", "spannung", {"platzhalter": "z.B. 500"}),
+                ("Rq", "Quellwiderstand R_q", "widerstand", {"platzhalter": "leer = 2 Ω (Norm)"}),
+                ("Umax", "U_max des Geräts (opt.)", "spannung", {"platzhalter": "optional"})],
+        berechnen=_tvs, formel="U_WM ≥ U_B     I ≈ (U_peak − U_C) / R_q ≤ I_PP     U_C ≤ U_max")
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -149,4 +276,14 @@ RECHNER = {
     "schaltung_pull": PullSchaltung,
     "schaltung_poti": PotiSchaltung,
     "schaltung_bruecke": BrueckeSchaltung,
+    "eingangsschutz": eingangsschutz,
+    "verpolschutz": verpolschutz,
+    "tvs_auswahl": tvs_auswahl,
+    "schaltung_begrenzer": BegrenzerSchaltung,
+    "schaltung_eingangsschutz": EingangsschutzSchaltung,
+    "schaltung_verpol": VerpolSchaltung,
+    "schaltung_freilauf": FreilaufSchaltung,
+    "schaltung_gleichrichter": GleichrichterSchaltung,
+    "schaltung_zstabi": ZStabiSchaltung,
+    "schaltung_tvs": TvsSchaltung,
 }

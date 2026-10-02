@@ -7,7 +7,7 @@
 #   main.py                  <- Hauptfenster + Umschalten der Bereiche
 #   config.py                <- Farben, Pfade, Schriften, Layout-Werte
 #   core/layout.py           <- ALLES zum Thema "mit der Fenstergrösse mitgehen"
-#   core/widgets.py          <- Tooltip, SeitenBereich, FormatText, ...
+#   core/widgets.py          <- Tooltip, FormatText, info_box, ...
 #   core/bilder.py           <- Bilder finden und laden
 #   gui/                     <- ein Bereich pro Datei (Startseite, Bauteile, ...)
 #   bauteile/                <- die einzelnen Bauteil-Seiten
@@ -34,7 +34,7 @@ from datetime import datetime
 import customtkinter as ctk
 
 import config                                   # -> config.py
-from gui import (bauteile_gui, messwerte_gui, messtechnik_gui, programmieren_gui,  # -> Ordner gui/
+from gui import (bauteile_gui, messtechnik_gui, programmieren_gui,                 # -> Ordner gui/
                  rechner_gui, schaltungen_gui, server_gui, startseite_gui)
 
 ctk.set_appearance_mode("Dark")        # "Dark", "Light" oder "System"
@@ -45,7 +45,6 @@ BEREICHE = [
     ("Bauteile",      bauteile_gui,      "🔧", "Widerstand, Kondensator, Diode, Spule, ..."),
     ("Schaltungen",   schaltungen_gui,   "🔌", "Grundschaltungen und Filter"),
     ("Rechner",       rechner_gui,       "🧮", "Alle Rechner an einem Ort – Suche, nach Thema oder A–Z"),
-    ("Messwerte",     messwerte_gui,     "📊", "Messwerte erfassen und auswerten"),
     ("Programmieren", programmieren_gui, "💻", "Python, C++ und C# nachschlagen - mit Suche"),
     ("Messtechnik",   messtechnik_gui,   "📏", "Messgeräte, Messfehler, Sensoren, AD-Wandler"),
     ("Server / Linux", server_gui,       "🐧", "Ubuntu Server per Konsole: Befehle, sudo, Dienste, Netzwerk, Sicherheit"),
