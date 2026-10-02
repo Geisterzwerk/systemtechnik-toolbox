@@ -15,7 +15,7 @@
 
 import math
 
-from bauteile.rechner.basis import fmt                                 # -> bauteile/rechner/basis.py
+from bauteile.einheiten import formatieren as fmt                       # -> bauteile/einheiten.py
 
 STUFEN = (1.0, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0)     # fein genug, dass die Kurve ≥ 80 % füllt
 

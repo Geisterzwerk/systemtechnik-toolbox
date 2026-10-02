@@ -95,7 +95,7 @@ class AbtastGrafik(Karte):
         text = _farbe(config.FARBEN["text_leise"])
         linie = _farbe(config.FARBEN["rahmen"])
         schrift = (config.SCHRIFT, max(8, int(h / 24)))
-        links, rechts, oben, unten = 0.04 * w, 0.98 * w, 0.10 * h, 0.86 * h
+        links, rechts, oben, unten = 0.07 * w, 0.98 * w, 0.10 * h, 0.86 * h
         dauer = 1.0                                             # 1 Sekunde anzeigen
 
         def x(t):
@@ -107,7 +107,11 @@ class AbtastGrafik(Karte):
         c.create_line(links, y(0), rechts, y(0), fill=linie)
         for k in range(1, 10):
             c.create_line(x(k / 10), oben, x(k / 10), unten, fill=linie, dash=(2, 4))
-        c.create_text(rechts, unten + 0.07 * h, anchor="e", text="Zeit: 1 s", fill=text, font=schrift)
+        for k in range(0, 11, 2):                               # Zeitachse in s (0 … 1 s)
+            c.create_text(x(k / 10), unten + 0.07 * h, text="0" if k == 0 else f"{k / 10:g} s", fill=text, font=schrift,
+                          anchor="w" if k == 0 else "e" if k == 10 else "center")
+        for wert, beschriftung in ((1, "+û"), (0, "0"), (-1, "−û")):   # Amplitude (Scheitelwert û)
+            c.create_text(links - 4, y(wert), text=beschriftung, anchor="e", fill=text, font=schrift)
 
         # echtes Signal (fein aufgelöst)
         punkte = []

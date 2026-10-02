@@ -24,6 +24,7 @@ import customtkinter as ctk
 
 import config                                                    # -> config.py
 from bauteile.einheiten import formatieren as fmt                # -> bauteile/einheiten.py
+from bauteile.grafiken.skala import schoene_grenze                # -> bauteile/grafiken/skala.py
 from bauteile.rechner.basis import WertRegler                    # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel       # -> core/layout.py
 
@@ -189,7 +190,8 @@ class DiodenKennlinie(Karte):
 
         # Achsenbereich: bis etwas über die Schwellspannung bzw. Ub
         u_max = max(d["u"] * 1.5, min(ub, d["u"] * 3), 1.0)
-        i_max = max(ub / r, i_ap * 1.3, 0.005) * 1.1
+        # Strom-Achse am Signal ausrichten (auch µA-Ströme füllen das Bild) -> bauteile/grafiken/skala.py
+        i_max = schoene_grenze(max(ub / r, i_ap * 1.3, 1e-7) * 1.1)
 
         def x(u):
             return links + (rechts - links) * u / u_max
@@ -234,7 +236,7 @@ class DiodenKennlinie(Karte):
             c.create_line(px, py, px, unten, fill=GRUEN, dash=(2, 3))
             c.create_line(links, py, px, py, fill=GRUEN, dash=(2, 3))
             c.create_oval(px - 7, py - 7, px + 7, py + 7, fill=GRUEN, outline="white", width=2)
-            c.create_text(px + 10, py - 12, anchor="w", text="Arbeitspunkt", fill=GRUEN, font=schrift)
+            c.create_text(px + 10, py + 14, anchor="w", text="Arbeitspunkt", fill=GRUEN, font=schrift)
 
     def _dk_zeichnen_z(self, c, w, h, ub, r, typ):
         """
@@ -255,7 +257,7 @@ class DiodenKennlinie(Karte):
         # Wertebereich: links bis über Uz bzw. Ue hinaus, rechts bis 1.2 V
         u_min = -max(uz * 1.3, ub * 1.08, 2.0)
         u_max = 1.2
-        i_unten = -max(ub / r, 0.005) * 1.15            # Sperrbereich (negativ)
+        i_unten = -schoene_grenze(max(ub / r, 1e-7) * 1.15)   # Sperrbereich (negativ), am Signal ausgerichtet
         i_oben = -i_unten * 0.55                        # Durchlassbereich (kleiner dargestellt)
 
         def x(u):
@@ -269,7 +271,7 @@ class DiodenKennlinie(Karte):
         k = -schritt
         while k > u_min:
             c.create_line(x(k), oben, x(k), unten, fill=linie, dash=(2, 4))
-            c.create_text(x(k), y(0) + 0.045 * h, text=f"{k:g} V", fill=text, font=klein)
+            c.create_text(x(k), y(0) + 0.045 * h, text=f"{k:g} V".replace("-", "−"), fill=text, font=klein)
             k -= schritt
         for anteil in (0.5, 1.0):
             iy = i_unten * anteil
@@ -283,7 +285,7 @@ class DiodenKennlinie(Karte):
         c.create_text(x(0) + 6, oben, anchor="w", text="I_AK", fill=text, font=schrift)
 
         # ---- Bereichsbeschriftungen ----
-        c.create_text(x(0.6), oben + 0.03 * h, text="Durchlass", fill=text, font=klein)
+        c.create_text(x(0.6), oben + 0.12 * h, text="Durchlass", fill=text, font=klein)
         c.create_text(x(-uz / 2), y(0) - 0.05 * h, text="Sperrbereich (fast kein Strom)", fill=text, font=klein)
         c.create_line(x(-uz), oben, x(-uz), unten, fill=d["farbe"], dash=(4, 3))
         c.create_text(x(-uz) - 4, oben + 0.03 * h, anchor="e", fill=d["farbe"], font=schrift,
@@ -326,7 +328,8 @@ class DiodenKennlinie(Karte):
         c.create_line(px, py, px, y(0), fill=GRUEN, dash=(2, 3))
         c.create_line(x(0), py, px, py, fill=GRUEN, dash=(2, 3))
         c.create_oval(px - 7, py - 7, px + 7, py + 7, fill=GRUEN, outline="white", width=2)
-        c.create_text(px + 10, py + 14, anchor="w", text="Arbeitspunkt", fill=GRUEN, font=schrift)
+        # Text unter die Beschriftungen der U-Achse schieben, wenn der Punkt nah an der Achse liegt
+        c.create_text(px + 10, max(py + 14, y(0) + 0.15 * h), anchor="w", text="Arbeitspunkt", fill=GRUEN, font=schrift)
 
         # ---- Hinweis Schaltungssicht ----
         c.create_text(links, unten, anchor="sw", fill=text, font=klein,

@@ -497,6 +497,8 @@ Interaktive Grafiken sollen wichtige Grössen direkt sichtbar machen:
 - Hilfslinien dezent halten.
 - Prozentwerte nicht über andere Beschriftungen legen.
 - Cursorwerte gut lesbar darstellen.
+- Skalenwerte immer mit Einheit an die Achse schreiben (`bauteile/grafiken/skala.py`: `schoene_grenze`, `wert_text`, `achse_y`; in Schaltungen `Schaltplan.diagramm(..., einheit="spannung", t_ende=...)`).
+- Die Skala richtet sich nach dem Signal, nicht nach einem festen Mindestwert – auch mV- und µA-Signale (Elektronik) sollen das Diagramm füllen.
 
 ---
 
@@ -953,6 +955,7 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 8c | Schaltnetze & Ausgänge: 4 Seiten (Addierer, Multiplexer, Decoder/Encoder/7-Segment, Ausgangstypen); Werkzeuge Ripple-Carry-Addierer, MUX/DEMUX, Decoder/Prioritäts-Encoder/7-Segment, Push-Pull/Open Drain/Tri-State an einer Leitung; Rechnung in `digitaltechnik/schaltnetze_mathe.py`; 5 Rechner (Addierer-Laufzeit, MUX-Funktion, 7-Segment, Adressdecoder, I²C-Pull-up) | ✅ erledigt |
 | 8d | Schaltwerke: 4 Seiten (Flipflops, Zähler, Schieberegister, synchroner Zählerentwurf); Werkzeuge Flipflop mit Takt und Zeitdiagramm, Zähler asynchron/synchron mit Zwischenzuständen, Schieberegister/Ring/Johnson; Zählerentwurf mit D/JK und Selbststart-Prüfung in `digitaltechnik/schaltwerke_mathe.py`; 3 Rechner | ✅ erledigt |
 | 8e | Busse und Speicher: 4 Seiten (UART/RS-232/RS-485, SPI, I²C, Halbleiterspeicher); Werkzeuge UART-Rahmen (TTL + RS-232), SPI-Modi 0 … 3, I²C mit START/ACK/NACK/Sr/STOP, Speicherbaustein mit CS/OE/WE; Rechnung in `digitaltechnik/busse_mathe.py`; 6 Rechner (UART-Timing, Baudraten-Teiler, SPI, I²C-Dauer, Speicher-Organisation, Speicher erweitern) | ✅ erledigt |
+| 8f | Überarbeitung: Server-Beispiele mit allgemeinen Platzhaltern + Einstiegsseite „Erste Schritte“; alle Diagramme mit Skalenwerten und Einheiten, Skala nach Signal (kleine Spannungen/Ströme gut sichtbar): Trafo-Animation, Schaltungsdiagramme, Diodenkennlinien, Abtastung | ✅ erledigt |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 
