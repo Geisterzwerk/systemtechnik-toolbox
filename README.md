@@ -946,7 +946,8 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 7b | Dioden & Schutz: 7 Seiten mit interaktiven Schaltplänen (Zeitdiagramm bei Begrenzer, Gleichrichter, TVS), Rechnung in `schaltungen/dioden_mathe.py` (auch vom Gleichrichter-Rechner genutzt), neue Rechner Eingangsschutz, Verpolschutz-Vergleich, TVS prüfen; Messwerte-Tab entfernt | ✅ erledigt |
 | 7c | Transistor & MOSFET: 6 Seiten (Schalter-Seiten nutzen die bestehenden Simulatoren), neue interaktive Pläne Lasttreiber, Emitterschaltung, Emitterfolger, Konstantstromquelle; Rechnung in `schaltungen/verstaerker_mathe.py` (auch vom Arbeitspunkt-Rechner genutzt, der jetzt Vu mit C_E und r_ein zeigt); neue Rechner Emitterfolger und Konstantstromquelle | ✅ erledigt |
 | 7d | RC & RL: 5 Seiten (Laden/Entladen und RL ein/aus nutzen die bestehende Lernansicht und den Freilauf-Plan), neue interaktive Pläne Tief-/Hochpass (Bode + Zeitbereich), Tasterentprellung (Prell-Simulation), Anti-Aliasing (Abtastpunkte mit/ohne RC); Rechnung in `schaltungen/rc_mathe.py` (`alias_frequenz` auch von der Abtast-Grafik in Messtechnik genutzt); neue Rechner Frequenzgang, Entprellung, Anti-Aliasing | ✅ erledigt |
-| 7e+ | Weitere Schaltungen (OPV, Netzteile & Quellen), dann Digitaltechnik | offen |
+| 7e | OPV-Grundschaltungen: 5 Seiten (Verstärker, Addierer, Differenz-/Instrumentenverstärker, Komparator/Schmitt-Trigger, Integrator/Differenzierer), neues OPV-Symbol `Schaltplan.opv()`, 5 interaktive Pläne mit Simulation (Übersteuerung, Flattern, Drift), Rechnung in `schaltungen/opv_mathe.py`, 5 neue Rechner | ✅ erledigt |
+| 7f+ | Netzteile & Quellen, dann Digitaltechnik | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

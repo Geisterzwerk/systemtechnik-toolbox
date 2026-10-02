@@ -25,7 +25,8 @@
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
-from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, rc_mathe as rm, verstaerker_mathe as vm
+from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
+from schaltungen import verstaerker_mathe as vm
 
 
 def fehler(text):
@@ -368,6 +369,42 @@ FAELLE = [
     ("anti_aliasing", {"fs": "1k", "f": "400"}, ["kein Aliasing"], "400 Hz < 500 Hz"),
     ("anti_aliasing", {"fs": "1k", "f": "400", "R": "1"}, fehler("R UND C"), "nur R gegeben"),
     ("anti_aliasing", {"fs": "1k", "f": "400", "N": "12.5"}, fehler("ganzen Bit"), "halbe Bit"),
+    ("opv_verstaerker", {"art": "nichtinvertierend", "R1": "10", "R2": "90", "Ue": "0.5", "Ub": "12"},
+     ["Vu = 1 + R2 / R1 = 10  (20.0 dB)", "Ua = Vu · Ue = 5 V", "= 100 kHz", "-10.5 V … +10.5 V"],
+     "1 + 90/10;  1 MHz / 10;  12 V − 1.5 V"),
+    ("opv_verstaerker", {"art": "invertierend", "R1": "10", "Vu": "-22", "Ue": "1", "Ub": "12", "GBW": "3"},
+     ["R2 = R1 · |Vu| = 220 kΩ", "Vu = −R2 / R1 = -22", "begrenzt auf -10.5 V", "R1 = 10 kΩ", "= 130.4 kHz"],
+     "10 kΩ · 22;  −22 V liegt unter −10.5 V;  3 MHz / 23"),
+    ("opv_verstaerker", {"art": "nichtinvertierend", "R1": "10", "Vu": "0.5", "Ub": "12"}, fehler("Vu immer ≥ 1"),
+     "nichtinvertierend kann nicht abschwächen"),
+    ("opv_verstaerker", {"art": "Spannungsfolger", "Ue": "3", "Ub": "5"}, ["Vu = 1 = 1", "Ua = Vu · Ue = 3 V"],
+     "Folger braucht keine Widerstände"),
+    ("opv_addierer", {"U": "1 2 -0.5", "R": "10 20 5", "Rf": "10"},
+     ["I1 = U1 / R1 = 1 V / 10 kΩ = 100 µA", "(Gewicht -0.5)", "I3 = U3 / R3 = -500 mV / 5 kΩ = -100 µA",
+      "= -1 V"], "−10k · (100 µA + 100 µA − 100 µA)"),
+    ("opv_addierer", {"U": "1 2", "R": "10", "Rf": "10"}, fehler("2 Spannungen, aber 1"), "Anzahl passt nicht"),
+    ("differenzverstaerker", {"art": "Differenzverstärker (4 Widerstände)", "U1": "2", "U2": "2.1", "R1": "10",
+                              "R2": "100", "tol": "1"},
+     ["A_d = R2 / R1 = 10", "+ 110 kΩ", "U_cm = (U1 + U2) / 2 = 2.05 V", "Ua = 1.075 V", "74.55 mV", "= 48.8 dB"],
+     "10 · 0.1 V + 4 · 1 % · 100/110 · 2.05 V;  11 / 0.04 = 275"),
+    ("differenzverstaerker", {"art": "Instrumentenverstärker (3 OPV)", "U1": "2", "U2": "2.01", "R1": "10",
+                              "R2": "10", "RG": "1", "tol": "1"},
+     ["= 51 · 1 = 51", "1.75 V und 2.26 V", "Ua = 550.1 mV", "= 68.1 dB"],
+     "1 + 50k/1k;  2.005 ∓ 51 · 5 mV;  CMRR = (1 + 1) / 0.04 · 51 = 2550"),
+    ("differenzverstaerker", {"art": "Instrumentenverstärker (3 OPV)", "U1": "2", "U2": "2.01", "R1": "10", "R2": "10"},
+     fehler("R_G eingeben"), "INA ohne R_G"),
+    ("schmitt_trigger", {"art": "invertierend", "Usat": "10.5", "R1": "10", "Rf": "100"},
+     ["U_T+ = 954.5 mV   ·   U_T− = -954.5 mV", "Hysterese = 1.909 V"], "10.5 V · 10/110"),
+    ("schmitt_trigger", {"art": "nichtinvertierend", "Usat": "10.5", "UTp": "3", "UTm": "1"},
+     ["R1 = 9.524 kΩ bei R_f = 100 kΩ", "E24: 10 kΩ", "U_ref = 1.826 V", "U_T+ = 3.059 V"],
+     "2 V / 21 V = 0.0952;  2 V / 1.0952;  1.826 · 1.1 + 1.05"),
+    ("schmitt_trigger", {"art": "invertierend", "Usat": "10.5", "UTp": "1"}, fehler("BEIDE Schwellen"),
+     "nur eine Schwelle"),
+    ("integrator", {"art": "Integrator", "R": "10", "C": "100", "Ue": "1", "f": "1k", "Rx": "100"},
+     ["τ = R · C = 1 ms", "1 bei 159.2 Hz", "-1000 V/s", "= 500 mV", "Gleichspannungsverstärkung -10", "15.92 Hz"],
+     "1 V / 1 ms;  1000 V/s · 0.5 ms;  −100k/10k"),
+    ("integrator", {"art": "Differenzierer", "R": "10", "C": "100", "Ue": "1", "f": "1k", "Rx": "1"},
+     ["= ∓4 V", "höchstens R / R_s = 10", "1.592 kHz"], "1 ms · 4 · 1 V · 1 kHz"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -489,6 +526,36 @@ FUNKTIONEN = [
     ("RC + Schmitt-Trigger: genau 1 Tastendruck", lambda: rm.entprellung(5, 10e3, 4.7e3, 1e-6, 5e-3)["sauber"], True),
     ("C viel zu klein: Prellen kommt durch", lambda: rm.entprellung(5, 10e3, 10e3, 10e-9, 5e-3)["sauber"], False),
     ("Anti-Aliasing: 12 Bit brauchen 72.2 dB", lambda: rm.anti_aliasing(1e3, 900, bits=12)["noetig_db"], 72.24),
+
+    # ---- OPV-Grundschaltungen (Schaltungen) ----
+    ("OPV klassisch an ±12 V: U_max = 10.5 V", lambda: om.aussteuergrenzen(12)[0], 10.5),
+    ("OPV an ±1 V: Versorgung zu klein", lambda: om.aussteuergrenzen(1), wirft(ValueError)),
+    ("Nichtinvertierend: Vu = 1 + R2/R1", lambda: om.verstaerker("nichtinvertierend", 10e3, 90e3, 0, 12)["vu"], 10.0),
+    ("Invertierend: Vu = −R2/R1", lambda: om.verstaerker("invertierend", 10e3, 47e3, 0, 12)["vu"], -4.7),
+    ("Invertierend: Bandbreite GBW / (1 + R2/R1)", lambda: om.verstaerker("invertierend", 10e3, 90e3, 0, 12)["f_g"], 1e5),
+    ("Invertierend übersteuert: Ua begrenzt", lambda: om.verstaerker("invertierend", 1e3, 10e3, 2, 12)["u_a"], -10.5),
+    ("Rail-to-Rail: Ua bis U_B − 0.05 V", lambda: om.verstaerker("Spannungsfolger", 0, 0, 7, 5, rail=True)["u_a"], 4.95),
+    ("Addierer: −R_f · Σ U/R", lambda: om.addierer([1, 2], [10e3, 10e3], 10e3)["u_a"], -3.0),
+    ("Differenzverstärker ideal: kein Gleichtaktfehler", lambda: om.differenz(5, 5, 10e3, 100e3)["u_a"], 0.0),
+    ("Differenzverstärker 1 %: CMRR = 11 / 0.04", lambda: om.differenz(0, 0, 10e3, 100e3, 0.01)["cmrr"], 275.0),
+    ("INA: G = (1 + 2R/R_G) · R2/R1", lambda: om.instrumenten(0, 0.01, 25e3, 1e3)["g"], 51.0),
+    ("Schmitt invertierend: U_T+ mit Offset",
+     lambda: om.schmitt_schwellen("invertierend", 10e3, 100e3, 2.2, 10.5)["u_tp"], (2.2 * 100 + 10.5 * 10) / 110),
+    ("Schmitt nichtinvertierend: Hysterese 2 · U_sat · R1/R_f",
+     lambda: om.schmitt_schwellen("nichtinvertierend", 10e3, 100e3, 0, 10.5)["hysterese"], 2.1),
+    ("Schmitt auslegen und zurückrechnen ergibt U_T+",
+     lambda: om.schmitt_schwellen("invertierend", **{k: v for k, v in om.schmitt_auslegen(
+         "invertierend", 1.5, 0.5, 10.5).items() if k in ("r1", "r_f", "u_ref")}, u_sat_plus=10.5)["u_tp"], 1.5),
+    ("Schmitt: U_T+ < U_T− geht nicht", lambda: om.schmitt_auslegen("invertierend", 0.5, 1.5, 10.5), wirft(ValueError)),
+    ("Komparator flattert bei Störung", lambda: om.komparator_sim("Komparator", 3, 0.4, 12)["wechsel"] > 4, True),
+    ("Schmitt-Trigger schaltet trotz Störung sauber",
+     lambda: om.komparator_sim("invertierend", 3, 0.4, 12)["wechsel"], 4),
+    ("Integrator: Dreieck Spitze-Spitze", lambda: om.integrator_kennwerte(10e3, 100e-9, 1, 1e3)["dreieck_ss"], 0.5),
+    ("Integrator ohne R_p: Offset läuft weg",
+     lambda: om.integrator_sim(10e3, 100e-9, 1, 100, 12, offset=0.1)["gesaettigt"], True),
+    ("Integrator mit R_p: bleibt in der Aussteuerung",
+     lambda: om.integrator_sim(10e3, 100e-9, 1, 100, 12, r_p=100e3, offset=0.1)["gesaettigt"], False),
+    ("Differenzierer: Ua = R · C · 4 · û · f", lambda: om.differenzierer_sim(10e3, 10e-9, 1, 1e3, 12)["u_a_ideal"], 0.4),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

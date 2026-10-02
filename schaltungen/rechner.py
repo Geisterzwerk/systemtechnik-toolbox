@@ -14,6 +14,11 @@
 #   rc_frequenzgang      Tief-/Hochpass bei einer Frequenz: |H|, dB, Phase, Ausgangsspannung
 #   entprellung          Taster mit RC + Schmitt-Trigger: Zeiten bis zur Schwelle, passendes C
 #   anti_aliasing        RC-Tiefpass vor dem ADC: Alias-Frequenz und Dämpfung
+#   opv_verstaerker      Folger / nichtinvertierend / invertierend: Vu, Ua, r_ein, Bandbreite (oder R2 auslegen)
+#   opv_addierer         invertierender Summierer mit beliebig vielen Eingängen
+#   differenzverstaerker Differenz- und Instrumentenverstärker mit Gleichtaktfehler durch Toleranz
+#   schmitt_trigger      Schwellen berechnen oder Widerstände/U_ref für gewünschte Schwellen
+#   integrator           Integrator und Differenzierer: Steigung, Dreieck/Rechteck-Amplitude, Grenzfrequenzen
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
@@ -21,7 +26,8 @@
 #
 # Die Grenzfrequenz allein rechnet schon "rc_filter" (bauteile/rechner/kondensator_rechner.py).
 #
-# Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py, rc_mathe.py (ohne GUI, testbar)
+# Rechnung: schaltungen/netzwerk_mathe.py, dioden_mathe.py, verstaerker_mathe.py, rc_mathe.py,
+#           opv_mathe.py (ohne GUI, testbar)
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "stromteiler")
 # =============================================================================
 
@@ -31,8 +37,11 @@ from bauteile.rechner import normreihen                                         
 from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
+from schaltungen import opv_mathe as om                                          # -> schaltungen/opv_mathe.py
 from schaltungen import rc_mathe as rm                                           # -> schaltungen/rc_mathe.py
 from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
+from schaltungen.grafiken_opv import (AddiererSchaltung, DifferenzSchaltung,      # -> schaltungen/grafiken_opv.py
+                                      IntegratorSchaltung, OpvVerstaerkerSchaltung, SchmittSchaltung)
 from schaltungen.grafiken_rc import (AntiAliasingSchaltung, EntprellSchaltung,   # -> schaltungen/grafiken_rc.py
                                      RcFilterSchaltung)
 from schaltungen.grafiken_transistor import (EmitterfolgerSchaltung, EmitterSchaltung,  # -> schaltungen/grafiken_transistor.py
@@ -474,6 +483,234 @@ def anti_aliasing(master):
         berechnen=_anti_aliasing, formel="f_alias = |f − n · f_s|     f_s > 2 · f_max     Dämpfung ≥ 6.02 · N dB")
 
 
+
+# =============================================================================
+# 12) OPV-VERSTÄRKER
+# =============================================================================
+def _opv_verstaerker(w):
+    art = w["art"]
+    if w["Ub"] is None:
+        raise RechnerFehler("Versorgung ±U_B eingeben (z.B. 12 für ±12 V)")
+    zeilen = []
+    r1, r2 = w["R1"], w["R2"]
+    if art != "Spannungsfolger":
+        if r1 is None:
+            raise RechnerFehler("R1 eingeben")
+        if r2 is None:
+            # Auslegen: R2 aus der gewünschten Verstärkung
+            if w["Vu"] is None:
+                raise RechnerFehler("R2 eingeben – oder die gewünschte Verstärkung Vu, dann wird R2 berechnet")
+            vu = abs(w["Vu"])
+            if art == "nichtinvertierend" and vu <= 1:
+                raise RechnerFehler("Nichtinvertierend ist Vu immer ≥ 1 – für Vu = 1 den Spannungsfolger nehmen")
+            r2_genau = r1 * (vu - 1) if art == "nichtinvertierend" else r1 * vu
+            r2 = normreihen.naechste_werte(r2_genau, "E24")[1]
+            zeilen.append(f"R2 = R1 · {'(Vu − 1)' if art == 'nichtinvertierend' else '|Vu|'} = "
+                          f"{fmt(r2_genau, 'widerstand')}   →  E24: {fmt(r2, 'widerstand')}")
+    ue = 0.0 if w["Ue"] is None else w["Ue"]
+    gbw = om.GBW if w["GBW"] is None else w["GBW"]
+    e = _fehler_umwandeln(om.verstaerker, art, r1 or 1.0, r2 or 1.0, ue, w["Ub"], False, gbw)
+    formel = {"Spannungsfolger": "Vu = 1", "nichtinvertierend": "Vu = 1 + R2 / R1", "invertierend": "Vu = −R2 / R1"}[art]
+    zeilen += [f"{formel} = {e['vu']:.4g}  ({e['db']:.1f} dB)",
+               f"Ua = Vu · Ue = {fmt(e['u_a_ideal'], 'spannung')}" + ("" if not e["begrenzt"] else
+                                                                     f"  → begrenzt auf {fmt(e['u_a'], 'spannung')}"),
+               "Eingangswiderstand: " + ("sehr hoch (+ Eingang, ≈ 10¹² Ω bei FET-OPV)" if art != "invertierend"
+                                         else f"R1 = {fmt(r1, 'widerstand')} (− ist virtuelle Masse)"),
+               f"Bandbreite ≈ GBW / (1 + R2/R1) = {fmt(gbw, 'frequenz')} / {e['rauschverstaerkung']:.4g} = "
+               f"{fmt(e['f_g'], 'frequenz')}",
+               f"Aussteuerung (klassischer OPV, 1.5 V Abstand): {fmt(e['u_min'], 'spannung')} … +{fmt(e['u_max'], 'spannung')}"]
+    if art == "invertierend" and r1 < 1e3:
+        zeilen.append("⚠ R1 < 1 kΩ belastet die Quelle stark – r_ein der invertierenden Schaltung ist R1")
+    return zeilen
+
+
+def opv_verstaerker(master):
+    return FormelRechner(
+        master, "OPV-Verstärker", "Folger, nichtinvertierend oder invertierend – leeres R2 wird aus Vu berechnet",
+        felder=[("art", "Schaltung", "auswahl", {"werte": om.VERSTAERKER_ARTEN, "standard": "nichtinvertierend"}),
+                ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
+                ("R2", "R2 (Gegenkopplung)", "widerstand", {"einheit": "kΩ", "platzhalter": "leer = aus Vu"}),
+                ("Vu", "gewünschte Vu (opt.)", "zahl", {"platzhalter": "z.B. 10"}),
+                ("Ue", "Eingang Ue (opt.)", "spannung", {"platzhalter": "z.B. 0.5"}),
+                ("Ub", "Versorgung ±U_B", "spannung", {"platzhalter": "z.B. 12"}),
+                ("GBW", "GBW (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "1 MHz"})],
+        berechnen=_opv_verstaerker, formel="nichtinv.: Vu = 1 + R2/R1     inv.: Vu = −R2/R1     f_g = GBW / (1 + R2/R1)")
+
+
+# =============================================================================
+# 13) ADDIERER
+# =============================================================================
+def _opv_addierer(w):
+    if not w["U"] or not w["R"] or w["Rf"] is None:
+        raise RechnerFehler("Eingangsspannungen, Eingangswiderstände (gleich viele) und R_f eingeben")
+    if len(w["U"]) != len(w["R"]):
+        raise RechnerFehler(f"{len(w['U'])} Spannungen, aber {len(w['R'])} Widerstände – je Eingang einen Widerstand")
+    e = _fehler_umwandeln(om.addierer, w["U"], w["R"], w["Rf"], w["Ub"] if w["Ub"] is not None else 15.0)
+    zeilen = []
+    for k, (u, r, i) in enumerate(zip(w["U"], w["R"], e["stroeme"]), start=1):
+        zeilen.append(f"I{k} = U{k} / R{k} = {fmt(u, 'spannung')} / {fmt(r, 'widerstand')} = {fmt(i, 'strom')}"
+                      f"   (Gewicht {-w['Rf'] / r:.4g})")
+    zeilen.append(f"Ua = −R_f · ΣI = −{fmt(w['Rf'], 'widerstand')} · {fmt(e['i_f'], 'strom')} = "
+                  f"{fmt(e['u_a_ideal'], 'spannung')}")
+    if e["begrenzt"]:
+        zeilen.append(f"⚠ Liegt ausserhalb der Aussteuerung – Ausgang begrenzt auf {fmt(e['u_a'], 'spannung')}")
+    return zeilen
+
+
+def opv_addierer(master):
+    return FormelRechner(
+        master, "OPV-Addierer (Summierer)", "Mehrere Werte mit Leerzeichen trennen, z.B.  1 2 -0.5",
+        felder=[("U", "Eingangsspannungen", "spannung", {"liste": True, "platzhalter": "z.B. 1 2 -0.5"}),
+                ("R", "Eingangswiderstände", "widerstand", {"liste": True, "einheit": "kΩ", "platzhalter": "z.B. 10 10 10"}),
+                ("Rf", "R_f", "widerstand", {"einheit": "kΩ"}),
+                ("Ub", "Versorgung ±U_B (opt.)", "spannung", {"platzhalter": "15"})],
+        berechnen=_opv_addierer, formel="Ua = −R_f · (U1/R1 + U2/R2 + …)")
+
+
+# =============================================================================
+# 14) DIFFERENZ- UND INSTRUMENTENVERSTÄRKER
+# =============================================================================
+DIFFERENZ_ARTEN = ["Differenzverstärker (4 Widerstände)", "Instrumentenverstärker (3 OPV)"]
+
+
+def _differenzverstaerker(w):
+    if None in (w["U1"], w["U2"], w["R1"], w["R2"]):
+        raise RechnerFehler("U1, U2, R1 und R2 eingeben")
+    tol = 0.0 if w["tol"] is None else w["tol"]
+    ub = 15.0 if w["Ub"] is None else w["Ub"]
+    if w["art"] == DIFFERENZ_ARTEN[1]:
+        if w["RG"] is None:
+            raise RechnerFehler("R_G eingeben (Eingangsstufe mit 2 × 25 kΩ wie INA128)")
+        e = _fehler_umwandeln(om.instrumenten, w["U1"], w["U2"], 25e3, w["RG"], w["R1"], w["R2"], tol, ub)
+        zeilen = [f"G = (1 + 2 · 25 kΩ / R_G) · R2 / R1 = {e['g1']:.4g} · {w['R2'] / w['R1']:.4g} = {e['g']:.4g}",
+                  f"Ausgänge der Eingangsstufe: {fmt(e['u_innen'][0], 'spannung')} und {fmt(e['u_innen'][1], 'spannung')}"]
+    else:
+        e = _fehler_umwandeln(om.differenz, w["U1"], w["U2"], w["R1"], w["R2"], tol, ub)
+        zeilen = [f"A_d = R2 / R1 = {e['a_d']:.4g}   ·   Eingangswiderstand: − {fmt(e['r_ein_minus'], 'widerstand')}, "
+                  f"+ {fmt(e['r_ein_plus'], 'widerstand')}"]
+    zeilen += [f"U_d = U2 − U1 = {fmt(e['u_d'], 'spannung')}   ·   U_cm = (U1 + U2) / 2 = {fmt(e['u_cm'], 'spannung')}",
+               f"Ua = {fmt(e['u_a'], 'spannung')}" + (f"   (davon Gleichtaktfehler {fmt(e['fehler_cm'], 'spannung')})"
+                                                     if tol else "")]
+    if tol:
+        zeilen.append(f"CMRR ≈ (1 + R2/R1) / (4 · Toleranz){' · G1' if w['art'] == DIFFERENZ_ARTEN[1] else ''} = "
+                      f"{e['cmrr_db']:.1f} dB")
+    if e["begrenzt"] or e.get("innen_begrenzt"):
+        zeilen.append("⚠ Ein Ausgang erreicht die Aussteuergrenze (±U_B − 1.5 V)")
+    return zeilen
+
+
+def differenzverstaerker(master):
+    return FormelRechner(
+        master, "Differenz- / Instrumentenverstärker", "Ua aus U2 − U1, Gleichtaktfehler durch Widerstandstoleranz",
+        felder=[("art", "Schaltung", "auswahl", {"werte": DIFFERENZ_ARTEN}),
+                ("U1", "U1 (an −)", "spannung", {"platzhalter": "z.B. 2.45"}),
+                ("U2", "U2 (an +)", "spannung", {"platzhalter": "z.B. 2.55"}),
+                ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
+                ("R2", "R2", "widerstand", {"einheit": "kΩ"}),
+                ("RG", "R_G (nur INA)", "widerstand", {"einheit": "kΩ", "platzhalter": "nur Instrumentenv."}),
+                ("tol", "Toleranz (opt.)", "prozent", {"platzhalter": "z.B. 1"}),
+                ("Ub", "Versorgung ±U_B (opt.)", "spannung", {"platzhalter": "15"})],
+        berechnen=_differenzverstaerker, formel="Ua = R2/R1 · (U2 − U1)     INA: G = 1 + 2R/R_G     CMRR ≈ (1 + R2/R1)/(4 · tol)")
+
+
+# =============================================================================
+# 15) SCHMITT-TRIGGER
+# =============================================================================
+def _schmitt(w):
+    art = w["art"]
+    if w["Usat"] is None:
+        raise RechnerFehler("Ausgangsspannung U_sat eingeben (z.B. 10.5 bei ±12 V, 5 bei Rail-to-Rail an 5 V → ±)")
+    if w["UTp"] is not None or w["UTm"] is not None:
+        if w["UTp"] is None or w["UTm"] is None:
+            raise RechnerFehler("Zum Auslegen BEIDE Schwellen U_T+ und U_T− eingeben")
+        rf = 100e3 if w["Rf"] is None else w["Rf"]
+        e = _fehler_umwandeln(om.schmitt_auslegen, art, w["UTp"], w["UTm"], w["Usat"], rf)
+        r1_norm = normreihen.naechste_werte(e["r1"], "E24")[1]
+        s = _fehler_umwandeln(om.schmitt_schwellen, art, r1_norm, rf, e["u_ref"], w["Usat"])
+        return [f"Hysterese ΔU = {fmt(w['UTp'] - w['UTm'], 'spannung')}, Mitte {fmt((w['UTp'] + w['UTm']) / 2, 'spannung')}",
+                f"R1 / {'(R1 + R_f)' if art == 'invertierend' else 'R_f'} = ΔU / (2 · U_sat)  →  "
+                f"R1 = {fmt(e['r1'], 'widerstand')} bei R_f = {fmt(rf, 'widerstand')}   →  E24: {fmt(r1_norm, 'widerstand')}",
+                f"U_ref = {fmt(e['u_ref'], 'spannung')}",
+                f"Kontrolle mit E24: U_T+ = {fmt(s['u_tp'], 'spannung')}, U_T− = {fmt(s['u_tm'], 'spannung')}"]
+    if w["R1"] is None or w["Rf"] is None:
+        raise RechnerFehler("R1 und R_f eingeben – oder die gewünschten Schwellen U_T+ und U_T−")
+    u_ref = 0.0 if w["Uref"] is None else w["Uref"]
+    s = _fehler_umwandeln(om.schmitt_schwellen, art, w["R1"], w["Rf"], u_ref, w["Usat"])
+    formel = ("U_T± = (U_ref · R_f ± U_sat · R1) / (R1 + R_f)" if art == "invertierend"
+              else "U_T± = U_ref · (1 + R1/R_f) ± U_sat · R1/R_f")
+    zeilen = [formel,
+              f"U_T+ = {fmt(s['u_tp'], 'spannung')}   ·   U_T− = {fmt(s['u_tm'], 'spannung')}",
+              f"Hysterese = {fmt(s['hysterese'], 'spannung')}   ·   Mitte = {fmt(s['mitte'], 'spannung')}"]
+    if art == "nichtinvertierend" and w["R1"] > w["Rf"]:
+        zeilen.append("⚠ R1 > R_f: Hysterese grösser als 2 · U_sat – das Signal muss sehr gross werden")
+    return zeilen
+
+
+def schmitt_trigger(master):
+    return FormelRechner(
+        master, "Schmitt-Trigger mit OPV", "Schwellen berechnen – oder U_T+ / U_T− vorgeben, dann R1 und U_ref auslegen",
+        felder=[("art", "Schaltung", "auswahl", {"werte": om.SCHMITT_ARTEN}),
+                ("Usat", "U_sat (± am Ausgang)", "spannung", {"platzhalter": "z.B. 10.5"}),
+                ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
+                ("Rf", "R_f (Mitkopplung)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 100"}),
+                ("Uref", "U_ref (opt.)", "spannung", {"platzhalter": "0"}),
+                ("UTp", "gewünschte U_T+ (opt.)", "spannung", {"platzhalter": "zum Auslegen"}),
+                ("UTm", "gewünschte U_T− (opt.)", "spannung", {"platzhalter": "zum Auslegen"})],
+        berechnen=_schmitt, formel="Hysterese: inv. 2·U_sat·R1/(R1 + R_f)     nichtinv. 2·U_sat·R1/R_f")
+
+
+# =============================================================================
+# 16) INTEGRATOR / DIFFERENZIERER
+# =============================================================================
+INTEGRATOR_ARTEN = ["Integrator", "Differenzierer"]
+
+
+def _integrator(w):
+    if None in (w["R"], w["C"]):
+        raise RechnerFehler("R und C eingeben")
+    if w["R"] <= 0 or w["C"] <= 0:
+        raise RechnerFehler("R und C müssen grösser als 0 sein")
+    rc = w["R"] * w["C"]
+    f_1 = 1 / (2 * math.pi * rc)
+    if w["art"] == INTEGRATOR_ARTEN[0]:
+        zeilen = [f"τ = R · C = {fmt(rc, 'zeit')}   ·   |Vu| = 1 / (2π · f · R · C) = 1 bei {fmt(f_1, 'frequenz')}"]
+        if w["Ue"] is not None:
+            zeilen.append(f"Konstantes Ue: Rampe dUa/dt = −Ue / (R · C) = {-w['Ue'] / rc:.4g} V/s")
+            if w["f"] is not None:
+                k = _fehler_umwandeln(om.integrator_kennwerte, w["R"], w["C"], w["Ue"], w["f"])
+                zeilen.append(f"Rechteck ±Ue mit f: Dreieck Spitze-Spitze = Ue / (R · C) · 1/(2f) = "
+                              f"{fmt(k['dreieck_ss'], 'spannung')}")
+        if w["Rx"] is not None:
+            k = _fehler_umwandeln(om.integrator_kennwerte, w["R"], w["C"], 0.0, None, w["Rx"])
+            zeilen.append(f"R_p = {fmt(w['Rx'], 'widerstand')}: Gleichspannungsverstärkung {k['v_dc']:.4g}, "
+                          f"integriert erst über f_u = 1/(2π · R_p · C) = {fmt(k['f_u'], 'frequenz')}")
+        else:
+            zeilen.append("Ohne R_p ∥ C läuft jeder Offset in die Begrenzung – in der Praxis R_p ≈ 10 … 100 · R")
+        return zeilen
+    zeilen = [f"τ = R · C = {fmt(rc, 'zeit')}   ·   |Vu| = 2π · f · R · C = 1 bei {fmt(f_1, 'frequenz')}"]
+    if w["Ue"] is not None and w["f"] is not None:
+        zeilen.append(f"Dreieck ±Ue mit f: Steigung 4 · Ue · f → Rechteck Ua = ∓R · C · 4 · Ue · f = "
+                      f"∓{fmt(rc * 4 * abs(w['Ue']) * w['f'], 'spannung')}")
+    if w["Rx"] is not None:
+        zeilen.append(f"R_s = {fmt(w['Rx'], 'widerstand')}: Verstärkung höchstens R / R_s = {w['R'] / w['Rx']:.4g} "
+                      f"ab f = 1/(2π · R_s · C) = {fmt(1 / (2 * math.pi * w['Rx'] * w['C']), 'frequenz')}")
+    else:
+        zeilen.append("Ohne R_s vor C steigt die Verstärkung unbegrenzt mit f – Rauschen, Schwingneigung")
+    return zeilen
+
+
+def integrator(master):
+    return FormelRechner(
+        master, "Integrator / Differenzierer", "Mit OPV (invertierend): Steigung, Amplitude, Grenzfrequenzen",
+        felder=[("art", "Schaltung", "auswahl", {"werte": INTEGRATOR_ARTEN}),
+                ("R", "R", "widerstand", {"einheit": "kΩ"}),
+                ("C", "C", "kapazitaet", {"einheit": "nF"}),
+                ("Ue", "Eingang Ue / û (opt.)", "spannung", {"platzhalter": "z.B. 1"}),
+                ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "z.B. 1k"}),
+                ("Rx", "R_p bzw. R_s (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
+        berechnen=_integrator, formel="Integrator: Ua = −1/(R·C) · ∫Ue dt     Differenzierer: Ua = −R·C · dUe/dt")
+
+
 # =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
@@ -508,4 +745,14 @@ RECHNER = {
     "schaltung_rc_filter": RcFilterSchaltung,
     "schaltung_entprellung": EntprellSchaltung,
     "schaltung_anti_aliasing": AntiAliasingSchaltung,
+    "opv_verstaerker": opv_verstaerker,
+    "opv_addierer": opv_addierer,
+    "differenzverstaerker": differenzverstaerker,
+    "schmitt_trigger": schmitt_trigger,
+    "integrator": integrator,
+    "schaltung_opv_verstaerker": OpvVerstaerkerSchaltung,
+    "schaltung_addierer": AddiererSchaltung,
+    "schaltung_differenz": DifferenzSchaltung,
+    "schaltung_schmitt": SchmittSchaltung,
+    "schaltung_integrator": IntegratorSchaltung,
 }

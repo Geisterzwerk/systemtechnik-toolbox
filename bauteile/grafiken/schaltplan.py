@@ -388,6 +388,32 @@ class Schaltplan:
         if titel:
             self.text((x0 + x1) / 2, y0 + 0.4, titel, "center", fett=True)
 
+    def opv(self, x, y, name="", plus_oben=False, versorgung=True):
+        """
+        Operationsverstärker als Dreieck (Spitze rechts), Mitte bei (x, y):
+          Eingänge links bei (x − 1.2, y − 0.5) und (x − 1.2, y + 0.5), Ausgang rechts bei (x + 1.2, y)
+          plus_oben=False: − oben, + unten (üblich bei invertierenden Schaltungen)
+          versorgung:      kurze Striche oben/unten mit +U_B / −U_B (nur Hinweis, keine Leitung)
+        Rückgabe: {"plus": (x, y), "minus": (x, y), "aus": (x, y)} - dort die Leitungen anschliessen.
+        """
+        a, b, c = self.p(x - 0.8, y - 1.0), self.p(x - 0.8, y + 1.0), self.p(x + 1.0, y)
+        self.c.create_polygon(*a, *b, *c, outline=self.linie, fill=self.bg, width=self.dick)
+        y_plus, y_minus = (y - 0.5, y + 0.5) if plus_oben else (y + 0.5, y - 0.5)
+        for ye, zeichen in ((y_plus, "+"), (y_minus, "−")):
+            self.leitung((x - 1.2, ye), (x - 0.8, ye))
+            self.text(x - 0.52, ye, zeichen, "center", fett=True)
+        self.leitung((x + 1.0, y), (x + 1.2, y))
+        if versorgung:
+            # Dreieckskante bei x: y ± (1.0 − (x + 0.8) / 1.8 · 1.0)  -> Strich bei x − 0.1
+            kante = 1.0 - 0.7 / 1.8
+            self.leitung((x - 0.1, y - kante), (x - 0.1, y - kante - 0.3))
+            self.leitung((x - 0.1, y + kante), (x - 0.1, y + kante + 0.3))
+            self.text(x + 0.05, y - kante - 0.3, "+U_B", "sw", klein=True, farbe=self.leise)
+            self.text(x + 0.05, y + kante + 0.3, "−U_B", "nw", klein=True, farbe=self.leise)
+        if name:
+            self.text(x + 0.05, y, name, "center", klein=True, farbe=self.leise)
+        return {"plus": (x - 1.2, y_plus), "minus": (x - 1.2, y_minus), "aus": (x + 1.2, y)}
+
     # ---- Zeitdiagramm ---------------------------------------------------------
     def diagramm(self, x0, y0, x1, y1, kurven, y_min, y_max, titel="", marken=(), zeit_text="t"):
         """

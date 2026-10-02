@@ -424,6 +424,56 @@ RECHNER_INFO = {
         "beschreibung": "Abtastpunkte und falsch erkannte Frequenz – mit und ohne RC-Tiefpass.",
         "stichworte": ["Aliasing", "Nyquist", "Abtastung", "ADC", "Zeitdiagramm"],
         "wissensseite": "anti_aliasing_filter"},
+    "opv_verstaerker": {
+        "titel": "OPV-Verstärker", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Folger, nichtinvertierend, invertierend: Verstärkung, Ua, Eingangswiderstand, Bandbreite – oder R2 aus Vu.",
+        "stichworte": ["OPV", "Operationsverstärker", "Verstärkung", "nichtinvertierend", "invertierend", "GBW"],
+        "wissensseite": "opv_verstaerker"},
+    "schaltung_opv_verstaerker": {
+        "titel": "OPV als Verstärker (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Drei Grundschaltungen mit Zeitdiagramm, Übersteuerung und Rail-to-Rail-Vergleich.",
+        "stichworte": ["OPV", "Spannungsfolger", "virtuelle Masse", "Übersteuerung", "Rail-to-Rail"],
+        "wissensseite": "opv_verstaerker"},
+    "opv_addierer": {
+        "titel": "OPV-Addierer", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Gewichtete Summe beliebig vieler Eingänge mit Strömen und Begrenzung.",
+        "stichworte": ["Addierer", "Summierer", "Summierverstärker", "Mischpult"],
+        "wissensseite": "opv_addierer"},
+    "schaltung_addierer": {
+        "titel": "Addierer (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Drei Eingänge, Ströme in den Summenknoten und Ausgang.",
+        "stichworte": ["Addierer", "Summierer", "virtuelle Masse", "Ströme"],
+        "wissensseite": "opv_addierer"},
+    "differenzverstaerker": {
+        "titel": "Differenz- / Instrumentenverstärker", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Ausgang, Gleichtaktfehler und CMRR bei Widerstandstoleranz, Verstärkung über R_G.",
+        "stichworte": ["Differenzverstärker", "Instrumentenverstärker", "INA", "CMRR", "Gleichtakt"],
+        "wissensseite": "differenz_instrumentenverstaerker"},
+    "schaltung_differenz": {
+        "titel": "Differenz- und Instrumentenverstärker (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Gleichtakt und Differenz getrennt einstellen, Toleranz und R_G verändern.",
+        "stichworte": ["Differenzverstärker", "Instrumentenverstärker", "Gleichtakt", "Toleranz"],
+        "wissensseite": "differenz_instrumentenverstaerker"},
+    "schmitt_trigger": {
+        "titel": "Schmitt-Trigger mit OPV", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Schaltschwellen und Hysterese berechnen oder R1 und U_ref für gewünschte Schwellen auslegen.",
+        "stichworte": ["Schmitt-Trigger", "Hysterese", "Komparator", "Schaltschwelle", "Mitkopplung"],
+        "wissensseite": "komparator_schmitt_trigger"},
+    "schaltung_schmitt": {
+        "titel": "Komparator und Schmitt-Trigger (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Verrauschter Sinus: Komparator flattert, Schmitt-Trigger schaltet einmal.",
+        "stichworte": ["Komparator", "Schmitt-Trigger", "Flattern", "Hysterese", "Zeitdiagramm"],
+        "wissensseite": "komparator_schmitt_trigger"},
+    "integrator": {
+        "titel": "Integrator / Differenzierer", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Steigung, Dreieck- bzw. Rechteckamplitude und Grenzfrequenzen mit R_p bzw. R_s.",
+        "stichworte": ["Integrator", "Differenzierer", "Rampe", "Dreieck", "R_p"],
+        "wissensseite": "integrator_differenzierer"},
+    "schaltung_integrator": {
+        "titel": "Integrator und Differenzierer (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "OPV",
+        "beschreibung": "Rechteck zu Dreieck und zurück, Drift durch Offset, praxisgerechte Beschaltung.",
+        "stichworte": ["Integrator", "Differenzierer", "Drift", "Offset", "Zeitdiagramm"],
+        "wissensseite": "integrator_differenzierer"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
