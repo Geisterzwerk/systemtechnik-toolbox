@@ -257,3 +257,70 @@ def adc_abtastung(u, r_ext, c_ext, r_sw, c_s, t_s, bits, u_ref, u_vorher=0.0, pu
             "teilung_lsb": abs(u - u_vorher) * c_s / (c_s + c_ext) / lsb if c_ext > 0 else None,
             "f_g": 1 / (2 * math.pi * r_ext * c_ext) if r_ext > 0 and c_ext > 0 else None,
             "fehler_kurve": [(t, min((u - v) / lsb, 1e9)) for t, v in kurve_s]}
+
+
+# =============================================================================
+# BUSABSCHLUSS (RS-485, CAN): REFLEXIONEN AUF DER LEITUNG
+# =============================================================================
+ABSCHLUSS_ARTEN = ["ohne Abschluss", "nur am Sender", "120 Ω an beiden Enden", "falscher Wert (1 kΩ)",
+                   "CAN Split (2 × 60 Ω + C)"]
+V_LEITUNG = 2e8          # m/s, Signalgeschwindigkeit in Kupferkabel ≈ 0.66 · c  (≈ 5 ns pro Meter)
+
+
+def reflexionsfaktor(r_abschluss, z0):
+    """Γ = (R − Z0) / (R + Z0):  0 = angepasst, +1 = offen (Leerlauf), −1 = Kurzschluss."""
+    if r_abschluss == float("inf"):
+        return 1.0
+    return (r_abschluss - z0) / (r_abschluss + z0)
+
+
+def leitung_sprung(u, r_quelle, z0, r_last, laenge, perioden=12, punkte_je_laufzeit=20):
+    """
+    Spannungssprung U über R_Quelle auf eine Leitung (Wellenwiderstand Z0, Laufzeit t_d = l / v) mit R_Last am Ende.
+    Gitterdiagramm (Bounce): Die erste Welle ist U · Z0 / (Z0 + R_Q). Am Ende wird sie mit Γ_L reflektiert, am
+    Anfang mit Γ_Q - jede Welle addiert sich am Empfänger, sobald sie dort ankommt.
+    Rückgabe: Kurve am Empfänger [(t 0 … 1, u)], Endwert, Laufzeit, Überschwingen in %.
+    """
+    _positiv(Z0=z0, Laenge=laenge)
+    t_d = laenge / V_LEITUNG
+    g_l = reflexionsfaktor(r_last, z0)
+    g_q = reflexionsfaktor(r_quelle, z0)
+    welle = u * z0 / (z0 + r_quelle)
+    # Empfänger (Leitungsende): Ankunft bei t_d, 3t_d, 5t_d …; jedes Mal kommt (1 + Γ_L) · Welle dazu
+    ankuenfte, w = [], welle
+    for k in range(perioden):
+        ankuenfte.append(((2 * k + 1) * t_d, w * (1 + g_l)))
+        w *= g_l * g_q
+    dauer = 2 * perioden * t_d
+    kurve, summe, n = [], 0.0, 0
+    schritte = perioden * 2 * punkte_je_laufzeit
+    for k in range(schritte + 1):
+        t = dauer * k / schritte
+        while n < len(ankuenfte) and ankuenfte[n][0] <= t + 1e-15:
+            summe += ankuenfte[n][1]
+            n += 1
+        kurve.append((k / schritte, summe))
+    end = u * (r_last / (r_last + r_quelle)) if r_last != float("inf") else u
+    spitze = max(y for _t, y in kurve)
+    return {"kurve": kurve, "endwert": end, "t_d": t_d, "dauer": dauer, "g_l": g_l, "g_q": g_q,
+            "erste_welle": welle, "ueberschwingen": max(0.0, (spitze - end) / end * 100) if end else 0.0}
+
+
+def kritische_laenge(t_anstieg):
+    """Leitung gilt als „lang“ (Abschluss nötig), wenn die Laufzeit hin und zurück die Anstiegszeit erreicht:
+    l_krit ≈ t_r · v / 2  (Faustregel; vorsichtiger: t_r · v / 6)."""
+    _positiv(t_r=t_anstieg)
+    return {"l_krit": t_anstieg * V_LEITUNG / 2, "l_sicher": t_anstieg * V_LEITUNG / 6}
+
+
+def rs485_failsafe(u_b, r_bias, r_t=120.0, beide_enden=True):
+    """
+    Ruhender Bus (kein Sender aktiv): Pull-up an A, Pull-down an B, dazwischen die Abschlüsse.
+      U_AB = U_B · R_T,ges / (2 · R_bias + R_T,ges)  muss ≥ 200 mV sein (sicher erkannte „1“).
+    """
+    _positiv(U_B=u_b, R_bias=r_bias, R_T=r_t)
+    r_ges = r_t / 2 if beide_enden else r_t
+    u_ab = u_b * r_ges / (2 * r_bias + r_ges)
+    r_bias_max = (u_b * r_ges / 0.2 - r_ges) / 2
+    return {"u_ab": u_ab, "ok": u_ab >= 0.2, "r_bias_max": r_bias_max, "r_ges": r_ges,
+            "i_ruhe": u_b / (2 * r_bias + r_ges)}

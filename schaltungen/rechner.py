@@ -45,6 +45,8 @@
 #   watchdog             Trigger-Abstand und Bootzeit gegen den kürzesten Timeout prüfen
 #   darlington           Einzeltransistor oder Darlington: Basiswiderstand, Verlustleistung
 #   endstufe             Gegentakt Klasse B: Ausgangsleistung, Wirkungsgrad, Verlust je Transistor
+#   busabschluss         RS-485/CAN: Laufzeit, kritische Länge, Abschluss, Fail-safe-Vorspannung
+#   vco                  spannungsgesteuerter Oszillator: Steilheit K und Frequenz (oder C für einen Bereich)
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
@@ -79,10 +81,12 @@ from schaltungen.grafiken_filter import (LcFilterSchaltung, SallenKeySchaltung, 
                                          SchwingkreisSchaltung)
 from schaltungen.grafiken_mess import (DmsKetteSchaltung, NtcTeilerSchaltung,    # -> schaltungen/grafiken_mess.py
                                        PtLeitungSchaltung)
-from schaltungen.grafiken_schnittstellen import (AdcEingangSchaltung, GateTreiberSchaltung,  # -> grafiken_schnittstellen.py
-                                                 HBrueckeSchaltung, OptokopplerSchaltung, PegelwandlerSchaltung)
+from schaltungen.grafiken_schnittstellen import (AdcEingangSchaltung, BusabschlussSchaltung,  # -> grafiken_schnittstellen.py
+                                                 GateTreiberSchaltung, HBrueckeSchaltung, OptokopplerSchaltung,
+                                                 PegelwandlerSchaltung)
 from schaltungen.grafiken_oszillator import (FunktionsgeneratorSchaltung,      # -> schaltungen/grafiken_oszillator.py
-                                             MultivibratorSchaltung, Ne555Schaltung, WatchdogSchaltung)
+                                             MultivibratorSchaltung, Ne555Schaltung, VcoSchaltung,
+                                             WatchdogSchaltung)
 from schaltungen.grafiken_endstufen import DarlingtonSchaltung, GegentaktSchaltung  # -> grafiken_endstufen.py
 from schaltungen.grafiken_netzteil import (LinearreglerSchaltung, QuelleSchaltung,  # -> schaltungen/grafiken_netzteil.py
                                            SchaltreglerSchaltung, StrombegrenzungSchaltung,
@@ -1575,6 +1579,76 @@ def endstufe(master):
 
 
 # =============================================================================
+# BUSABSCHLUSS UND VCO
+# =============================================================================
+def _busabschluss(w):
+    if w["l"] is None or w["tr"] is None:
+        raise RechnerFehler("Leitungslänge und Anstiegszeit des Senders eingeben (Datenblatt, z.B. 50 ns)")
+    if w["l"] <= 0:
+        raise RechnerFehler("Leitungslänge muss grösser als 0 sein")
+    t_d = w["l"] / sm.V_LEITUNG
+    k = _fehler_umwandeln(sm.kritische_laenge, w["tr"])
+    z0 = w["z0"] or 120.0
+    zeilen = [f"Laufzeit t_d = l / (0.66 · c) = {fmt(t_d, 'zeit')}  (≈ 5 ns pro Meter)",
+              f"Kritische Länge ≈ t_r · v / 2 = {fmt(k['l_krit'], 'laenge')} (vorsichtig: {fmt(k['l_sicher'], 'laenge')})",
+              ("→ Leitung ist LANG: Abschluss mit Z0 = " + fmt(z0, "widerstand") + " an BEIDEN Enden nötig")
+              if w["l"] > k["l_sicher"] else "→ Leitung ist kurz: Reflexionen klingen ab, bevor sie stören"]
+    if w["rb"] is not None:
+        fs = _fehler_umwandeln(sm.rs485_failsafe, w["ub"] or 5.0, w["rb"], z0, True)
+        zeilen.append(f"Fail-safe: U_AB = U_B · {fmt(fs['r_ges'], 'widerstand')} / (2 · R_bias + "
+                      f"{fmt(fs['r_ges'], 'widerstand')}) = {fmt(fs['u_ab'], 'spannung')} "
+                      + ("✓ ≥ 200 mV" if fs["ok"] else f"❌ < 200 mV → R_bias ≤ {fmt(fs['r_bias_max'], 'widerstand')}"))
+    return zeilen
+
+
+def busabschluss(master):
+    return FormelRechner(
+        master, "Busabschluss RS-485 / CAN", "Braucht die Leitung einen Abschluss? Reicht die Fail-safe-Vorspannung?",
+        felder=[("l", "Leitungslänge", "laenge", {"einheit": "m", "platzhalter": "z.B. 100"}),
+                ("tr", "Anstiegszeit des Senders", "zeit", {"einheit": "ns", "platzhalter": "z.B. 50"}),
+                ("z0", "Wellenwiderstand (opt.)", "widerstand", {"einheit": "Ω", "platzhalter": "120"}),
+                ("rb", "Fail-safe R_bias (opt.)", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 560"}),
+                ("ub", "Versorgung für R_bias (opt.)", "spannung", {"platzhalter": "5"})],
+        berechnen=_busabschluss, formel="t_d = l / v,  v ≈ 2·10⁸ m/s     l_krit ≈ t_r · v / 2     Γ = (R − Z0) / (R + Z0)")
+
+
+def _vco(w):
+    for name in ("R1", "R2", "R", "Us"):
+        if w[name] is None:
+            raise RechnerFehler("R1, R2, R und U_sat eingeben (dazu C oder die gewünschte Steilheit)")
+    if w["C"] is None and w["K"] is None:
+        raise RechnerFehler("C oder die gewünschte Steilheit K (Hz/V) eingeben")
+    c = w["C"]
+    zeilen = []
+    if c is None:
+        if w["K"] <= 0:
+            raise RechnerFehler("Steilheit muss grösser als 0 sein")
+        c = w["R2"] / (4 * w["R1"] * w["R"] * w["Us"] * w["K"])
+        n = normreihen.naechste_werte(c, "E12")[2]
+        zeilen.append(f"C = R2 / (4 · R1 · R · U_sat · K) = {fmt(c, 'kapazitaet')} → E12 {fmt(n, 'kapazitaet')}")
+        c = n
+    e = _fehler_umwandeln(osm.vco, w["R1"], w["R2"], w["R"], c, w["Us"], w["Ust"] or 0.0)
+    zeilen.append(f"Steilheit K = R2 / (4 · R1 · R · C · U_sat) = {fmt(e['k'], 'frequenz')}/V")
+    if w["Ust"] is not None:
+        zeilen.append(f"f = K · U_st = {fmt(e['f'], 'frequenz')} bei U_st = {fmt(w['Ust'], 'spannung')}")
+    zeilen.append(f"Dreieck-Amplitude ±{fmt(e['u_d'], 'spannung')} (unabhängig von U_st)")
+    return zeilen
+
+
+def vco(master):
+    return FormelRechner(
+        master, "VCO (spannungsgesteuerter Oszillator)", "Frequenz proportional zur Steuerspannung",
+        felder=[("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("R2", "R2", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 20"}),
+                ("R", "R (Integrator)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("C", "C (oder leer)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"}),
+                ("K", "… oder Steilheit K in Hz/V", "zahl", {"platzhalter": "optional"}),
+                ("Us", "±U_sat", "spannung", {"platzhalter": "z.B. 12"}),
+                ("Ust", "Steuerspannung U_st (opt.)", "spannung", {"platzhalter": "z.B. 6"})],
+        berechnen=_vco, formel="f = K · U_st     K = R2 / (4 · R1 · R · C · U_sat)")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -1667,4 +1741,8 @@ RECHNER = {
     "schaltung_watchdog": WatchdogSchaltung,
     "schaltung_darlington": DarlingtonSchaltung,
     "schaltung_gegentakt": GegentaktSchaltung,
+    "busabschluss": busabschluss,
+    "vco": vco,
+    "schaltung_busabschluss": BusabschlussSchaltung,
+    "schaltung_vco": VcoSchaltung,
 }

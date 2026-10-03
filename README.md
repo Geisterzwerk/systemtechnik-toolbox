@@ -635,14 +635,14 @@ Der Schaltungen-Bereich soll keine reine Bildergalerie werden. Jede Schaltung be
 ## Priorität 3: Nice to have
 
 - UART-Grundbeschaltung ✅ (8e, Digitaltechnik)
-- RS-485 und CAN-Abschluss
+- RS-485 und CAN-Abschluss ✅ (12)
 - I²C-Pull-ups ✅ (8c/8e)
 - SPI-Grundbeschaltung ✅ (8e, Digitaltechnik)
 - Watchdog ✅ (10)
 - Rechteck-/Dreieckgenerator ✅ (10)
 - Multivibrator ✅ (10)
 - 555-Timer monostabil und astabil ✅ (10)
-- VCO-Grundprinzip
+- VCO-Grundprinzip ✅ (12)
 - Darlington- und AB-Endstufe ✅ (10)
 
 ## Vorerst nicht priorisiert
@@ -961,7 +961,7 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 9c | Schnittstellen & Leistung: 5 Seiten (Pegelwandler Teiler/MOSFET, Optokoppler, H-Brücke, Gate-Treiber mit Miller-Plateau, ADC-Eingang mit Abtastkondensator); 5 interaktive Pläne; Rechnung in `schaltungen/schnittstellen_mathe.py`; 6 Rechner (Pegelteiler, Optokoppler, H-Brücke, Gate-Schaltzeit, Bootstrap, ADC-Eingang) | ✅ erledigt |
 | 10 | Priorität 3: Kategorie „Timer & Oszillatoren“ (NE555 astabil/mit Diode/monostabil, astabiler Multivibrator, Rechteck-/Dreieckgenerator, Watchdog normal/Fenster) und „Endstufen“ (Darlington, Gegentakt Klasse B/AB mit Übernahmeverzerrung, THD, Wirkungsgrad); 6 Seiten, 6 interaktive Pläne, 7 Rechner; Rechnung in `schaltungen/oszillator_mathe.py` und `endstufen_mathe.py`; neue Symbole `Schaltplan.pnp()` und gespiegelter `npn(basis_rechts=True)` | ✅ erledigt |
 | 11 | Neue Startseite: animiertes Banner (Schaltplan mit Strompunkten, Oszilloskop, arbeitendes Terminal, Python-Editor; `gui/startseite_banner.py`), Suche über alle Bereiche inkl. Rechner (`gui/gesamtsuche.py`, Ctrl+K), Favoriten ⭐ und „Zuletzt geöffnet“ (`core/benutzerdaten.py`, gespeichert in `benutzerdaten.json`, nicht im Repo), Bereichskacheln mit Anzahl Seiten/Rechner/Simulationen/Befehle und Kategorie-Chips, Schaltung des Tages | ✅ erledigt |
-| 10+ | Offen aus Priorität 3: RS-485/CAN-Abschluss, VCO-Grundprinzip | offen |
+| 12 | Priorität 3 abgeschlossen: Busabschluss RS-485/CAN (Reflexionen auf der Leitung als Bounce-Rechnung, Split-Abschluss, Fail-safe-Vorspannung) und VCO-Grundprinzip (Integrator + Schmitt-Trigger, Kennlinie f über U_st); 2 Seiten, 2 interaktive Pläne, 2 Rechner | ✅ erledigt |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

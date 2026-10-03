@@ -919,6 +919,26 @@ RECHNER_INFO = {
         "beschreibung": "Übernahmeverzerrung, Kennlinie, Klirrfaktor und Wirkungsgrad.",
         "stichworte": ["Gegentakt", "Klasse AB", "Klirrfaktor", "Simulation"],
         "wissensseite": "gegentakt_endstufe"},
+    "busabschluss": {
+        "titel": "Busabschluss RS-485 / CAN", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Laufzeit, kritische Länge, Abschlusswiderstand und Fail-safe-Vorspannung.",
+        "stichworte": ["RS-485", "CAN", "Abschluss", "120 Ω", "Reflexion", "Fail-safe", "Leitung"],
+        "wissensseite": "busabschluss_rs485_can"},
+    "vco": {
+        "titel": "VCO (spannungsgesteuerter Oszillator)", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Steilheit K in Hz/V und Frequenz, oder C für eine gewünschte Steilheit.",
+        "stichworte": ["VCO", "Oszillator", "Steuerspannung", "PLL", "Spannungs-Frequenz-Wandler"],
+        "wissensseite": "vco_grundprinzip"},
+    "schaltung_busabschluss": {
+        "titel": "Busabschluss RS-485/CAN (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Schnittstellen & Leistung",
+        "beschreibung": "Sprung auf der Leitung: Reflexionen je nach Abschluss, Split-Abschluss, Fail-safe.",
+        "stichworte": ["RS-485", "CAN", "Reflexion", "Simulation"],
+        "wissensseite": "busabschluss_rs485_can"},
+    "schaltung_vco": {
+        "titel": "VCO (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Steuerspannung verändern: Dreieck und Rechteck, Kennlinie f über U_st.",
+        "stichworte": ["VCO", "Frequenz", "Kennlinie", "Simulation"],
+        "wissensseite": "vco_grundprinzip"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",

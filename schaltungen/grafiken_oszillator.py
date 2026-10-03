@@ -8,6 +8,7 @@
 #   MultivibratorSchaltung    astabiler Multivibrator mit zwei Transistoren (negativer Basis-Ausschlag!)
 #   FunktionsgeneratorSchaltung  Rechteck und Dreieck aus Schmitt-Trigger + Integrator
 #   WatchdogSchaltung         µC + Watchdog-IC: Trigger, Zähler, Reset über der Zeit (auch Fenster-Watchdog)
+#   VcoSchaltung              spannungsgesteuerter Oszillator: f proportional zur Steuerspannung
 #
 # Rechnung: schaltungen/oszillator_mathe.py
 # WER RUFT DAS AUF?  schaltungen/rechner.py (Registrierung, z.B. "schaltung_ne555")
@@ -18,7 +19,7 @@ from bauteile.grafiken.schaltplan import OK, SPANNUNG, STROM, WARN       # -> ba
 from schaltungen import oszillator_mathe as om                           # -> schaltungen/oszillator_mathe.py
 from schaltungen.grafiken import _r, _u                                  # -> schaltungen/grafiken.py
 from schaltungen.grafiken_dioden import FEHLER, _MitDiagramm             # -> schaltungen/grafiken_dioden.py
-from schaltungen.grafiken_rc import LOG_C, LOG_R, _f, _t                 # -> schaltungen/grafiken_rc.py
+from schaltungen.grafiken_rc import LOG_C, LOG_R, _f, _punkt, _t         # -> schaltungen/grafiken_rc.py
 
 LOG_S = {"einheit": "ms", "log": True, "grenzen": (1e-6, 1e3)}
 
@@ -371,3 +372,78 @@ class WatchdogSchaltung(_MitDiagramm):
             return zeilen, WARN
         zeilen.append("✓ Im Normalbetrieb kein Reset – nur der Hänger wird erkannt")
         return zeilen, OK
+
+
+# =============================================================================
+# VCO (spannungsgesteuerter Oszillator)
+# =============================================================================
+class VcoSchaltung(_MitDiagramm):
+    TITEL = "🔌 VCO: Frequenz per Spannung einstellen (interaktiv)"
+    UNTERTITEL = "Steuerspannung hochdrehen – das Dreieck wird steiler, die Frequenz steigt proportional"
+    VARIANTEN = []
+    U_ST_MAX = 12.0
+    REGLER = [("ust", "Steuerspannung U_st", "spannung", 0.0, 12.0, 6.0, {"einheit": "V", "grenzen": (0.0, 12.0)}),
+              ("usat", "Ausgangsspannung ±U_sat", "spannung", 3.0, 15.0, 12.0, {"einheit": "V", "grenzen": (0.5, 50)}),
+              ("r1", "R1", "widerstand", 1e3, 100e3, 10e3, LOG_R),
+              ("r2", "R2", "widerstand", 1e3, 1e6, 20e3, LOG_R),
+              ("r", "R (Integrator)", "widerstand", 1e3, 1e6, 10e3, LOG_R),
+              ("c", "C (Integrator)", "kapazitaet", 1e-9, 10e-6, 100e-9, LOG_C)]
+    RASTER = (23.2, 10)
+    RASTER_SCHMAL = (12.6, 10)
+    SEITENVERHAELTNIS = 0.5
+    ERKLAERUNG = (
+        "Was zeigt die Grafik?  Ein VCO (Voltage Controlled Oscillator) erzeugt eine Frequenz, die von einer Spannung "
+        "abhängt. Prinzip wie beim Rechteck-/Dreieckgenerator, aber der Integrator integriert nicht ±U_sat, sondern "
+        "die STEUERSPANNUNG ±U_st – ein Umschalter (z.B. Analogschalter oder invertierender Verstärker) wählt das "
+        "Vorzeichen nach dem Schmitt-Trigger. Doppelte Steuerspannung = doppelt steiles Dreieck = doppelte Frequenz: "
+        "f = K · U_st mit der Steilheit K = R2 / (4 · R1 · R · C · U_sat) in Hz/V. Die Schaltschwellen (also die "
+        "Dreieck-Amplitude) bleiben gleich. VCOs stecken in PLLs (Taktvervielfachung im µC, Funkempfänger), in "
+        "Synthesizern und in Spannungs-Frequenz-Wandlern. Oben: Signale über eine feste Zeitspanne, unten: f über U_st.")
+
+    def sk_rechnen(self, w, v):
+        k = om.vco(w["r1"], w["r2"], w["r"], w["c"], w["usat"], 1.0)["k"]
+        dauer = 4 / (k * self.U_ST_MAX)                          # feste Zeitachse: 4 Perioden bei U_st,max
+        e = om.vco_kurven(w["r1"], w["r2"], w["r"], w["c"], w["usat"], w["ust"], dauer)
+        e["dauer"] = dauer
+        e["kennlinie"] = [(x / 20, k * self.U_ST_MAX * x / 20) for x in range(21)]
+        return e
+
+    def _pfeil(self, p, xa, ya, xb, yb):
+        (a, b), (c, d) = p.p(xa, ya), p.p(xb, yb)
+        p.c.create_line(a, b, c, d, fill=p.linie, width=p.dick, arrow="last",
+                        arrowshape=(p.u * 0.25, p.u * 0.3, p.u * 0.1))
+
+    def sk_zeichnen(self, p, w, e, v):
+        bloecke = [(0.4, 2.4, "U_st", SPANNUNG), (3.2, 5.6, "± Umschalter", None), (6.4, 8.8, "Integrator", None),
+                   (9.6, 12.2, "Schmitt-Trigger", None)]
+        y0, y1 = 3.2, 5.2
+        for x0, x1, titel, farbe in bloecke:
+            p.kasten(x0, y0, x1, y1, "")
+            p.text((x0 + x1) / 2, (y0 + y1) / 2, titel, "center", fett=True, farbe=farbe)
+        p.text(1.4, y1 + 0.4, _u(w["ust"]), "n", klein=True, farbe=SPANNUNG)
+        for xa, xb in ((2.4, 3.2), (5.6, 6.4), (8.8, 9.6)):
+            self._pfeil(p, xa, 4.2, xb, 4.2)
+        p.leitung((12.2, 4.2), (12.6, 4.2), (12.6, 6.6), (4.4, 6.6))       # Rückführung: Vorzeichen umschalten
+        self._pfeil(p, 4.4, 6.6, 4.4, y1)
+        p.text(8.4, 6.95, "Rechteck schaltet das Vorzeichen um", "n", klein=True, farbe=p.leise)
+        p.text(7.6, 2.9, "Dreieck", "s", klein=True, farbe=SPANNUNG)
+        p.text(10.9, 2.9, "Rechteck", "s", klein=True, farbe=STROM)
+        p.text(0.4, 8.6, f"f = K · U_st = {_f(e['k'])}/V · {_u(w['ust'])} = {_f(e['f'])}", "w", fett=True,
+               farbe=SPANNUNG)
+        if not getattr(self, "mit_diagramm", True):
+            return
+        gx0, gx1 = 14.6, 22.8
+        u = w["usat"]
+        p.diagramm(gx0, 1.0, gx1, 4.6, [(e["rechteck"], STROM, 1, True), (e["dreieck"], SPANNUNG, None, False)],
+                   -u * 1.15, u * 1.15, "Rechteck (rot) und Dreieck (blau) – feste Zeitspanne",
+                   einheit="spannung", t_ende=e["dauer"])
+        f_max = e["k"] * self.U_ST_MAX
+        p.diagramm(gx0, 6.0, gx1, 9.4, [(e["kennlinie"], STROM, None, False)], 0.0, f_max * 1.1,
+                   "Kennlinie f über U_st", einheit="frequenz", zeit_text=f"U_st (0 … {_u(self.U_ST_MAX)})")
+        _punkt(p, gx0, 6.0, gx1, 9.4, w["ust"] / self.U_ST_MAX, e["f"], 0.0, f_max * 1.1)
+
+    def sk_info(self, w, e, v):
+        return [f"Steilheit K = R2 / (4 · R1 · R · C · U_sat) = {_f(e['k'])}/V",
+                f"f = K · U_st = {_f(e['f'])}   ·   Dreieck-Amplitude bleibt ±{_u(e['u_d'])} (Schwellen fest)",
+                "Linear, solange Umschalter und Integrator ideal arbeiten – bei U_st = 0 bleibt die Schwingung "
+                "stehen"], OK

@@ -639,6 +639,13 @@ FAELLE = [
     ("endstufe", {"Ub": "15", "Rl": "8", "P": "10"}, ["û = 12.65 V", "= 15.1 W", "η = 66.2 %", "je Transistor 2.85 W"],
      "10 W an 8 Ω"),
     ("endstufe", {"Ub": "12", "Rl": "8", "P": "20"}, ["❌ U_B zu klein"], "20 W an ±12 V geht nicht"),
+    ("busabschluss", {"l": "100", "tr": "50", "rb": "560"},
+     ["= 500 ns", "= 5 m (vorsichtig: 1.667 m)", "Leitung ist LANG", "= 254.2 mV ✓"], "100 m, 50 ns, 560 Ω"),
+    ("busabschluss", {"l": "0.5", "tr": "50", "rb": "10000"}, ["Leitung ist kurz", "❌ < 200 mV → R_bias ≤ 720 Ω"],
+     "kurz, Bias zu gross"),
+    ("vco", {"R1": "10", "R2": "20", "R": "10", "C": "100", "Us": "12", "Ust": "6"}, ["= 41.67 Hz/V", "= 250 Hz"],
+     "K = R2/(4 R1 R C U_sat)"),
+    ("vco", {"R1": "10", "R2": "20", "R": "10", "K": "1000", "Us": "12"}, ["= 4.167 nF → E12 3.9 nF"], "C für 1 kHz/V"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -964,6 +971,15 @@ FUNKTIONEN = [
     ("Klasse AB mit 1.3 V: keine Totzone", lambda: esz.gegentakt_kennlinie("Klasse AB", 0.5, 1.3), 0.5),
     ("Klasse B klein: THD > 40 %", lambda: esz.gegentakt("Klasse B", 12, 1.0, 8)["thd"] > 0.4, True),
     ("Klasse B: η = π/4 bei û = U_B", lambda: esz.endstufe_leistung(10, 8, 10)["eta"], 0.785398),
+
+    # ---- Busabschluss, VCO ----
+    ("Γ offen = +1", lambda: snt.reflexionsfaktor(float("inf"), 120), 1.0),
+    ("Γ angepasst = 0", lambda: snt.reflexionsfaktor(120, 120), 0.0),
+    ("Leitung offen: Endwert = U", lambda: snt.leitung_sprung(2.0, 10, 120, float("inf"), 100)["endwert"], 2.0),
+    ("Leitung angepasst: kein Überschwingen", lambda: snt.leitung_sprung(2.0, 10, 120, 120, 100)["ueberschwingen"], 0.0),
+    ("100 m = 500 ns", lambda: snt.leitung_sprung(2.0, 10, 120, 120, 100)["t_d"], 5e-7),
+    ("Fail-safe 560 Ω bei 5 V", lambda: snt.rs485_failsafe(5, 560)["u_ab"], 0.254237),
+    ("VCO: doppelte U_st = doppelte f", lambda: osz.vco(1e4, 2e4, 1e4, 1e-7, 12, 8)["f"] / osz.vco(1e4, 2e4, 1e4, 1e-7, 12, 4)["f"], 2.0),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

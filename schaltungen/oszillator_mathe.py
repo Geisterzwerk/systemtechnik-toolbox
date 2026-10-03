@@ -240,3 +240,38 @@ def watchdog_zeitachse(t_trigger, t_wd, t_haenger, t_reset=0.05, t_start=0.2, to
     sicher = t_trigger < t_wd_min and t_start + t_trigger < t_wd_min and (not fenster or t_trigger > t_fenster)
     return {"trigger": trig, "zaehler": zael, "reset": res, "ereignisse": ereignisse, "dauer": dauer,
             "t_wd_min": t_wd_min, "sicher": sicher, "bootschleife": t_start + t_trigger >= t_wd_min}
+
+
+# =============================================================================
+# VCO (spannungsgesteuerter Oszillator) - Prinzip mit Integrator + Schmitt-Trigger
+# =============================================================================
+def vco(r1, r2, r, c, u_sat, u_st):
+    """
+    Wie der Rechteck-/Dreieckgenerator, aber der Integrator integriert die STEUERSPANNUNG ±U_st (ein Umschalter
+    wählt das Vorzeichen nach dem Schmitt-Trigger). Steigung U_st / (R · C), Schwellen ±U_sat · R1 / R2:
+      f = U_st · R2 / (4 · R1 · R · C · U_sat)      -> Frequenz proportional zur Steuerspannung
+      Steilheit K_VCO = f / U_st = R2 / (4 · R1 · R · C · U_sat)   in Hz/V
+    """
+    _positiv(R1=r1, R2=r2, R=r, C=c, U_sat=u_sat)
+    if u_st < 0:
+        raise ValueError("Steuerspannung U_st ≥ 0 eingeben")
+    if r1 >= r2:
+        raise ValueError("R1 muss kleiner als R2 sein")
+    k = r2 / (4 * r1 * r * c * u_sat)
+    return {"f": k * u_st, "k": k, "u_d": u_sat * r1 / r2, "steigung": u_st / (r * c)}
+
+
+def vco_kurven(r1, r2, r, c, u_sat, u_st, dauer, punkte=400):
+    """Rechteck und Dreieck über eine FESTE Zeitspanne - so sieht man, wie U_st die Frequenz ändert."""
+    e = vco(r1, r2, r, c, u_sat, u_st)
+    recht, drei = [], []
+    for k in range(punkte + 1):
+        t = dauer * k / punkte
+        x = (t * e["f"]) % 1.0 if e["f"] > 0 else 0.25
+        if x < 0.5:
+            recht.append((k / punkte, u_sat))
+            drei.append((k / punkte, e["u_d"] - 4 * e["u_d"] * x))
+        else:
+            recht.append((k / punkte, -u_sat))
+            drei.append((k / punkte, -e["u_d"] + 4 * e["u_d"] * (x - 0.5)))
+    return {"rechteck": recht, "dreieck": drei, **e}

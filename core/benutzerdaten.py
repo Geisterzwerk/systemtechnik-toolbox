@@ -29,7 +29,8 @@ import customtkinter as ctk
 
 import config                                                          # -> config.py
 
-DATEI = os.path.join(config.BASIS_PFAD, "benutzerdaten.json")
+# Testläufe setzen SYSTEMLAB_BENUTZERDATEN auf eine eigene Datei -> deine echten Favoriten bleiben unberührt
+DATEI = os.environ.get("SYSTEMLAB_BENUTZERDATEN") or os.path.join(config.BASIS_PFAD, "benutzerdaten.json")
 MAX_ZULETZT = 8
 _daten = None
 

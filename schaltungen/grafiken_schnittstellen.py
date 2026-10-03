@@ -9,6 +9,7 @@
 #   HBrueckeSchaltung      vier Schalter, Strompfad je Zustand, Brückenkurzschluss
 #   GateTreiberSchaltung   MOSFET einschalten: u_GS mit Miller-Plateau, u_DS, Schaltzeiten
 #   AdcEingangSchaltung    Abtastkondensator laden: Restfehler in LSB, ohne / mit externem C
+#   BusabschlussSchaltung  RS-485/CAN: Reflexionen je nach Abschluss, Fail-safe-Vorspannung
 #
 # Rechnung: schaltungen/schnittstellen_mathe.py
 # WER RUFT DAS AUF?  schaltungen/rechner.py (Registrierung, z.B. "schaltung_pegelwandler")
@@ -486,5 +487,100 @@ class AdcEingangSchaltung(_MitDiagramm):
                           f"R_ext · C_ext: fg = {fmt(e['f_g'], 'frequenz')} (begrenzt die Signalfrequenz)")
         if e["fehler_lsb"] > 0.5:
             zeilen.append("⚠ Mehr als ½ LSB Fehler – Quelle niederohmiger, t_s länger oder (genügend grosses) C_ext")
+            return zeilen, WARN
+        return zeilen, OK
+
+
+# =============================================================================
+# BUSABSCHLUSS RS-485 / CAN
+# =============================================================================
+class BusabschlussSchaltung(_MitDiagramm):
+    TITEL = "🔌 Busabschluss RS-485 / CAN: Reflexionen auf der Leitung (interaktiv)"
+    UNTERTITEL = "Ein Sprung läuft über die Leitung – passt der Abschluss nicht zum Wellenwiderstand, kommt er zurück"
+    VARIANTEN = sm.ABSCHLUSS_ARTEN
+    REGLER = [("l", "Leitungslänge", "laenge", 1.0, 1200.0, 100.0, {"einheit": "m", "log": True, "grenzen": (0.1, 5000)}),
+              ("z0", "Wellenwiderstand Z0 (Kabel)", "widerstand", 50.0, 150.0, 120.0, {"einheit": "Ω", "grenzen": (10, 1000)}),
+              ("rq", "Innenwiderstand Sender", "widerstand", 1.0, 100.0, 10.0, {"einheit": "Ω", "grenzen": (0.1, 1e4)}),
+              ("u", "Differenzspannung Sender", "spannung", 1.5, 5.0, 2.0, {"einheit": "V", "grenzen": (0.1, 20)}),
+              ("rb", "Fail-safe Pull-up/-down (RS-485)", "widerstand", 100.0, 47e3, 560.0, LOG_R)]
+    RASTER = (23.2, 10)
+    RASTER_SCHMAL = (12.4, 10)
+    SEITENVERHAELTNIS = 0.5
+    ERKLAERUNG = (
+        "Was zeigt die Grafik?  Eine verdrillte Leitung hat einen Wellenwiderstand Z0 (RS-485/CAN: 120 Ω). Ein "
+        "Spannungssprung braucht für 100 m etwa 0.5 µs. Am Ende wird er reflektiert, wenn der Abschluss nicht Z0 ist: "
+        "Γ = (R − Z0) / (R + Z0) – offen +1, angepasst 0. Die reflektierte Welle läuft zurück, wird am Sender wieder "
+        "reflektiert, und der Empfänger sieht eine Treppe, die um den Endwert schwingt (Klingeln). Dabei kann ein "
+        "Bit falsch erkannt werden. Mit je 120 Ω an BEIDEN ENDEN des Busses (nicht an jedem Teilnehmer!) wird die "
+        "Welle geschluckt. CAN verwendet oft den Split-Abschluss (2 × 60 Ω mit Kondensator zur Mitte) – für das "
+        "Signal ist das ebenfalls 120 Ω, zusätzlich werden Gleichtaktstörungen abgeleitet.")
+
+    def _widerstaende(self, v, w):
+        rt = {"ohne Abschluss": float("inf"), "nur am Sender": float("inf"), "120 Ω an beiden Enden": 120.0,
+              "falscher Wert (1 kΩ)": 1000.0, "CAN Split (2 × 60 Ω + C)": 120.0}[v]
+        sender = w["rq"] if v == "ohne Abschluss" else w["rq"] * (rt if rt != float("inf") else 120.0) / \
+            (w["rq"] + (rt if rt != float("inf") else 120.0))
+        return sender, rt
+
+    def sk_rechnen(self, w, v):
+        r_sender, r_last = self._widerstaende(v, w)
+        e = sm.leitung_sprung(w["u"], r_sender, w["z0"], r_last, w["l"])
+        e["r_last"], e["r_sender"] = r_last, r_sender
+        e["failsafe"] = sm.rs485_failsafe(5.0, w["rb"], 120.0, beide_enden=r_last != float("inf"))
+        return e
+
+    def sk_zeichnen(self, p, w, e, v):
+        y_a, y_b, x_s, x_e = 3.6, 6.4, 3.0, 9.6
+        p.kasten(0.4, 2.6, 2.6, 7.4, "Sender")
+        p.text(1.5, 5.4, f"R = {_r(w['rq'])}", "center", klein=True, farbe=p.leise)
+        p.kasten(10.8, 2.6, 12.0, 7.4, "")
+        p.text(11.4, 5.0, "E", "center", fett=True)
+        p.leitung((2.6, y_a), (10.8, y_a), farbe=SPANNUNG)
+        p.leitung((2.6, y_b), (10.8, y_b), farbe=SPANNUNG)
+        for k in range(4):                                                  # Verdrillung andeuten
+            x = 4.8 + k * 0.8
+            p.leitung((x, y_a + 0.15), (x + 0.5, y_b - 0.15), farbe=p.leise, dick=1)
+        p.text(6.4, y_a - 0.35, f"A   ·   {w['l']:g} m, Z0 = {_r(w['z0'])}, t_d = {_t(e['t_d'])}", "s", klein=True)
+        p.text(6.4, y_b + 0.35, "B", "n", klein=True)
+        if v != "ohne Abschluss":
+            p.widerstand(x_s, y_a, x_s, y_b, "R_T", "120 Ω", seite="rechts")
+            p.knoten(x_s, y_a)
+            p.knoten(x_s, y_b)
+        if e["r_last"] != float("inf"):
+            if v.startswith("CAN"):
+                ym = (y_a + y_b) / 2
+                p.widerstand(x_e, y_a, x_e, ym, "", "60 Ω", seite="rechts", laenge=0.9)
+                p.widerstand(x_e, ym, x_e, y_b, "", "60 Ω", seite="rechts", laenge=0.9)
+                p.leitung((x_e, ym), (x_e - 0.9, ym))                              # C zur Masse, zwischen A und B
+                p.kondensator(x_e - 0.9, ym, ym + 0.75, "", "", seite="links")
+                p.masse(x_e - 0.9, ym + 0.75)
+                p.text(x_e - 0.9, y_a + 0.35, "4.7 nF", "n", klein=True, farbe=p.leise)
+            else:
+                p.widerstand(x_e, y_a, x_e, y_b, "R_T", _r(e["r_last"]), seite="links")
+            p.knoten(x_e, y_a)
+            p.knoten(x_e, y_b)
+        p.messpunkt(10.8, y_a, "M1", seite="rechts")
+        p.text(0.4, 9.2, f"Γ am Ende = {e['g_l']:+.2f}   ·   Γ am Sender = {e['g_q']:+.2f}", "w", fett=True,
+               farbe=SPANNUNG if abs(e["g_l"]) < 0.1 else FEHLER[1])
+        if not getattr(self, "mit_diagramm", True):
+            return
+        gx0, gx1 = 14.6, 22.8
+        werte = [y for _t, y in e["kurve"]]
+        oben = max(max(werte), e["endwert"]) * 1.15
+        unten = min(min(werte), 0.0) - 0.05 * oben
+        p.diagramm(gx0, 1.4, gx1, 8.6, [(e["kurve"], SPANNUNG, None, False)], unten, oben,
+                   "Spannung am Empfänger (M1) nach dem Sprung",
+                   [(e["endwert"], f"Endwert {_u(e['endwert'])}"), (0.2, "+200 mV Schwelle")],
+                   einheit="spannung", t_ende=e["dauer"])
+
+    def sk_info(self, w, e, v):
+        fs = e["failsafe"]
+        zeilen = [f"Laufzeit t_d = l / (0.66 · c) = {_t(e['t_d'])}   ·   Γ = (R − Z0) / (R + Z0) = {e['g_l']:+.2f}   ·   "
+                  f"Überschwingen {e['ueberschwingen']:.0f} %",
+                  f"RS-485 Ruhepegel (Fail-safe, 5 V, Pull-up/-down {_r(w['rb'])}): U_AB = {_u(fs['u_ab'])} "
+                  + ("✓ ≥ 200 mV" if fs["ok"] else f"⚠ < 200 mV – höchstens {_r(fs['r_bias_max'])} verwenden")]
+        if abs(e["g_l"]) > 0.1:
+            zeilen.append("⚠ Nicht angepasst: Die Reflexionen klingen erst nach mehreren Laufzeiten ab – bei hoher "
+                          "Baudrate und langer Leitung werden Bits verfälscht")
             return zeilen, WARN
         return zeilen, OK
