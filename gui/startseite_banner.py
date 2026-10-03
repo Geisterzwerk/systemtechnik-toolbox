@@ -195,6 +195,14 @@ class Banner(ctk.CTkFrame):
                                                         weight="bold" if fett else "normal")
         return self.bn_schriften[schluessel].measure(text)
 
+    def _bn_kuerzen(self, text, groesse, max_px, fett=False):
+        """Text so weit kürzen, dass er in max_px Pixel passt (gemessen mit der echten Schrift)."""
+        if self._bn_messen(text, groesse, fett) <= max_px:
+            return text
+        while text and self._bn_messen(text + "…", groesse, fett) > max_px:
+            text = text[:-1]
+        return text + "…" if text else ""
+
     # =========================================================================
     # BEWEGT (alle 70 ms)
     # =========================================================================
@@ -253,16 +261,17 @@ class Banner(ctk.CTkFrame):
             zeilen.append(("befehl", "▌" if int(t * 3) % 2 == 0 else ""))
         zeilenhoehe = schrift * 1.7
         platz = max(1, int((y1 - y0 - 8) // zeilenhoehe))
-        breite_zeichen = max(8, int((x1 - x0 - 12) / (schrift * 0.62)))
+        max_px = x1 - x0 - 12                                          # Platz innerhalb des Rahmens
         for k, (art, text) in enumerate(zeilen[-platz:]):
             y = y0 + 6 + (k + 0.5) * zeilenhoehe
             if art == "befehl":
                 c.create_text(x0 + 6, y, text="$ ", anchor="w", fill=f["gruen"],
                               font=(config.SCHRIFT_CODE, schrift, "bold"), tags="dyn")
-                c.create_text(x0 + 6 + self._bn_messen("$ ", schrift, True), y, text=text[:breite_zeichen - 2],
+                prompt = self._bn_messen("$ ", schrift, True)
+                c.create_text(x0 + 6 + prompt, y, text=self._bn_kuerzen(text, schrift, max_px - prompt),
                               anchor="w", fill=f["weiss"], font=(config.SCHRIFT_CODE, schrift), tags="dyn")
             else:
-                c.create_text(x0 + 6, y, text=text[:breite_zeichen], anchor="w",
+                c.create_text(x0 + 6, y, text=self._bn_kuerzen(text, schrift, max_px), anchor="w",
                               fill=f["gruen"] if art == "ok" else f["konsole"], font=(config.SCHRIFT_CODE, schrift),
                               tags="dyn")
 
