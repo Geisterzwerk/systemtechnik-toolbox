@@ -634,16 +634,16 @@ Der Schaltungen-Bereich soll keine reine Bildergalerie werden. Jede Schaltung be
 
 ## Priorität 3: Nice to have
 
-- UART-Grundbeschaltung
+- UART-Grundbeschaltung ✅ (8e, Digitaltechnik)
 - RS-485 und CAN-Abschluss
-- I²C-Pull-ups
-- SPI-Grundbeschaltung
-- Watchdog
-- Rechteck-/Dreieckgenerator
-- Multivibrator
-- 555-Timer monostabil und astabil
+- I²C-Pull-ups ✅ (8c/8e)
+- SPI-Grundbeschaltung ✅ (8e, Digitaltechnik)
+- Watchdog ✅ (10)
+- Rechteck-/Dreieckgenerator ✅ (10)
+- Multivibrator ✅ (10)
+- 555-Timer monostabil und astabil ✅ (10)
 - VCO-Grundprinzip
-- Darlington- und AB-Endstufe
+- Darlington- und AB-Endstufe ✅ (10)
 
 ## Vorerst nicht priorisiert
 
@@ -959,7 +959,8 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 9a | Filter 2. Ordnung: 3 Seiten (LC-Tiefpass, Bandpass/Bandsperre mit Schwingkreis, aktive Sallen-Key-Filter); 3 interaktive Pläne mit Bode-Diagramm und umschaltbarer Sprungantwort (exakt gelöst, stabil für jedes Q); Rechnung in `schaltungen/filter_mathe.py`; 3 Rechner (LC-Tiefpass, Schwingkreis, Sallen-Key auslegen mit Normwerten); `STARTWERTE` je Variante jetzt in `SchaltungsKarte` | ✅ erledigt |
 | 9b | Messschaltungen: 3 Seiten (Pt100 in 2/3/4-Leiter-Schaltung mit Eigenerwärmung, NTC-Spannungsteiler mit Linearisierung, DMS-Brücke + Instrumentenverstärker + ADC); 3 interaktive Pläne; Rechnung in `schaltungen/mess_mathe.py` (Pt-Kennlinie aus `messtechnik/rechner.py` wiederverwendet); 3 Rechner (Leitungsfehler, NTC-Teiler, DMS-Verstärker) | ✅ erledigt |
 | 9c | Schnittstellen & Leistung: 5 Seiten (Pegelwandler Teiler/MOSFET, Optokoppler, H-Brücke, Gate-Treiber mit Miller-Plateau, ADC-Eingang mit Abtastkondensator); 5 interaktive Pläne; Rechnung in `schaltungen/schnittstellen_mathe.py`; 6 Rechner (Pegelteiler, Optokoppler, H-Brücke, Gate-Schaltzeit, Bootstrap, ADC-Eingang) | ✅ erledigt |
-| 10+ | Priorität 3: 555-Timer, Multivibrator, Rechteck-/Dreieckgenerator, Watchdog, RS-485/CAN-Abschluss, Endstufen | offen |
+| 10 | Priorität 3: Kategorie „Timer & Oszillatoren“ (NE555 astabil/mit Diode/monostabil, astabiler Multivibrator, Rechteck-/Dreieckgenerator, Watchdog normal/Fenster) und „Endstufen“ (Darlington, Gegentakt Klasse B/AB mit Übernahmeverzerrung, THD, Wirkungsgrad); 6 Seiten, 6 interaktive Pläne, 7 Rechner; Rechnung in `schaltungen/oszillator_mathe.py` und `endstufen_mathe.py`; neue Symbole `Schaltplan.pnp()` und gespiegelter `npn(basis_rechts=True)` | ✅ erledigt |
+| 10+ | Offen aus Priorität 3: RS-485/CAN-Abschluss, VCO-Grundprinzip | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

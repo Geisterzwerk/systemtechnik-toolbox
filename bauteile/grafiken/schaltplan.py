@@ -263,15 +263,34 @@ class Schaltplan:
                 self._beschriftung(xm, ym, name, wert, seite)
         return xm, ym
 
-    def npn(self, x, y, name="", seite="rechts"):
-        """NPN-Transistor: Basis links bei (x - 0.9, y), Kollektor oben (x, y - 1), Emitter unten (x, y + 1)."""
-        self.leitung((x - 0.9, y), (x - 0.3, y))
-        self.leitung((x - 0.3, y - 0.45), (x - 0.3, y + 0.45), dick=self.dick + 2)      # Basis-Balken
-        self.leitung((x - 0.3, y - 0.2), (x, y - 0.55), (x, y - 1))                       # Kollektor
-        (a, b), (c, d) = self.p(x - 0.3, y + 0.2), self.p(x, y + 0.55)
+    def npn(self, x, y, name="", seite="rechts", basis_rechts=False):
+        """
+        NPN-Transistor: Basis links bei (x - 0.9, y), Kollektor oben (x, y - 1), Emitter unten (x, y + 1).
+        basis_rechts=True: gespiegelt, Basis rechts bei (x + 0.9, y) (z.B. Multivibrator, Basis zur Mitte).
+        """
+        m = -1 if basis_rechts else 1                                                     # Spiegelung
+        self.leitung((x - 0.9 * m, y), (x - 0.3 * m, y))
+        self.leitung((x - 0.3 * m, y - 0.45), (x - 0.3 * m, y + 0.45), dick=self.dick + 2)  # Basis-Balken
+        self.leitung((x - 0.3 * m, y - 0.2), (x, y - 0.55), (x, y - 1))                   # Kollektor
+        (a, b), (c, d) = self.p(x - 0.3 * m, y + 0.2), self.p(x, y + 0.55)
         self.c.create_line(a, b, c, d, fill=self.linie, width=self.dick, arrow="last",
                            arrowshape=(self.u * 0.22, self.u * 0.26, self.u * 0.1))        # Emitter-Pfeil nach aussen
         self.leitung((x, y + 0.55), (x, y + 1))
+        if name:
+            self.text(x + (0.3 if seite == "rechts" else -1.2), y, name, "w" if seite == "rechts" else "e", fett=True)
+
+    def pnp(self, x, y, name="", seite="rechts"):
+        """
+        PNP-Transistor: Basis links bei (x - 0.9, y), EMITTER oben (x, y - 1), Kollektor unten (x, y + 1)
+        (so wie er in einer Gegentakt-Endstufe unten sitzt). Emitter-Pfeil zeigt zur Basis hin.
+        """
+        self.leitung((x - 0.9, y), (x - 0.3, y))
+        self.leitung((x - 0.3, y - 0.45), (x - 0.3, y + 0.45), dick=self.dick + 2)      # Basis-Balken
+        self.leitung((x, y - 1), (x, y - 0.55))
+        (a, b), (c, d) = self.p(x, y - 0.55), self.p(x - 0.3, y - 0.2)
+        self.c.create_line(a, b, c, d, fill=self.linie, width=self.dick, arrow="last",
+                           arrowshape=(self.u * 0.22, self.u * 0.26, self.u * 0.1))        # Emitter-Pfeil hinein
+        self.leitung((x - 0.3, y + 0.2), (x, y + 0.55), (x, y + 1))                       # Kollektor
         if name:
             self.text(x + (0.3 if seite == "rechts" else -1.2), y, name, "w" if seite == "rechts" else "e", fett=True)
 

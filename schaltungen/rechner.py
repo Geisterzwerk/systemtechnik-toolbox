@@ -38,6 +38,13 @@
 #   gate_schaltzeit      Miller-Plateau: Schaltzeit und Schaltverlust aus Q_gd und Gate-Strom
 #   bootstrap            Bootstrap-Kondensator eines High-Side-Treibers
 #   adc_eingang          grösster Quellwiderstand bzw. kleinstes C_ext für ½ LSB Genauigkeit
+#   ne555                NE555 astabil / mit Diode / monostabil: Frequenz, Tastgrad, Impulsdauer
+#   ne555_auslegen       R1, R2 für gewünschte Frequenz und Tastgrad (mit Normwerten)
+#   multivibrator        astabiler Multivibrator: Frequenz, Sättigung, Basis-Sperrspannung
+#   funktionsgenerator   Rechteck-/Dreieckgenerator: Frequenz, Amplitude (oder C für eine Frequenz)
+#   watchdog             Trigger-Abstand und Bootzeit gegen den kürzesten Timeout prüfen
+#   darlington           Einzeltransistor oder Darlington: Basiswiderstand, Verlustleistung
+#   endstufe             Gegentakt Klasse B: Ausgangsleistung, Wirkungsgrad, Verlust je Transistor
 #   schaltung_*          INTERAKTIVE Schaltpläne (schaltungen/grafiken.py)
 #
 # Spannungsteiler und Brücke gibt es schon (widerstand_rechner.py, messtechnik/rechner.py)
@@ -60,6 +67,8 @@ from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt            
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import filter_mathe as fm                                       # -> schaltungen/filter_mathe.py
 from schaltungen import mess_mathe as mm                                         # -> schaltungen/mess_mathe.py
+from schaltungen import oszillator_mathe as osm                                  # -> schaltungen/oszillator_mathe.py
+from schaltungen import endstufen_mathe as esm                                   # -> schaltungen/endstufen_mathe.py
 from schaltungen import schnittstellen_mathe as sm                               # -> schaltungen/schnittstellen_mathe.py
 from schaltungen import netzteil_mathe as ntm                                    # -> schaltungen/netzteil_mathe.py
 from schaltungen import netzwerk_mathe as nm                                     # -> schaltungen/netzwerk_mathe.py
@@ -72,6 +81,9 @@ from schaltungen.grafiken_mess import (DmsKetteSchaltung, NtcTeilerSchaltung,   
                                        PtLeitungSchaltung)
 from schaltungen.grafiken_schnittstellen import (AdcEingangSchaltung, GateTreiberSchaltung,  # -> grafiken_schnittstellen.py
                                                  HBrueckeSchaltung, OptokopplerSchaltung, PegelwandlerSchaltung)
+from schaltungen.grafiken_oszillator import (FunktionsgeneratorSchaltung,      # -> schaltungen/grafiken_oszillator.py
+                                             MultivibratorSchaltung, Ne555Schaltung, WatchdogSchaltung)
+from schaltungen.grafiken_endstufen import DarlingtonSchaltung, GegentaktSchaltung  # -> grafiken_endstufen.py
 from schaltungen.grafiken_netzteil import (LinearreglerSchaltung, QuelleSchaltung,  # -> schaltungen/grafiken_netzteil.py
                                            SchaltreglerSchaltung, StrombegrenzungSchaltung,
                                            StromquelleOpvSchaltung, VirtuelleMasseSchaltung)
@@ -1352,6 +1364,217 @@ def adc_eingang(master):
 
 
 # =============================================================================
+# TIMER UND OSZILLATOREN
+# =============================================================================
+NE555_ARTEN = ["astabil", "astabil mit Diode parallel zu R2", "monostabil (R1 = R)"]
+
+
+def _ne555(w):
+    if w["C"] is None or w["R1"] is None:
+        raise RechnerFehler("R1 und C eingeben (astabil zusätzlich R2)")
+    if w["art"].startswith("monostabil"):
+        e = _fehler_umwandeln(osm.ne555_mono, w["R1"], w["C"])
+        return [f"t = ln3 · R · C = 1.1 · {fmt(w['R1'], 'widerstand')} · {fmt(w['C'], 'kapazitaet')} = {fmt(e['t'], 'zeit')}",
+                "Trigger: Pin 2 kurz unter ⅓ U_B ziehen; der Impuls läuft immer ganz durch (nicht nachtriggerbar)"]
+    if w["R2"] is None:
+        raise RechnerFehler("Für astabil auch R2 eingeben")
+    diode = "Diode" in w["art"]
+    e = _fehler_umwandeln(osm.ne555_astabil, w["R1"], w["R2"], w["C"], diode)
+    zeilen = [(f"t_H = ln2 · R1 · C = {fmt(e['t_h'], 'zeit')}" if diode else
+               f"t_H = ln2 · (R1 + R2) · C = {fmt(e['t_h'], 'zeit')}") + f"   ·   t_L = ln2 · R2 · C = {fmt(e['t_l'], 'zeit')}",
+              f"f = 1 / (t_H + t_L) = {fmt(e['f'], 'frequenz')}   ·   Tastgrad = {e['tastgrad'] * 100:.1f} %"]
+    if w["R1"] < 1e3:
+        zeilen.append("⚠ R1 < 1 kΩ: zu viel Strom in den Entladetransistor (Pin 7)")
+    return zeilen
+
+
+def ne555(master):
+    return FormelRechner(
+        master, "NE555: Frequenz und Impulsdauer", "Astabil (Taktgeber) oder monostabil (Monoflop)",
+        felder=[("art", "Betriebsart", "auswahl", {"werte": NE555_ARTEN}),
+                ("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("R2", "R2 (astabil)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 47"}),
+                ("C", "C", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"})],
+        berechnen=_ne555, formel="astabil: f = 1.44 / ((R1 + 2·R2) · C)     monostabil: t = 1.1 · R · C")
+
+
+def _ne555_auslegen(w):
+    if None in (w["f"], w["D"], w["C"]):
+        raise RechnerFehler("Frequenz, Tastgrad und C eingeben")
+    e = _fehler_umwandeln(osm.ne555_astabil_auslegen, w["f"], w["D"] / 100, w["C"])
+    n1 = normreihen.naechste_werte(e["r1"], "E24")[2]
+    n2 = normreihen.naechste_werte(e["r2"], "E24")[2]
+    ist = osm.ne555_astabil(n1, n2, w["C"], e["diode"])
+    zeilen = [f"{'Mit Diode parallel zu R2 (Tastgrad ≤ 50 %)' if e['diode'] else 'Ohne Diode (Tastgrad > 50 %)'}",
+              f"R1 = {fmt(e['r1'], 'widerstand')} → E24 {fmt(n1, 'widerstand')}   ·   R2 = {fmt(e['r2'], 'widerstand')} "
+              f"→ E24 {fmt(n2, 'widerstand')}",
+              f"Mit Normwerten: f = {fmt(ist['f'], 'frequenz')}, Tastgrad {ist['tastgrad'] * 100:.1f} %"]
+    if n1 < 1e3:
+        zeilen.append("⚠ R1 < 1 kΩ – grösseres C wählen")
+    if n2 > 10e6 or n1 > 10e6:
+        zeilen.append("⚠ Widerstände über 10 MΩ – kleineres C wählen (Leckströme)")
+    return zeilen
+
+
+def ne555_auslegen(master):
+    return FormelRechner(
+        master, "NE555 astabil auslegen", "R1 und R2 für eine gewünschte Frequenz und einen Tastgrad",
+        felder=[("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 1k"}),
+                ("D", "Tastgrad in %", "zahl", {"platzhalter": "z.B. 60"}),
+                ("C", "gewähltes C", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"})],
+        berechnen=_ne555_auslegen, formel="D > 50 %: R1 = (2D − 1) / (ln2·f·C), R2 = (1 − D) / (ln2·f·C)")
+
+
+def _multivibrator(w):
+    if None in (w["Ub"], w["Rc"], w["Rb"], w["C"]):
+        raise RechnerFehler("U_B, R_C, R_B und C eingeben (symmetrisch)")
+    beta = w["beta"] or 100.0
+    e = _fehler_umwandeln(osm.multivibrator, w["Ub"], w["Rc"], w["Rb"], w["Rb"], w["C"], w["C"], beta)
+    zeilen = [f"t = ln((2·U_B − 0.7) / (U_B − 0.7)) · R_B · C = {e['faktor']:.3f} · R_B · C = {fmt(e['t1'], 'zeit')} je Hälfte",
+              f"f = 1 / (2 · t) = {fmt(e['f'], 'frequenz')}",
+              f"Sättigung: β · I_B = {fmt(beta * e['i_b'], 'strom')} gegen I_C = {fmt(e['i_c'], 'strom')} → "
+              + ("✓" if e["gesaettigt"] else f"⚠ R_B ≤ β · R_C = {fmt(beta * w['Rc'], 'widerstand')} wählen")]
+    if e["u_be_min"] < -5:
+        zeilen.append(f"⚠ Basis springt auf {fmt(e['u_be_min'], 'spannung')} – über 5 V Sperrspannung: Diode in Reihe zur Basis")
+    return zeilen
+
+
+def multivibrator(master):
+    return FormelRechner(
+        master, "Astabiler Multivibrator", "Zwei Transistoren als Taktgeber (symmetrisch)",
+        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 5"}),
+                ("Rc", "R_C", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 1"}),
+                ("Rb", "R_B", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 47"}),
+                ("C", "C", "kapazitaet", {"einheit": "µF", "platzhalter": "z.B. 10"}),
+                ("beta", "β (opt.)", "zahl", {"platzhalter": "100"})],
+        berechnen=_multivibrator, formel="f ≈ 1 / (2 · ln2 · R_B · C) = 0.72 / (R_B · C)     R_B ≤ β · R_C")
+
+
+def _funktionsgenerator(w):
+    if None in (w["R1"], w["R2"], w["R"], w["Us"]):
+        raise RechnerFehler("R1, R2, R und U_sat eingeben (dazu C oder die gewünschte Frequenz)")
+    if w["C"] is None and w["f"] is None:
+        raise RechnerFehler("C oder die gewünschte Frequenz f eingeben")
+    c = w["C"]
+    zeilen = []
+    if c is None:
+        if w["f"] <= 0 or w["R1"] <= 0 or w["R"] <= 0:
+            raise RechnerFehler("Werte müssen grösser als 0 sein")
+        c = w["R2"] / (4 * w["R1"] * w["R"] * w["f"])
+        n = normreihen.naechste_werte(c, "E12")[2]
+        zeilen.append(f"C = R2 / (4 · R1 · R · f) = {fmt(c, 'kapazitaet')} → E12 {fmt(n, 'kapazitaet')}")
+        c = n
+    e = _fehler_umwandeln(osm.funktionsgenerator, w["R1"], w["R2"], w["R"], c, w["Us"])
+    zeilen += [f"f = R2 / (4 · R1 · R · C) = {fmt(e['f'], 'frequenz')}",
+               f"Dreieck: û = U_sat · R1 / R2 = {fmt(e['u_d'], 'spannung')}   ·   Rechteck: ±{fmt(w['Us'], 'spannung')}",
+               "Bei hohen Frequenzen begrenzt die Slew-Rate des OPV die Rechteckflanken"]
+    return zeilen
+
+
+def funktionsgenerator(master):
+    return FormelRechner(
+        master, "Rechteck-/Dreieckgenerator", "Schmitt-Trigger + Integrator mit zwei OPV",
+        felder=[("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("R2", "R2", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 20"}),
+                ("R", "R (Integrator)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+                ("C", "C (oder leer)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"}),
+                ("f", "… oder gewünschte f", "frequenz", {"platzhalter": "optional"}),
+                ("Us", "Ausgang ±U_sat", "spannung", {"platzhalter": "z.B. 12"})],
+        berechnen=_funktionsgenerator, formel="f = R2 / (4 · R1 · R · C)     û_Dreieck = U_sat · R1 / R2")
+
+
+def _watchdog(w):
+    if None in (w["twd"], w["ttr"]):
+        raise RechnerFehler("Timeout und Trigger-Abstand eingeben")
+    tol = (w["tol"] if w["tol"] is not None else 30.0) / 100
+    if not 0 <= tol < 1:
+        raise RechnerFehler("Toleranz 0 … 99 %")
+    t_min, t_max = w["twd"] * (1 - tol), w["twd"] * (1 + tol)
+    boot = w["boot"] or 0.0
+    zeilen = [f"Timeout streut von {fmt(t_min, 'zeit')} bis {fmt(t_max, 'zeit')} (±{tol * 100:g} %)",
+              f"Trigger-Abstand {fmt(w['ttr'], 'zeit')} " + ("✓ < kürzester Timeout" if w["ttr"] < t_min else
+                                                             "❌ zu gross – es gibt Resets im Normalbetrieb"),
+              f"Empfehlung: höchstens etwa {fmt(t_min / 2, 'zeit')} (halber kürzester Timeout, Reserve für lange Programmteile)"]
+    if boot:
+        ok = boot + w["ttr"] < t_min
+        zeilen.append(f"Nach dem Reset: Bootzeit + erster Trigger = {fmt(boot + w['ttr'], 'zeit')} "
+                      + ("✓" if ok else "❌ länger als der Timeout → Reset-Schleife"))
+    if w["tf"] is not None:
+        zeilen.append(f"Fenster: frühester Trigger nach {fmt(w['tf'], 'zeit')} → Trigger-Abstand muss dazwischen liegen "
+                      + ("✓" if w["tf"] < w["ttr"] < t_min else "❌"))
+    return zeilen
+
+
+def watchdog(master):
+    return FormelRechner(
+        master, "Watchdog prüfen", "Passt der Trigger-Abstand zum Timeout – auch im ungünstigsten Fall?",
+        felder=[("twd", "Timeout (typisch)", "zeit", {"einheit": "ms", "platzhalter": "z.B. 1600"}),
+                ("tol", "Toleranz in % (opt.)", "zahl", {"platzhalter": "30"}),
+                ("ttr", "Trigger-Abstand im Programm", "zeit", {"einheit": "ms", "platzhalter": "z.B. 500"}),
+                ("boot", "Bootzeit (opt.)", "zeit", {"einheit": "ms", "platzhalter": "optional"}),
+                ("tf", "Fenster: frühester Trigger (opt.)", "zeit", {"einheit": "ms", "platzhalter": "optional"})],
+        berechnen=_watchdog, formel="Trigger-Abstand < Timeout · (1 − Toleranz)     Boot + Trigger < Timeout,min")
+
+
+# =============================================================================
+# ENDSTUFEN
+# =============================================================================
+def _darlington(w):
+    if None in (w["I"], w["Ust"]):
+        raise RechnerFehler("Laststrom und Steuerspannung eingeben")
+    b1 = w["b1"] or 100.0
+    b2 = w["b2"] or 50.0
+    zeilen = []
+    for art in ("Einzeltransistor", "Darlington"):
+        e = _fehler_umwandeln(esm.darlington, art, w["Ust"], 1.0, w["I"], b1, b2)
+        if w["Ust"] <= e["u_bes"]:
+            zeilen.append(f"{art}: Steuerspannung {fmt(w['Ust'], 'spannung')} reicht nicht (U_BE = {e['u_bes']:.1f} V)")
+            continue
+        i_b = 2 * w["I"] / e["beta"]                                  # Übersteuerung 2
+        r_b = (w["Ust"] - e["u_bes"]) / i_b
+        u_ce = 0.2 if art == "Einzeltransistor" else 0.9
+        zeilen.append(f"{art}: β = {e['beta']:.0f}, I_B = 2 · I / β = {fmt(i_b, 'strom')}, "
+                      f"R_B ≤ {fmt(r_b, 'widerstand')}, U_CE ≈ {u_ce} V → P = {fmt(u_ce * w['I'], 'leistung')}")
+    zeilen.append("µC-Pins liefern meist höchstens 10 … 20 mA – mehr Basisstrom braucht einen Darlington oder MOSFET")
+    return zeilen
+
+
+def darlington(master):
+    return FormelRechner(
+        master, "Darlington oder Einzeltransistor?", "Basiswiderstand und Verlust für einen Laststrom",
+        felder=[("I", "Laststrom I", "strom", {"platzhalter": "z.B. 2"}),
+                ("Ust", "Steuerspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
+                ("b1", "β T1 (opt.)", "zahl", {"platzhalter": "100"}),
+                ("b2", "β T2 (opt.)", "zahl", {"platzhalter": "50"})],
+        berechnen=_darlington, formel="Darlington: β ≈ β1 · β2, U_BE ≈ 1.4 V, U_CE ≥ 0.9 V     R_B = (U_St − U_BE) / (2 · I / β)")
+
+
+def _endstufe(w):
+    if w["Ub"] is None or w["Rl"] is None:
+        raise RechnerFehler("Versorgung ±U_B und Last R_L eingeben, dazu Ausgangsleistung oder Amplitude")
+    if w["P"] is None and w["u"] is None:
+        raise RechnerFehler("Gewünschte Leistung P oder Amplitude û eingeben")
+    e = _fehler_umwandeln(esm.endstufe_leistung, w["Ub"], w["Rl"], w["u"], w["P"])
+    zeilen = [f"û = {fmt(e['u_hat'], 'spannung')} (möglich bis ≈ U_B − 1 V = {fmt(e['u_hat_max'], 'spannung')}) "
+              + ("✓" if e["reicht"] else "❌ U_B zu klein"),
+              f"P_aus = û² / (2 · R_L) = {fmt(e['p_aus'], 'leistung')}   ·   Spitzenstrom {fmt(e['i_spitze'], 'strom')}",
+              f"P_auf = 2 · U_B · û / (π · R_L) = {fmt(e['p_auf'], 'leistung')}   ·   η = {e['eta'] * 100:.1f} % (max. 78.5 %)",
+              f"Verlust beide Transistoren: {fmt(e['p_v'], 'leistung')}   ·   schlimmster Fall (û = 2·U_B/π): "
+              f"{fmt(e['p_v_max'], 'leistung')} → je Transistor {fmt(e['p_v_max'] / 2, 'leistung')}"]
+    return zeilen
+
+
+def endstufe(master):
+    return FormelRechner(
+        master, "Gegentakt-Endstufe: Leistung und Wirkungsgrad", "Klasse B an ±U_B, idealisiert",
+        felder=[("Ub", "Versorgung ±U_B", "spannung", {"platzhalter": "z.B. 15"}),
+                ("Rl", "Last R_L", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 8"}),
+                ("P", "gewünschte Leistung P (oder û)", "leistung", {"platzhalter": "z.B. 10"}),
+                ("u", "… oder Amplitude û", "spannung", {"platzhalter": "optional"})],
+        berechnen=_endstufe, formel="P = û² / (2R_L)     η = π/4 · û / U_B     P_V,max = 2·U_B² / (π²·R_L)")
+
+
+# =============================================================================
 # REGISTRIERUNG (IDs müssen sich von allen anderen unterscheiden)
 # =============================================================================
 RECHNER = {
@@ -1431,4 +1654,17 @@ RECHNER = {
     "schaltung_h_bruecke": HBrueckeSchaltung,
     "schaltung_gate_treiber": GateTreiberSchaltung,
     "schaltung_adc_eingang": AdcEingangSchaltung,
+    "ne555": ne555,
+    "ne555_auslegen": ne555_auslegen,
+    "multivibrator": multivibrator,
+    "funktionsgenerator": funktionsgenerator,
+    "watchdog": watchdog,
+    "darlington": darlington,
+    "endstufe": endstufe,
+    "schaltung_ne555": Ne555Schaltung,
+    "schaltung_multivibrator": MultivibratorSchaltung,
+    "schaltung_funktionsgenerator": FunktionsgeneratorSchaltung,
+    "schaltung_watchdog": WatchdogSchaltung,
+    "schaltung_darlington": DarlingtonSchaltung,
+    "schaltung_gegentakt": GegentaktSchaltung,
 }

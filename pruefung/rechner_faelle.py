@@ -27,7 +27,7 @@ from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
 from schaltungen import netzteil_mathe as ntm, filter_mathe as fim, mess_mathe as msm
-from schaltungen import schnittstellen_mathe as snt
+from schaltungen import schnittstellen_mathe as snt, oszillator_mathe as osz, endstufen_mathe as esz
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
 from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm, busse_mathe as bm
 from schaltungen import verstaerker_mathe as vm
@@ -619,6 +619,26 @@ FAELLE = [
     ("adc_eingang", {"ts": "1", "cs": "10", "N": "12"}, ["= 9.01 Zeitkonstanten", "= 10.1 kΩ", "= 81.91 nF"],
      "12-Bit, 10 pF, 1 µs"),
     ("adc_eingang", {"ts": "1", "cs": "10", "N": "12.5"}, fehler("ganze Zahl"), "halbe Bits"),
+    ("ne555", {"art": "astabil", "R1": "1", "R2": "10", "C": "100"}, ["= 762.5 µs", "= 693.1 µs", "= 687 Hz",
+                                                                       "Tastgrad = 52.4 %"], "f = 1.44 / ((R1 + 2R2)C)"),
+    ("ne555", {"art": "monostabil (R1 = R)", "R1": "100", "C": "10000"}, ["= 1.099 s"], "1.1 · 100 kΩ · 10 µF"),
+    ("ne555", {"art": "astabil", "R1": "1", "C": "100"}, fehler("auch R2"), "astabil ohne R2"),
+    ("ne555_auslegen", {"f": "1k", "D": "60", "C": "100"}, ["E24 3 kΩ", "E24 5.6 kΩ", "Tastgrad 60.6 %"], "60 %"),
+    ("ne555_auslegen", {"f": "1k", "D": "25", "C": "100"}, ["Mit Diode", "E24 3.6 kΩ", "E24 11 kΩ"], "25 % mit Diode"),
+    ("multivibrator", {"Ub": "9", "Rc": "1", "Rb": "47", "C": "10"}, ["= 345.2 ms je Hälfte", "f = 1 / (2 · t) = 1.448 Hz",
+                                                                     "Diode in Reihe zur Basis"], "9-V-Blinker"),
+    ("funktionsgenerator", {"R1": "10", "R2": "20", "R": "10", "f": "1k", "Us": "12"},
+     ["= 50 nF → E12 47 nF", "= 1.064 kHz", "= 6 V"], "C für 1 kHz"),
+    ("funktionsgenerator", {"R1": "20", "R2": "10", "R": "10", "C": "100", "Us": "12"}, fehler("R1 muss kleiner"),
+     "R1 > R2 schwingt nicht"),
+    ("watchdog", {"twd": "1600", "tol": "30", "ttr": "500", "boot": "300"},
+     ["von 1.12 s bis 2.08 s", "✓ < kürzester Timeout", "= 800 ms ✓"], "TPS-ähnlich 1.6 s ±30 %"),
+    ("watchdog", {"twd": "1600", "tol": "30", "ttr": "1500"}, ["❌ zu gross"], "Trigger zu selten"),
+    ("darlington", {"I": "2", "Ust": "3.3"}, ["R_B ≤ 65 Ω", "P = 400 mW", "β = 5150", "P = 1.8 W"],
+     "2 A an 3.3 V"),
+    ("endstufe", {"Ub": "15", "Rl": "8", "P": "10"}, ["û = 12.65 V", "= 15.1 W", "η = 66.2 %", "je Transistor 2.85 W"],
+     "10 W an 8 Ω"),
+    ("endstufe", {"Ub": "12", "Rl": "8", "P": "20"}, ["❌ U_B zu klein"], "20 W an ±12 V geht nicht"),
     ("mid", {"D": "100", "v": "1", "B": "10"}, ["A = π·D²/4 = 78.54 cm²", "Q = 28.27 m³/h = 471.2 l/min", "U = B · D · v ≈ 1 mV"],
      "π · (0.1 m)² / 4;  1 m/s · A;  10 mT · 0.1 m · 1 m/s"),
 ]
@@ -929,6 +949,21 @@ FUNKTIONEN = [
     ("Gate: Plateaudauer Q_gd·R_G/(U−U_pl)", lambda: snt.gate_ladung(10, 10, 15e-9, 21e-9, 71e-9, 5.5)["t2"], 4.6667e-8),
     ("ADC ohne C_ext, 10 kΩ: 0.42 LSB", lambda: snt.adc_abtastung(3.0, 10e3, 0, 1e3, 10e-12, 1e-6, 12, 3.3)["fehler_lsb"], 0.4196),
     ("ADC mit 10 nF: 3.7 LSB (zu klein)", lambda: snt.adc_abtastung(3.0, 10e3, 10e-9, 1e3, 10e-12, 1e-6, 12, 3.3)["fehler_lsb"], 3.6837),
+
+    # ---- Timer, Oszillatoren, Endstufen ----
+    ("NE555 astabil 1k/10k/100n = 687 Hz", lambda: osz.ne555_astabil(1e3, 10e3, 100e-9)["f"], 686.998),
+    ("NE555 mit Diode, R1 = R2: Tastgrad 50 %", lambda: osz.ne555_astabil(10e3, 10e3, 1e-7, True)["tastgrad"], 0.5),
+    ("NE555 u_C zwischen U/3 und 2U/3", lambda: round(min(y for _t, y in osz.ne555_kurven("astabil", 9, 1e3, 1e4, 1e-7)["u_c"]), 3), 3.0),
+    ("Funktionsgenerator f = R2 / (4 R1 R C)", lambda: osz.funktionsgenerator(10e3, 20e3, 10e3, 100e-9, 12)["f"], 500.0),
+    ("Watchdog: Hänger -> genau ein Reset", lambda: len(osz.watchdog_zeitachse(0.1, 1.0, 1.5, 0.05, 0.2, 0.3)["ereignisse"]), 1),
+    ("Watchdog: Bootzeit zu lang -> Schleife", lambda: osz.watchdog_zeitachse(0.3, 1.0, 1.5, 0.05, 0.6, 0.3)["bootschleife"], True),
+    ("Fenster-Watchdog: zu früher Trigger", lambda: osz.watchdog_zeitachse(0.1, 1.0, 9, 0.05, 0.2, 0.3, True, 0.2)["ereignisse"][0][1],
+     "Trigger zu früh (Fenster) → Reset"),
+    ("Darlington β = β1β2 + β1 + β2", lambda: esz.darlington("Darlington", 5, 1e3, 0.1, 100, 50)["beta"], 5150.0),
+    ("Klasse B: Totzone ±0.65 V", lambda: esz.gegentakt_kennlinie("Klasse B", 0.5), 0.0),
+    ("Klasse AB mit 1.3 V: keine Totzone", lambda: esz.gegentakt_kennlinie("Klasse AB", 0.5, 1.3), 0.5),
+    ("Klasse B klein: THD > 40 %", lambda: esz.gegentakt("Klasse B", 12, 1.0, 8)["thd"] > 0.4, True),
+    ("Klasse B: η = π/4 bei û = U_B", lambda: esz.endstufe_leistung(10, 8, 10)["eta"], 0.785398),
 
     # ---- Schaltvorgänge RC / RL (Lernansicht) ----
     ("RC laden nach 1 τ: Spannung", lambda: sv.rc(1e-3, 1e3, 1e-6, 0, 5)[0], 5 * (1 - 0.36787944)),

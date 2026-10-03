@@ -854,6 +854,71 @@ RECHNER_INFO = {
         "beschreibung": "Abtastkondensator laden ohne/mit C_ext, Restfehler in LSB.",
         "stichworte": ["ADC", "Abtastkondensator", "Simulation"],
         "wissensseite": "adc_eingang_beschaltung"},
+    "ne555": {
+        "titel": "NE555: Frequenz und Impulsdauer", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Astabil (mit/ohne Diode) und monostabil: Zeiten, Frequenz, Tastgrad.",
+        "stichworte": ["NE555", "555", "Timer", "astabil", "monostabil", "Monoflop"],
+        "wissensseite": "ne555_timer"},
+    "ne555_auslegen": {
+        "titel": "NE555 astabil auslegen", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "R1 und R2 für Frequenz und Tastgrad bei gegebenem C, mit Normwerten.",
+        "stichworte": ["NE555", "Tastgrad", "Frequenz", "auslegen"],
+        "wissensseite": "ne555_timer"},
+    "multivibrator": {
+        "titel": "Astabiler Multivibrator", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Frequenz, Sättigung und Basis-Sperrspannung der Transistor-Kippschaltung.",
+        "stichworte": ["Multivibrator", "Blinker", "Kippschaltung", "astabil"],
+        "wissensseite": "astabiler_multivibrator"},
+    "funktionsgenerator": {
+        "titel": "Rechteck-/Dreieckgenerator", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Frequenz und Dreieck-Amplitude, oder C für eine gewünschte Frequenz.",
+        "stichworte": ["Funktionsgenerator", "Dreieck", "Rechteck", "Schmitt-Trigger", "Integrator"],
+        "wissensseite": "rechteck_dreieck_generator"},
+    "watchdog": {
+        "titel": "Watchdog prüfen", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Trigger-Abstand, Bootzeit und Fenster gegen den kürzesten Timeout prüfen.",
+        "stichworte": ["Watchdog", "WDT", "Timeout", "Reset", "Fenster-Watchdog"],
+        "wissensseite": "watchdog_schaltung"},
+    "darlington": {
+        "titel": "Darlington oder Einzeltransistor?", "kategorie": "Schaltungen", "unterkategorie": "Endstufen",
+        "beschreibung": "Basiswiderstand und Verlustleistung für einen Laststrom, beide Varianten.",
+        "stichworte": ["Darlington", "Basiswiderstand", "ULN2003", "Verlustleistung"],
+        "wissensseite": "darlington_schaltung"},
+    "endstufe": {
+        "titel": "Gegentakt-Endstufe: Leistung und Wirkungsgrad", "kategorie": "Schaltungen", "unterkategorie": "Endstufen",
+        "beschreibung": "Klasse B: Ausgangsleistung, aufgenommene Leistung, η und Verlust je Transistor.",
+        "stichworte": ["Endstufe", "Gegentakt", "Klasse B", "Wirkungsgrad", "Audio", "Verlustleistung"],
+        "wissensseite": "gegentakt_endstufe"},
+    "schaltung_ne555": {
+        "titel": "NE555 (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Astabil, mit Diode, monostabil: u_C zwischen ⅓ und ⅔ U_B und Ausgang.",
+        "stichworte": ["NE555", "Timer", "Simulation"],
+        "wissensseite": "ne555_timer"},
+    "schaltung_multivibrator": {
+        "titel": "Astabiler Multivibrator (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "U_CE beider Transistoren und der negative Basis-Ausschlag über der Zeit.",
+        "stichworte": ["Multivibrator", "Kippschaltung", "Blinker", "Simulation"],
+        "wissensseite": "astabiler_multivibrator"},
+    "schaltung_funktionsgenerator": {
+        "titel": "Rechteck-/Dreieckgenerator (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Schmitt-Trigger + Integrator: Rechteck und Dreieck über der Zeit.",
+        "stichworte": ["Funktionsgenerator", "Dreieck", "Rechteck", "Simulation"],
+        "wissensseite": "rechteck_dreieck_generator"},
+    "schaltung_watchdog": {
+        "titel": "Watchdog (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Timer & Oszillatoren",
+        "beschreibung": "Trigger, Zähler und Reset über der Zeit, normal und als Fenster-Watchdog.",
+        "stichworte": ["Watchdog", "Reset", "Simulation"],
+        "wissensseite": "watchdog_schaltung"},
+    "schaltung_darlington": {
+        "titel": "Darlington-Schalter (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Endstufen",
+        "beschreibung": "Einzeltransistor gegen Darlington: Sättigung, U_CE und Verlust über dem Laststrom.",
+        "stichworte": ["Darlington", "Schalter", "Verlustleistung", "Simulation"],
+        "wissensseite": "darlington_schaltung"},
+    "schaltung_gegentakt": {
+        "titel": "Gegentakt-Endstufe B/AB (interaktiv)", "kategorie": "Schaltungen", "unterkategorie": "Endstufen",
+        "beschreibung": "Übernahmeverzerrung, Kennlinie, Klirrfaktor und Wirkungsgrad.",
+        "stichworte": ["Gegentakt", "Klasse AB", "Klirrfaktor", "Simulation"],
+        "wissensseite": "gegentakt_endstufe"},
     "bjt_arbeitspunkt": {
         "titel": "Arbeitspunkt Emitterschaltung", "kategorie": "Schaltungen", "unterkategorie": "Verstärker",
         "beschreibung": "Basisteiler, Kollektorstrom, U_CE und Verstärkung einer Emitterschaltung.",
