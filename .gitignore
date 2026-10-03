@@ -10,6 +10,9 @@ env/
 *.log
 haenger_log.txt
 
+# Persönliche Daten (Zuletzt geöffnet, Favoriten) -> core/benutzerdaten.py
+benutzerdaten.json
+
 # Editor / System
 .vscode/
 .idea/

@@ -35,6 +35,7 @@ from datetime import datetime
 import customtkinter as ctk
 
 import config                                   # -> config.py
+from core import benutzerdaten                  # -> core/benutzerdaten.py (Zuletzt geöffnet, Favoriten)
 from gui import (bauteile_gui, digitaltechnik_gui, messtechnik_gui,               # -> Ordner gui/
                  programmieren_gui, rechner_gui, schaltungen_gui, server_gui, startseite_gui)
 
@@ -44,8 +45,8 @@ ctk.set_default_color_theme("blue")
 # (Name, Datei mit create(), Icon, Beschreibung) -> neue Zeile = neuer Bereich
 BEREICHE = [
     ("Bauteile",      bauteile_gui,      "🔧", "Widerstand, Kondensator, Diode, Spule, ..."),
-    ("Schaltungen",   schaltungen_gui,   "🔌", "Grundschaltungen und Filter"),
-    ("Digitaltechnik", digitaltechnik_gui, "💾", "Zahlensysteme, Codes, Bitmasken, Logikpegel"),
+    ("Schaltungen",   schaltungen_gui,   "🔌", "Von Spannungsteiler bis Endstufe – mit interaktiven Schaltplänen"),
+    ("Digitaltechnik", digitaltechnik_gui, "💾", "Zahlen, Logik, Schaltnetze, Schaltwerke, Busse und Speicher"),
     ("Rechner",       rechner_gui,       "🧮", "Alle Rechner an einem Ort – Suche, nach Thema oder A–Z"),
     ("Programmieren", programmieren_gui, "💻", "Python, C++ und C# nachschlagen - mit Suche"),
     ("Messtechnik",   messtechnik_gui,   "📏", "Messgeräte, Messfehler, Sensoren, AD-Wandler"),
@@ -78,7 +79,7 @@ class App(ctk.CTk):
 
         # ---- Startseite -> gui/startseite_gui.py ----
         self.startseite = ctk.CTkFrame(self, fg_color=config.FARBEN["hintergrund"], corner_radius=0)
-        startseite_gui.create(self.startseite, self)
+        self.startseite_inhalt = startseite_gui.create(self.startseite, self)
 
         self.show_startseite()
 
@@ -86,6 +87,7 @@ class App(ctk.CTk):
         """Bereich beim ersten Öffnen bauen -> gui/<bereich>_gui.py create(parent, app)."""
         if name not in self.seiten:
             self.seiten[name] = self.module[name].create(self.tabs.tab(name), self)
+            self.seiten[name].bereich_name = name          # für Zuletzt geöffnet / Favoriten
 
     def show_tab(self, tab_name):
         self.startseite.grid_forget()
@@ -96,6 +98,19 @@ class App(ctk.CTk):
     def show_startseite(self):
         self.tabs.grid_forget()
         self.startseite.grid(row=0, column=0, sticky="nsew")
+        if getattr(self, "startseite_inhalt", None) is not None:
+            self.startseite_inhalt.aktualisieren()          # neue Favoriten / zuletzt geöffnete Seiten
+
+    def geoeffnet(self, seite, art, eintrag_id, titel, icon):
+        """
+        Ein Bereich meldet: Seite bzw. Rechner wurde geöffnet -> "Zuletzt geöffnet" (core/benutzerdaten.py).
+        Gibt den Eintrag zurück (für den ⭐-Knopf der Kopfleiste).
+        """
+        eintrag = {"art": art, "bereich": getattr(seite, "bereich_name", ""), "id": eintrag_id, "titel": titel,
+                   "icon": icon}
+        if eintrag["bereich"]:
+            benutzerdaten.zuletzt_merken(eintrag)
+        return eintrag
 
     def modus_wechseln(self, dunkel):
         """Dark/Light Mode (Schalter auf der Startseite)."""

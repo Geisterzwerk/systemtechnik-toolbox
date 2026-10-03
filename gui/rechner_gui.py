@@ -30,6 +30,7 @@ import config                                                          # -> conf
 from bauteile import rechner                                           # -> bauteile/rechner/__init__.py
 from bauteile.rechner.rechner_info import (KATEGORIEN, RECHNER_INFO,   # -> bauteile/rechner/rechner_info.py
                                            seiten_mit_rechner, wissensseiten_laden)
+from core.benutzerdaten import FavoritKnopf                            # -> core/benutzerdaten.py
 from core.layout import Karte, ResponsiveGrid, ScrollSeite, Stapel, WrapLabel, seiten_kopf   # -> core/layout.py
 from core.widgets import Tooltip, info_box                             # -> core/widgets.py
 from programmieren.engine.suche import Suchmaschine                    # -> programmieren/engine/suche.py
@@ -75,6 +76,7 @@ class RechnerBereich(ctk.CTkFrame):
         super().__init__(master, fg_color=config.FARBEN["hintergrund"], corner_radius=0)
         self.app = app
         self.aktueller = None
+        self.aktueller_eintrag = None            # für ⭐ (Favorit) - gesetzt von main.py App.geoeffnet
         self.verlauf = []
         self.knoepfe = {}
         self.sortierung = THEMATISCH
@@ -128,7 +130,10 @@ class RechnerBereich(ctk.CTkFrame):
         self.sortierschalter = ctk.CTkSegmentedButton(leiste, values=[THEMATISCH, ALPHABETISCH], height=36,
                                                       command=self._sortierung_setzen)
         self.sortierschalter.set(THEMATISCH)
-        self.sortierschalter.grid(row=0, column=4, padx=(0, 12))   # (kein Tooltip: CTkSegmentedButton kann kein bind)
+        self.sortierschalter.grid(row=0, column=4, padx=(0, 8))   # (kein Tooltip: CTkSegmentedButton kann kein bind)
+        self.favorit_knopf = FavoritKnopf(leiste, lambda: self.aktueller_eintrag)
+        self.favorit_knopf.grid(row=0, column=5, padx=(0, 12))
+        Tooltip(self.favorit_knopf, "Rechner als Favorit merken (erscheint auf der Startseite)")
 
     # =========================================================================
     # NAVIGATION (links)
@@ -241,6 +246,8 @@ class RechnerBereich(ctk.CTkFrame):
     # =========================================================================
     def _uebersicht_zeigen(self):
         self.aktueller = None
+        self.aktueller_eintrag = None
+        self.favorit_knopf.aktualisieren()
         self._markieren()
         body = self.inhalt.neue_seite()
         s = Stapel(body)
@@ -293,6 +300,8 @@ class RechnerBereich(ctk.CTkFrame):
         s.add(rechner.erstellen(body, rechner_id))           # -> bauteile/rechner/__init__.py (keine Kopie!)
         s.add(WrapLabel(body, text="Stichworte: " + ", ".join(info["stichworte"]), font=config.FONT_KLEIN,
                         text_color=config.FARBEN["text_leise"]), pady=(0, 0))
+        self.aktueller_eintrag = self.app.geoeffnet(self, "rechner", rechner_id, info["titel"], icon)
+        self.favorit_knopf.aktualisieren()
 
     def _verweise(self, s, body, rechner_id, info):
         """Knöpfe zur erklärenden Wissensseite und zu weiteren Seiten mit diesem Rechner."""

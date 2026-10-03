@@ -24,6 +24,7 @@
 import customtkinter as ctk
 
 import config                                                            # -> config.py
+from core.benutzerdaten import FavoritKnopf                              # -> core/benutzerdaten.py
 from core.layout import ScrollSeite                                      # -> core/layout.py
 from core.widgets import Tooltip                                         # -> core/widgets.py
 from programmieren.engine import lader                                   # -> engine/lader.py
@@ -61,6 +62,7 @@ class ProgrammierSeite(ctk.CTkFrame):
         self.verlauf = []
         self.offene_kategorien = set()
         self.themen_buttons = {}
+        self.aktueller_eintrag = None            # für ⭐ (Favorit) - gesetzt von main.py App.geoeffnet
 
         # ---- Daten laden + Suche vorbereiten ----
         self.kategorien, self.themen, self.ladefehler = lader.alle_laden(inhalte_pfad)
@@ -116,6 +118,9 @@ class ProgrammierSeite(ctk.CTkFrame):
         self.suchfeld.bind("<Return>", self._suche_enter)
         self.suchfeld.bind("<Escape>", lambda e: self._suche_leeren())
         self.winfo_toplevel().bind("<Control-f>", lambda e: self._suchfeld_fokus(), add="+")
+        self.favorit_knopf = FavoritKnopf(leiste, lambda: self.aktueller_eintrag)
+        self.favorit_knopf.grid(row=0, column=5, padx=(0, 12))
+        Tooltip(self.favorit_knopf, "Als Favorit merken (erscheint auf der Startseite)")
 
         # ---- Sprachwahl (behält ihre Grösse) - nur wenn es etwas zu wählen gibt ----
         if not self.sprache_waehlbar():
@@ -220,6 +225,8 @@ class ProgrammierSeite(ctk.CTkFrame):
     # =========================================================================
     def _uebersicht_zeigen(self):
         self.aktuelles_thema = None
+        self.aktueller_eintrag = None
+        self.favorit_knopf.aktualisieren()
         self._aktiv_markieren()
         body = self.inhalt.neue_seite()                      # -> core/layout.py
         uebersicht_zeichnen(body, self.kategorien, self.thema_oeffnen, self.ladefehler,   # -> engine/seite.py
@@ -240,6 +247,8 @@ class ProgrammierSeite(ctk.CTkFrame):
 
         body = self.inhalt.neue_seite()                      # alte Seite weg, nach oben scrollen
         ThemenSeite(body, thema, self.sprache, self.themen, self.thema_oeffnen)   # -> engine/seite.py
+        self.aktueller_eintrag = self.app.geoeffnet(self, "seite", thema.id, thema.titel, thema.kategorie.icon)
+        self.favorit_knopf.aktualisieren()
 
     def _verlauf_zurueck(self):
         if self.verlauf:

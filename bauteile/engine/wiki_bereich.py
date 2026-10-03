@@ -28,6 +28,7 @@ import customtkinter as ctk
 
 import config                                                          # -> config.py
 from bauteile.engine.seite import BauteilSeite                         # -> bauteile/engine/seite.py
+from core.benutzerdaten import FavoritKnopf                                     # -> core/benutzerdaten.py
 from core.layout import Karte, ResponsiveGrid, ScrollSeite, Stapel, seiten_kopf   # -> core/layout.py
 from core.widgets import Tooltip, info_box                             # -> core/widgets.py
 from programmieren.engine import lader                                 # -> programmieren/engine/lader.py
@@ -70,6 +71,7 @@ class WikiBereich(ctk.CTkFrame):
         self.aktuelles_thema = None
         self.verlauf = []
         self.themen_buttons = {}
+        self.aktueller_eintrag = None            # für ⭐ (Favorit) - gesetzt von main.py App.geoeffnet
 
         # ---- Daten laden + Suche ----
         self.kategorien, self.themen, self.ladefehler = lader.alle_laden(inhalte_pfad)
@@ -114,6 +116,9 @@ class WikiBereich(ctk.CTkFrame):
         self.suchfeld.bind("<KeyRelease>", self._suche)
         self.suchfeld.bind("<Return>", self._suche_enter)
         self.suchfeld.bind("<Escape>", lambda e: self._suche_leeren())
+        self.favorit_knopf = FavoritKnopf(leiste, lambda: self.aktueller_eintrag)
+        self.favorit_knopf.grid(row=0, column=4, padx=(0, 12))
+        Tooltip(self.favorit_knopf, "Als Favorit merken (erscheint auf der Startseite)")
 
     # =========================================================================
     # NAVIGATION
@@ -195,6 +200,8 @@ class WikiBereich(ctk.CTkFrame):
     # =========================================================================
     def _uebersicht_zeigen(self):
         self.aktuelles_thema = None
+        self.aktueller_eintrag = None
+        self.favorit_knopf.aktualisieren()
         self._markieren()
         uebersicht_zeichnen(self.inhalt.neue_seite(), self.kategorien, self.thema_oeffnen,
                             self.titel, self.beschreibung, self.ladefehler)
@@ -213,6 +220,8 @@ class WikiBereich(ctk.CTkFrame):
         # -> bauteile/engine/seite.py (dieselbe Seitendarstellung in allen Wiki-Bereichen)
         BauteilSeite(self.inhalt.neue_seite(), thema, self.ansicht, self.themen, self.thema_oeffnen,
                      self._ansicht_setzen)
+        self.aktueller_eintrag = self.app.geoeffnet(self, "seite", thema.id, thema.titel, thema.kategorie.icon)
+        self.favorit_knopf.aktualisieren()
 
     def _ansicht_setzen(self, ansicht):
         """Umschalter Wissen | Rechner wurde geklickt."""
