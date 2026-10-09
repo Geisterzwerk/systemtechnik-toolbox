@@ -22,7 +22,8 @@
 #                        jeder Rechner hat mindestens einen Beispielfall.
 #
 #   0) OHNE FENSTER      Alle Rechner-Module lassen sich laden, ohne dass tkinter/customtkinter
-#                        importiert wird (Voraussetzung für die Webversion).
+#                        importiert wird, und jede Schaltung lässt sich als SVG zeichnen
+#                        (bauteile/grafiken/svg_canvas.py) - Voraussetzung für die Webversion.
 #
 # Die Rechner werden OHNE Fenster geprüft: Jeder Formel-Rechner ist ein FormelDaten-Objekt
 # (bauteile/rechner/kern.py) mit Feldern und Rechenfunktion.
@@ -64,7 +65,18 @@ def sperre(name, *a, **k):
     return _import(name, *a, **k)
 builtins.__import__ = sperre
 import bauteile.rechner as r
-print(len(r.registry()))
+import xml.etree.ElementTree as ET
+from bauteile.rechner.kern import GrafikVerweis
+from bauteile.grafiken.svg_canvas import schaltung_svg
+svgs = 0
+for rid, eintrag in r.registry().items():          # jede Schaltung (Modell ohne Fenster) als SVG zeichnen
+    if isinstance(eintrag, GrafikVerweis) and eintrag.modul.startswith("schaltungen."):
+        klasse = eintrag.klasse()
+        for v in klasse.VARIANTEN or [None]:
+            for dunkel in (False, True):
+                ET.fromstring(schaltung_svg(klasse, variante=v, dunkel=dunkel)["svg"])   # gültiges SVG?
+                svgs += 1
+print(len(r.registry()), svgs)
 """
 
 
@@ -75,7 +87,8 @@ def ohne_fenster_pruefen(z):
     lauf = subprocess.run([sys.executable, "-c", SPERR_TEST], cwd=basis_ordner, capture_output=True,
                           text=True, encoding="utf-8")
     if lauf.returncode == 0:
-        z.gut(f"{lauf.stdout.strip()} Rechner geladen, kein tkinter")
+        rechner, svgs = lauf.stdout.split()
+        z.gut(f"{rechner} Rechner geladen und {svgs} Schaltungs-SVGs gezeichnet, kein tkinter")
     else:
         z.schlecht("Ein Rechner-Modul braucht tkinter – Fenster-Teil in eine Grafik-Datei verschieben "
                    "und in RECHNER als GrafikVerweis eintragen",

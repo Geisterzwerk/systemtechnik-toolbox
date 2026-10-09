@@ -28,11 +28,7 @@ from bauteile.grafiken.skala import schoene_grenze                # -> bauteile/
 from bauteile.rechner.basis import WertRegler                    # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel       # -> core/layout.py
 
-BLAU = "#3B82F6"
-ORANGE = "#F59E0B"
-GRUEN = "#22C55E"
-ROT = "#EF4444"
-GRAU = "#6B7280"
+from bauteile.grafiken.schaltplan import BLAU, GRAU, GRUEN, ORANGE, ROT   # -> grafiken/schaltplan.py (Grundfarben)
 
 
 def _farbe(paar):

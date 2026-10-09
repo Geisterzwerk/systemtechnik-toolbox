@@ -14,7 +14,7 @@
 #   TvsSchaltung           Spannungsspitze mit TVS-Diode begrenzen
 #
 # Rechnung: schaltungen/dioden_mathe.py, Freilauf: bauteile/rechner/schaltvorgaenge_mathe.py
-# Grundgerüst: bauteile/grafiken/schaltplan.py -> SchaltungsKarte
+# Grundgerüst: bauteile/grafiken/schaltplan.py -> SchaltungsModell
 #
 # WER RUFT DAS AUF?  schaltungen/rechner.py (Registrierung, z.B. "schaltung_gleichrichter")
 # =============================================================================
@@ -22,7 +22,7 @@
 import config                                                            # -> config.py
 from bauteile.einheiten import formatieren as fmt                        # -> bauteile/einheiten.py
 from bauteile.grafiken.schaltplan import (OK, SPANNUNG, STROM, WARN,     # -> bauteile/grafiken/schaltplan.py
-                                          SchaltungsKarte)
+                                          SchaltungsModell)
 from bauteile.rechner import schaltvorgaenge_mathe as sv                 # -> bauteile/rechner/schaltvorgaenge_mathe.py
 from schaltungen import dioden_mathe as dm                               # -> schaltungen/dioden_mathe.py
 from schaltungen.grafiken import _i, _r, _u                              # -> schaltungen/grafiken.py
@@ -35,7 +35,7 @@ def _p(wert):
     return fmt(wert, "leistung", 3)
 
 
-class _MitDiagramm(SchaltungsKarte):
+class _MitDiagramm(SchaltungsModell):
     """Schaltplan links + Zeitdiagramm rechts; bei schmaler Fläche nur der Schaltplan."""
     RASTER_SCHMAL = (12, 8.8)
 
@@ -126,7 +126,7 @@ class BegrenzerSchaltung(_MitDiagramm):
 # =============================================================================
 # EINGANGSSCHUTZ
 # =============================================================================
-class EingangsschutzSchaltung(SchaltungsKarte):
+class EingangsschutzSchaltung(SchaltungsModell):
     TITEL = "🔌 Eingangsschutz eines Mikrocontrollers (interaktiv)"
     UNTERTITEL = "Serienwiderstand + Klemmdioden: Was passiert bei Überspannung am Pin?"
     VARIANTEN = ["interne ESD-Dioden", "externe Schottky (BAT54S)"]
@@ -191,7 +191,7 @@ class EingangsschutzSchaltung(SchaltungsKarte):
 # =============================================================================
 # VERPOLSCHUTZ
 # =============================================================================
-class VerpolSchaltung(SchaltungsKarte):
+class VerpolSchaltung(SchaltungsModell):
     TITEL = "🔌 Verpolschutz (interaktiv)"
     UNTERTITEL = "Diode oder P-MOSFET in der Plusleitung – Spannungsfall, Wärme und Verhalten bei Verpolung"
     VARIANTEN = dm.VERPOL_ARTEN
@@ -268,7 +268,7 @@ class VerpolSchaltung(SchaltungsKarte):
 # =============================================================================
 # FREILAUF
 # =============================================================================
-class FreilaufSchaltung(SchaltungsKarte):
+class FreilaufSchaltung(SchaltungsModell):
     TITEL = "🔌 Freilaufdiode am Relais (interaktiv)"
     UNTERTITEL = "Transistor schaltet die Spule ab – wohin mit dem Strom?"
     VARIANTEN = ["ohne Freilaufdiode", "Freilaufdiode", "Diode + Z-Diode"]
@@ -439,7 +439,7 @@ class GleichrichterSchaltung(_MitDiagramm):
 # =============================================================================
 # Z-DIODEN-STABILISIERUNG
 # =============================================================================
-class ZStabiSchaltung(SchaltungsKarte):
+class ZStabiSchaltung(SchaltungsModell):
     TITEL = "🔌 Z-Dioden-Stabilisierung (interaktiv)"
     UNTERTITEL = "Eingangsspannung oder Last ändern – wann hört die Stabilisierung auf?"
     SCHALTER = [("leer", "Last abgeklemmt")]

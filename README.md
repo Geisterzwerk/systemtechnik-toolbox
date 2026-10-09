@@ -798,6 +798,7 @@ core/                       Layout-Bausteine (Karte, ResponsiveGrid, Tabelle, Fo
 gui/                        ein Modul pro Tab (bauteile_gui, messtechnik_gui, server_gui …)
 bauteile/inhalte/           Bauteil-Seiten (nur Daten), ein Ordner pro Kategorie
 bauteile/rechner/           Rechner + zentrale Registry (__init__.py), Mathe in *_mathe.py,
+                            kern.py = alles ohne Fenster (FormelDaten, GrafikVerweis), basis.py = Fenster-Teil,
                             Metadaten für den Rechner-Tab in rechner_info.py
 bauteile/grafiken/          Schaltzeichen und interaktive Grafiken
 bauteile/engine/            zeichnet eine Seite (seite.py) und den ganzen Wiki-Bereich (wiki_bereich.py,
@@ -808,7 +809,8 @@ programmieren/inhalte/      Programmier-Seiten (nur Daten)
 server/inhalte/             Server-/Linux-Seiten (nur Daten, gleiche Engine)
 images/                     Bilder und Icons
 schaltungen/inhalte/        Schaltungs-Seiten (nur Daten, Vorlage _vorlage.py mit Pflichtabschnitten)
-schaltungen/grafiken.py     interaktive Schaltpläne (Basis SchaltungsKarte aus bauteile/grafiken/schaltplan.py)
+schaltungen/grafiken*.py    interaktive Schaltpläne (Basis SchaltungsModell aus bauteile/grafiken/schaltplan.py,
+                            ohne Fenster; Fenster-Karte: schaltung_karte.py, Browser: svg_canvas.py)
 schaltungen/netzwerk_mathe.py  Rechnung Teiler, Pull-up, Poti, Brücke (ohne GUI, testbar)
 pruefen.py                  prüft, ob alle wichtigen Dateien vorhanden sind
 pruefen_rechner.py          prüft alle Rechner: bekannte Werte, Grenzfälle, Verweise (-v, --gui)
@@ -962,6 +964,10 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 10 | Priorität 3: Kategorie „Timer & Oszillatoren“ (NE555 astabil/mit Diode/monostabil, astabiler Multivibrator, Rechteck-/Dreieckgenerator, Watchdog normal/Fenster) und „Endstufen“ (Darlington, Gegentakt Klasse B/AB mit Übernahmeverzerrung, THD, Wirkungsgrad); 6 Seiten, 6 interaktive Pläne, 7 Rechner; Rechnung in `schaltungen/oszillator_mathe.py` und `endstufen_mathe.py`; neue Symbole `Schaltplan.pnp()` und gespiegelter `npn(basis_rechts=True)` | ✅ erledigt |
 | 11 | Neue Startseite: animiertes Banner (Schaltplan mit Strompunkten, Oszilloskop, arbeitendes Terminal, Python-Editor; `gui/startseite_banner.py`), Suche über alle Bereiche inkl. Rechner (`gui/gesamtsuche.py`, Ctrl+K), Favoriten ⭐ und „Zuletzt geöffnet“ (`core/benutzerdaten.py`, gespeichert in `benutzerdaten.json`, nicht im Repo), Bereichskacheln mit Anzahl Seiten/Rechner/Simulationen/Befehle und Kategorie-Chips, Schaltung des Tages | ✅ erledigt |
 | 12 | Priorität 3 abgeschlossen: Busabschluss RS-485/CAN (Reflexionen auf der Leitung als Bounce-Rechnung, Split-Abschluss, Fail-safe-Vorspannung) und VCO-Grundprinzip (Integrator + Schmitt-Trigger, Kennlinie f über U_st); 2 Seiten, 2 interaktive Pläne, 2 Rechner | ✅ erledigt |
+| W1 | Webversion vorbereiten: Rechner-Kern ohne Oberfläche (`bauteile/rechner/kern.py`): 120 Formel-Rechner als `FormelDaten`, 78 interaktive Grafiken als `GrafikVerweis` (Klasse erst beim Öffnen geladen); Farbcode-/SMD-Karten nach `bauteile/grafiken/farbcode_karten.py`; `pruefen_rechner.py` Teil 0 lädt alle Rechner in einem Python ohne tkinter | ✅ erledigt |
+| W2 | Schaltungen ohne Fenster zeichnen: `SchaltungsModell` (rechnen + zeichnen, kein tkinter) in `schaltplan.py`, Fenster-Karte in `schaltung_karte.py`, `SvgCanvas` + `schaltung_svg()` in `bauteile/grafiken/svg_canvas.py` – derselbe Zeichencode erzeugt SVG für den Browser; Teil 0 der Prüfung zeichnet alle 210 Varianten als SVG | ✅ erledigt |
+| W3 | Django-Grundgerüst in `web/`: Startseite, Wiki, Suche, 5 Rechner | offen |
+| W4 | Mobile Ansicht, Feedback, Hosting | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

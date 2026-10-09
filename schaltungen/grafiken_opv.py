@@ -17,7 +17,7 @@
 
 from bauteile.einheiten import formatieren as fmt                        # -> bauteile/einheiten.py
 from bauteile.grafiken.schaltplan import OK, SPANNUNG, STROM, WARN       # -> bauteile/grafiken/schaltplan.py
-from bauteile.grafiken.schaltplan import SchaltungsKarte                 # -> bauteile/grafiken/schaltplan.py
+from bauteile.grafiken.schaltplan import SchaltungsModell                 # -> bauteile/grafiken/schaltplan.py
 from schaltungen import opv_mathe as om                                  # -> schaltungen/opv_mathe.py
 from schaltungen.grafiken import _i, _r, _u                              # -> schaltungen/grafiken.py
 from schaltungen.grafiken_dioden import FEHLER, _MitDiagramm             # -> schaltungen/grafiken_dioden.py
@@ -126,7 +126,7 @@ class OpvVerstaerkerSchaltung(_MitDiagramm):
 # =============================================================================
 # ADDIERER
 # =============================================================================
-class AddiererSchaltung(SchaltungsKarte):
+class AddiererSchaltung(SchaltungsModell):
     TITEL = "🔌 Addierer / Summierverstärker (interaktiv)"
     UNTERTITEL = "Die Ströme aller Eingänge treffen sich an der virtuellen Masse und fliessen gemeinsam durch R_f"
     REGLER = [("u1", "U1", "spannung", -5.0, 5.0, 1.0, U_SIGNAL),
@@ -190,7 +190,7 @@ class AddiererSchaltung(SchaltungsKarte):
 # =============================================================================
 # DIFFERENZ- UND INSTRUMENTENVERSTÄRKER
 # =============================================================================
-class DifferenzSchaltung(SchaltungsKarte):
+class DifferenzSchaltung(SchaltungsModell):
     TITEL = "🔌 Differenz- und Instrumentenverstärker (interaktiv)"
     UNTERTITEL = "Nur die Differenz verstärken, den Gleichtakt unterdrücken – und was Widerstandstoleranzen anrichten"
     VARIANTEN = ["Differenzverstärker", "Instrumentenverstärker"]

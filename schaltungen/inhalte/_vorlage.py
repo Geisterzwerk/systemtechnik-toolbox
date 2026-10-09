@@ -15,7 +15,7 @@
 #
 # FORMATIERUNG in Texten:  ## Überschrift   - Punkt   **fett**   `formel`
 # NEUE KATEGORIE: Ordner z.B. 02_dioden_schutz/ mit _kategorie.py (NAME, ICON, BESCHREIBUNG)
-# INTERAKTIVER SCHALTPLAN: Klasse in schaltungen/grafiken.py (Basis: SchaltungsKarte),
+# INTERAKTIVER SCHALTPLAN: Klasse in schaltungen/grafiken.py (Basis: SchaltungsModell),
 #                          in schaltungen/rechner.py registrieren, in rechner_info.py beschreiben
 # =============================================================================
 

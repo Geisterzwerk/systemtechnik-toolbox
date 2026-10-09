@@ -19,7 +19,7 @@ import customtkinter as ctk
 
 import config                                                          # -> config.py
 from bauteile.einheiten import formatieren as fmt                      # -> bauteile/einheiten.py
-from bauteile.grafiken.schaltplan import OK, SPANNUNG, STROM, WARN, SchaltungsKarte   # -> bauteile/grafiken/schaltplan.py
+from bauteile.grafiken.schaltplan import OK, SPANNUNG, STROM, WARN, SchaltungsModell   # -> bauteile/grafiken/schaltplan.py
 from core.layout import Karte, ResponsiveCanvas                        # -> core/layout.py
 from digitaltechnik import schaltnetze_mathe as sm                     # -> digitaltechnik/schaltnetze_mathe.py
 from digitaltechnik.grafiken import FEHLER, BitLeiste, _erklaerung, _ergebnis_label, _farbe   # -> digitaltechnik/grafiken.py
@@ -458,7 +458,7 @@ class DecoderKarte(Karte):
 # =============================================================================
 # AUSGANGSTYPEN
 # =============================================================================
-class AusgangKarte(SchaltungsKarte):
+class AusgangKarte(SchaltungsModell):
     TITEL = "🔌 Ausgangstypen an einer gemeinsamen Leitung (interaktiv)"
     UNTERTITEL = "Zwei Bausteine treiben dieselbe Leitung – was passiert bei Push-Pull, Open Drain und Tri-State?"
     VARIANTEN = ["Push-Pull", "Open Drain + Pull-up", "Tri-State"]

@@ -12,7 +12,7 @@
 #
 # Jede Klasse beschreibt nur Regler, Rechnung (-> netzwerk_mathe.py) und Zeichnung.
 # Das Grundgerüst (Regler, Neuzeichnen, Meldungen) kommt aus
-#   bauteile/grafiken/schaltplan.py -> SchaltungsKarte
+#   bauteile/grafiken/schaltplan.py -> SchaltungsModell
 #
 # WER RUFT DAS AUF?  schaltungen/rechner.py (Registrierung, z.B. "schaltung_spannungsteiler")
 # =============================================================================
@@ -20,7 +20,7 @@
 import config                                                            # -> config.py
 from bauteile.einheiten import formatieren as fmt                        # -> bauteile/einheiten.py
 from bauteile.grafiken.schaltplan import (OK, SPANNUNG, STROM, WARN,     # -> bauteile/grafiken/schaltplan.py
-                                          SchaltungsKarte)
+                                          SchaltungsModell)
 from schaltungen import netzwerk_mathe as nm                             # -> schaltungen/netzwerk_mathe.py
 
 R_BEREICH = (100.0, 1e6)                       # Slider-Bereich für Widerstände (log)
@@ -43,7 +43,7 @@ def _r(wert):
 # =============================================================================
 # SPANNUNGSTEILER
 # =============================================================================
-class SpannungsteilerSchaltung(SchaltungsKarte):
+class SpannungsteilerSchaltung(SchaltungsModell):
     TITEL = "🔌 Spannungsteiler (interaktiv)"
     UNTERTITEL = "Widerstände verändern, Last zuschalten – wie stark bricht Ua ein?"
     VARIANTEN = ["unbelastet", "mit Last R_L"]
@@ -108,7 +108,7 @@ class SpannungsteilerSchaltung(SchaltungsKarte):
 # =============================================================================
 # STROMTEILER
 # =============================================================================
-class StromteilerSchaltung(SchaltungsKarte):
+class StromteilerSchaltung(SchaltungsModell):
     TITEL = "🔌 Stromteiler (interaktiv)"
     UNTERTITEL = "Ein Strom teilt sich auf zwei Zweige – der kleinere Widerstand bekommt mehr"
     REGLER = [("i", "Gesamtstrom I", "strom", 1e-3, 1.0, 0.1, {"einheit": "mA", "log": True, "grenzen": (1e-6, 100)}),
@@ -155,7 +155,7 @@ class StromteilerSchaltung(SchaltungsKarte):
 # =============================================================================
 # PULL-UP / PULL-DOWN
 # =============================================================================
-class PullSchaltung(SchaltungsKarte):
+class PullSchaltung(SchaltungsModell):
     TITEL = "🔌 Pull-up / Pull-down (interaktiv)"
     UNTERTITEL = "Taster am Mikrocontroller: definierter Pegel, Strom, Flanke"
     VARIANTEN = ["Pull-up", "Pull-down"]
@@ -232,7 +232,7 @@ class PullSchaltung(SchaltungsKarte):
 # =============================================================================
 # POTENTIOMETER
 # =============================================================================
-class PotiSchaltung(SchaltungsKarte):
+class PotiSchaltung(SchaltungsModell):
     TITEL = "🔌 Potentiometer als Spannungsteiler (interaktiv)"
     UNTERTITEL = "Schleifer drehen, Last zuschalten – die Kennlinie hängt durch"
     VARIANTEN = ["unbelastet", "mit Last R_L"]
@@ -323,7 +323,7 @@ class PotiSchaltung(SchaltungsKarte):
 # =============================================================================
 # WHEATSTONE-BRÜCKE
 # =============================================================================
-class BrueckeSchaltung(SchaltungsKarte):
+class BrueckeSchaltung(SchaltungsModell):
     TITEL = "🔌 Wheatstone-Brücke (interaktiv)"
     UNTERTITEL = "Zwei Spannungsteiler nebeneinander – gemessen wird nur der Unterschied"
     REGLER = [("ue", "Speisung Ue", "spannung", 0.0, 24.0, 10.0, {"einheit": "V", "grenzen": (0, 1000)}),

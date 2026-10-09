@@ -18,7 +18,7 @@
 
 from bauteile.einheiten import formatieren as fmt                        # -> bauteile/einheiten.py
 from bauteile.grafiken.schaltplan import OK, SPANNUNG, STROM, WARN       # -> bauteile/grafiken/schaltplan.py
-from bauteile.grafiken.schaltplan import SchaltungsKarte                 # -> bauteile/grafiken/schaltplan.py
+from bauteile.grafiken.schaltplan import SchaltungsModell                 # -> bauteile/grafiken/schaltplan.py
 from schaltungen import netzteil_mathe as ntm                            # -> schaltungen/netzteil_mathe.py
 from schaltungen.grafiken import _i, _r, _u                              # -> schaltungen/grafiken.py
 from schaltungen.grafiken_dioden import FEHLER, _MitDiagramm, _p         # -> schaltungen/grafiken_dioden.py
@@ -358,7 +358,7 @@ class StromquelleOpvSchaltung(_MitDiagramm):
 # =============================================================================
 # VIRTUELLE MASSE / BIPOLARE VERSORGUNG
 # =============================================================================
-class VirtuelleMasseSchaltung(SchaltungsKarte):
+class VirtuelleMasseSchaltung(SchaltungsModell):
     TITEL = "🔌 ±U aus einer Versorgung: virtuelle Masse (interaktiv)"
     UNTERTITEL = "Ein Spannungsteiler als neue Mitte – hält er, wenn die Lasten ungleich sind?"
     SCHALTER = [("opv", "OPV-Puffer (Rail-Splitter)")]
@@ -449,7 +449,7 @@ class SchaltreglerSchaltung(_MitDiagramm):
         "Mittelwert, ΔI = Rippelstrom), unten die Spannung am Schaltknoten. Wird der Strom 0 (Lückbetrieb, DCM), "
         "gelten die einfachen Formeln nicht mehr. Ideal gerechnet (ohne Verluste).")
 
-    # Beim Umschalten typische Werte setzen (Buck braucht U_a < U_e, Boost U_a > U_e) -> SchaltungsKarte.sk_neu
+    # Beim Umschalten typische Werte setzen (Buck braucht U_a < U_e, Boost U_a > U_e) -> SchaltungsKarte.sk_neu (bauteile/grafiken/schaltung_karte.py)
     STARTWERTE = {ntm.SCHALTREGLER_ARTEN[0]: {"ue": 12.0, "ua": 5.0, "ia": 1.0},
                   ntm.SCHALTREGLER_ARTEN[1]: {"ue": 5.0, "ua": 12.0, "ia": 0.5}}
 

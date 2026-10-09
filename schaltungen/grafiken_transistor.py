@@ -25,7 +25,7 @@ from bauteile.rechner import transistor_mathe as tm                      # -> ba
 from schaltungen import verstaerker_mathe as vm                          # -> schaltungen/verstaerker_mathe.py
 from schaltungen.grafiken import _i, _r, _u                              # -> schaltungen/grafiken.py
 from schaltungen.grafiken_dioden import FEHLER, _MitDiagramm, _p         # -> schaltungen/grafiken_dioden.py
-from bauteile.grafiken.schaltplan import SchaltungsKarte                 # -> bauteile/grafiken/schaltplan.py
+from bauteile.grafiken.schaltplan import SchaltungsModell                 # -> bauteile/grafiken/schaltplan.py
 
 BETA = 200.0                 # Stromverstärkung für die Verstärkerschaltungen (typ. BC547B)
 LOG_R = {"einheit": "kΩ", "log": True, "grenzen": (1.0, 100e6)}
@@ -34,7 +34,7 @@ LOG_R = {"einheit": "kΩ", "log": True, "grenzen": (1.0, 100e6)}
 # =============================================================================
 # LASTEN AM µC ANSTEUERN
 # =============================================================================
-class LastTreiberSchaltung(SchaltungsKarte):
+class LastTreiberSchaltung(SchaltungsModell):
     TITEL = "🔌 Last am Mikrocontroller schalten (interaktiv)"
     UNTERTITEL = "LED, Relais oder Motor – mit NPN-Transistor oder N-MOSFET auf der Low-Side"
     VARIANTEN = ["LED", "Relais", "Motor"]

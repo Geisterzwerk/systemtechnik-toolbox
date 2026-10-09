@@ -142,7 +142,9 @@ class GrafikVerweis:
     GrafikVerweis("schaltungen.grafiken_filter", "LcFilterSchaltung")
     GrafikVerweis("bauteile.grafiken.kurven", "KurvenKarte", modus="RC")   # mit Optionen
 
-    verweis(master)   -> Modul laden, Klasse holen, Karte bauen (wie früher die Klasse selbst)
+    verweis(master)   -> Modul laden, Klasse holen, Karte bauen (wie früher die Klasse selbst).
+                         Ist die Klasse ein SchaltungsModell (ohne Fenster), baut karte_bauen()
+                         die Fenster-Karte drumherum (bauteile/grafiken/schaltung_karte.py).
     verweis.klasse()  -> die Klasse (lädt das Modul, also tkinter!)
     """
 
@@ -155,7 +157,10 @@ class GrafikVerweis:
         return getattr(importlib.import_module(self.modul), self.klassen_name)
 
     def __call__(self, master):
-        return self.klasse()(master, **self.optionen)
+        klasse = self.klasse()
+        if hasattr(klasse, "karte_bauen"):             # reines Modell (Schaltung) -> Fenster-Karte drumherum
+            return klasse.karte_bauen(master, **self.optionen)
+        return klasse(master, **self.optionen)
 
     def __repr__(self):
         return f"GrafikVerweis({self.modul}.{self.klassen_name})"
