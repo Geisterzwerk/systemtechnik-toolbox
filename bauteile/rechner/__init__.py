@@ -1,7 +1,8 @@
 # =============================================================================
 # bauteile/rechner/  -> Alle Rechner der Bauteil-Seiten
 #
-#   basis.py                 Bausteine: EinheitenEingabe, FormelRechner, ...
+#   kern.py                  OHNE Fenster: FormelDaten, GrafikVerweis, RechnerFehler, formel_auswerten
+#   basis.py                 Fenster-Bausteine: EinheitenEingabe, FormelRechner, WertRegler ...
 #   normreihen.py            E-Reihen (E6 ... E96)
 #   widerstand_rechner.py    Rechner für die Seite "Widerstand"
 #   kondensator_rechner.py   ... "Kondensator"   (inkl. interaktive Ladekurve)
@@ -20,6 +21,11 @@
 #     "rechner": ["ohm_leistung", "spannungsteiler"]
 # Auch interaktive Grafiken sind hier registriert und können im Wissen-Teil
 # über  "grafiken": ["trafo_animation"]  eingebunden werden.
+#
+# IN RECHNER = {...} STEHT JE ID:
+#   FormelDaten(...)        Formel-Rechner als Daten (Felder + Rechenfunktion)
+#   GrafikVerweis(...)      interaktive Grafik - die Klasse wird erst beim Öffnen geladen
+# Darum lässt sich die ganze Liste OHNE tkinter laden (Webversion, pruefen_rechner.py Teil 0).
 #
 # NEUE RECHNER-DATEI? Unten in _MODULE eintragen (voller Modulname).
 #

@@ -12,6 +12,7 @@
 #   minimieren()            Quine-McCluskey (+ Petrick) mit don't cares -> minimale Summe von Produkten
 #   kv_aufbau()             Zeilen/Spalten eines KV-Diagramms (2 … 4 Variablen, Gray-Reihenfolge)
 #   vergleichen()           sind zwei Ausdrücke gleich? (sonst ein Gegenbeispiel)
+#   wahrheitstabelle_text() Tabelle als Text (ab 16 Zeilen in Blöcken nebeneinander)
 #
 # SCHREIBWEISEN (alles gemischt erlaubt):
 #   NICHT  ¬A  !A  ~A  /A  A'  NOT A  NICHT A
@@ -411,3 +412,21 @@ def zusammenhaengend(indizes, laenge):
     if aktuell:
         stuecke.append(aktuell)
     return stuecke
+
+
+def wahrheitstabelle_text(namen, zeilen, markiert=None):
+    """
+    Nr │ A B C │ Y        bei mehr als 16 Zeilen in Blöcken zu 16 nebeneinander.
+    'markiert' = Zeilennummer, die mit ◀ gekennzeichnet wird.
+    """
+    kopf = f"Nr │ {' '.join(f'{n:>{len(n)}}' for n in namen)} │ Y "
+    zeilentexte = []
+    for k, (bits, aus) in enumerate(zeilen):
+        werte = " ".join(f"{b:>{len(n)}}" for b, n in zip(bits, namen))
+        zeilentexte.append(f"{k:>2} │ {werte} │ {aus}" + (" ◀" if k == markiert else "  "))
+    breite = max(len(kopf), max(len(z) for z in zeilentexte))
+    bloecke = [zeilentexte[i:i + 16] for i in range(0, len(zeilentexte), 16)]
+    ausgabe = ["    ".join(kopf.ljust(breite) for _ in bloecke)]
+    for r in range(len(bloecke[0])):
+        ausgabe.append("    ".join(b[r].ljust(breite) for b in bloecke if r < len(b)))
+    return "\n".join(ausgabe)

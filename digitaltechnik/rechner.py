@@ -33,23 +33,13 @@
 # WER RUFT DAS AUF?  bauteile/rechner/__init__.py (_MODULE) -> erstellen(master, "zahlensystem")
 # =============================================================================
 
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt          # -> bauteile/rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, fmt   # -> bauteile/rechner/kern.py
 from digitaltechnik import busse_mathe as bm                                  # -> digitaltechnik/busse_mathe.py
 from digitaltechnik import logik_mathe as lm                                  # -> digitaltechnik/logik_mathe.py
 from digitaltechnik import pegel_mathe as pm                                  # -> digitaltechnik/pegel_mathe.py
 from digitaltechnik import schaltnetze_mathe as sm                            # -> digitaltechnik/schaltnetze_mathe.py
 from digitaltechnik import schaltwerke_mathe as swm                           # -> digitaltechnik/schaltwerke_mathe.py
 from digitaltechnik import zahlen_mathe as zm                                 # -> digitaltechnik/zahlen_mathe.py
-from digitaltechnik.grafiken import (BitmaskenKarte, LogikpegelKarte,         # -> digitaltechnik/grafiken.py
-                                     ZahlensystemKarte, ZweierkomplementKarte)
-from digitaltechnik.grafiken_schaltnetze import (AddiererKarte, AusgangKarte,    # -> digitaltechnik/grafiken_schaltnetze.py
-                                                 DecoderKarte, MuxKarte)
-from digitaltechnik.grafiken_schaltwerke import (FlipflopKarte, SchieberegisterKarte,  # -> digitaltechnik/grafiken_schaltwerke.py
-                                                 ZaehlerKarte)
-from digitaltechnik.grafiken_busse import (I2cKarte, SpeicherKarte, SpiKarte,  # -> digitaltechnik/grafiken_busse.py
-                                           UartKarte)
-from digitaltechnik.grafiken_logik import (AusdruckKarte, GatterKarte, KVKarte,  # -> digitaltechnik/grafiken_logik.py
-                                           wahrheitstabelle_text)
 
 BITBREITEN = ["8", "16", "32", "4"]
 
@@ -90,13 +80,12 @@ def _zahlensystem(w):
     return zeilen
 
 
-def zahlensystem(master):
-    return FormelRechner(
-        master, "Zahlensysteme umrechnen", "Präfix 0b / 0x / 0o wird erkannt, Leerzeichen zum Gruppieren erlaubt",
-        felder=[("zahl", "Zahl", "text", {"platzhalter": "z.B. 0xC8"}),
-                ("basis", "Eingabe ist", "auswahl", {"werte": EINGABE_BASEN}),
-                ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
-        berechnen=_zahlensystem, formel="Wert = Σ Ziffer · Basis^Stelle     1 Hex-Ziffer = 4 Bit, 1 Oktalziffer = 3 Bit")
+zahlensystem = FormelDaten(
+    "Zahlensysteme umrechnen", "Präfix 0b / 0x / 0o wird erkannt, Leerzeichen zum Gruppieren erlaubt",
+    felder=[("zahl", "Zahl", "text", {"platzhalter": "z.B. 0xC8"}),
+            ("basis", "Eingabe ist", "auswahl", {"werte": EINGABE_BASEN}),
+            ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
+    berechnen=_zahlensystem, formel="Wert = Σ Ziffer · Basis^Stelle     1 Hex-Ziffer = 4 Bit, 1 Oktalziffer = 3 Bit")
 
 
 # =============================================================================
@@ -132,13 +121,12 @@ def _zweierkomplement(w):
     return [f"Muster {zm.binaer(muster, bits)} (0x{muster:0{-(-bits // 4)}X})", f"unsigned: {muster}", deutung]
 
 
-def zweierkomplement(master):
-    return FormelRechner(
-        master, "Zweierkomplement", "Negative Zahlen als Bitmuster – oder ein Muster als Zahl mit Vorzeichen lesen",
-        felder=[("art", "Richtung", "auswahl", {"werte": ZK_ARTEN}),
-                ("eingabe", "Zahl / Bitmuster", "text", {"platzhalter": "z.B. -5 oder 1111 1011"}),
-                ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
-        berechnen=_zweierkomplement, formel="−x = invertieren + 1 = 2^n − x     Bereich −2^(n−1) … 2^(n−1) − 1")
+zweierkomplement = FormelDaten(
+    "Zweierkomplement", "Negative Zahlen als Bitmuster – oder ein Muster als Zahl mit Vorzeichen lesen",
+    felder=[("art", "Richtung", "auswahl", {"werte": ZK_ARTEN}),
+            ("eingabe", "Zahl / Bitmuster", "text", {"platzhalter": "z.B. -5 oder 1111 1011"}),
+            ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
+    berechnen=_zweierkomplement, formel="−x = invertieren + 1 = 2^n − x     Bereich −2^(n−1) … 2^(n−1) − 1")
 
 
 # =============================================================================
@@ -158,13 +146,12 @@ def _binaer_addieren(w):
             f"V = {int(e['overflow'])}: signed " + (f"Überlauf (richtig {sa + sb})" if e["overflow"] else "korrekt")]
 
 
-def binaer_addieren(master):
-    return FormelRechner(
-        master, "Binär addieren mit Flags", "Was rechnet das Addierwerk – und wann ist es falsch?",
-        felder=[("a", "a", "text", {"platzhalter": "z.B. 100"}),
-                ("b", "b", "text", {"platzhalter": "z.B. 50"}),
-                ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
-        berechnen=_binaer_addieren, formel="C = Übertrag aus dem MSB (unsigned)     V = Vorzeichenfehler (signed)")
+binaer_addieren = FormelDaten(
+    "Binär addieren mit Flags", "Was rechnet das Addierwerk – und wann ist es falsch?",
+    felder=[("a", "a", "text", {"platzhalter": "z.B. 100"}),
+            ("b", "b", "text", {"platzhalter": "z.B. 50"}),
+            ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
+    berechnen=_binaer_addieren, formel="C = Übertrag aus dem MSB (unsigned)     V = Vorzeichenfehler (signed)")
 
 
 # =============================================================================
@@ -196,16 +183,15 @@ def _bitmaske(w):
     return zeilen
 
 
-def bitmaske(master):
-    return FormelRechner(
-        master, "Bitmaske anwenden", "Registerbits setzen, löschen, umschalten, prüfen oder schieben",
-        felder=[("x", "Register x", "text", {"platzhalter": "z.B. 0xA5"}),
-                ("op", "Operation", "auswahl", {"werte": zm.OPERATIONEN}),
-                ("maske", "Maske (opt.)", "text", {"platzhalter": "z.B. 0x08"}),
-                ("nr", "oder Bitnummern", "text", {"platzhalter": "z.B. 3  oder  0 4 7"}),
-                ("n", "Schieben um (opt.)", "text", {"platzhalter": "1"}),
-                ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
-        berechnen=_bitmaske, formel="setzen x |= m     löschen x &= ~m     umschalten x ^= m     prüfen x & m")
+bitmaske = FormelDaten(
+    "Bitmaske anwenden", "Registerbits setzen, löschen, umschalten, prüfen oder schieben",
+    felder=[("x", "Register x", "text", {"platzhalter": "z.B. 0xA5"}),
+            ("op", "Operation", "auswahl", {"werte": zm.OPERATIONEN}),
+            ("maske", "Maske (opt.)", "text", {"platzhalter": "z.B. 0x08"}),
+            ("nr", "oder Bitnummern", "text", {"platzhalter": "z.B. 3  oder  0 4 7"}),
+            ("n", "Schieben um (opt.)", "text", {"platzhalter": "1"}),
+            ("bits", "Bitbreite", "auswahl", {"werte": BITBREITEN})],
+    berechnen=_bitmaske, formel="setzen x |= m     löschen x &= ~m     umschalten x ^= m     prüfen x & m")
 
 
 # =============================================================================
@@ -223,13 +209,14 @@ def _logikpegel(w):
             ("✓ " if e["ok"] else "⚠ ") + e["rat"]]
 
 
-def logikpegel(master):
-    namen = list(pm.FAMILIEN)
-    return FormelRechner(
-        master, "Logikpegel-Kompatibilität", "Garantierte Datenblattwerte – nicht die typischen",
-        felder=[("sender", "Sender (Ausgang)", "auswahl", {"werte": namen, "standard": "ESP32 (3.3 V)"}),
-                ("empf", "Empfänger (Eingang)", "auswahl", {"werte": namen, "standard": "74HC (5 V, Werte bei 4.5 V)"})],
-        berechnen=_logikpegel, formel="S_H = U_OH,min − U_IH,min     S_L = U_IL,max − U_OL,max")
+_PEGEL_NAMEN = list(pm.FAMILIEN)
+
+
+logikpegel = FormelDaten(
+    "Logikpegel-Kompatibilität", "Garantierte Datenblattwerte – nicht die typischen",
+    felder=[("sender", "Sender (Ausgang)", "auswahl", {"werte": _PEGEL_NAMEN, "standard": "ESP32 (3.3 V)"}),
+            ("empf", "Empfänger (Eingang)", "auswahl", {"werte": _PEGEL_NAMEN, "standard": "74HC (5 V, Werte bei 4.5 V)"})],
+    berechnen=_logikpegel, formel="S_H = U_OH,min − U_IH,min     S_L = U_IL,max − U_OL,max")
 
 
 # =============================================================================
@@ -240,7 +227,7 @@ def _wahrheitstabelle(w):
     if not e["namen"]:
         return [f"Y = {e['text']} ist konstant {e['tabelle'][0][1]}"]
     zeilen = [f"Gelesen als: Y = {e['text']}", ""]
-    zeilen += wahrheitstabelle_text(e["namen"], e["tabelle"]).split("\n")
+    zeilen += lm.wahrheitstabelle_text(e["namen"], e["tabelle"]).split("\n")
     zeilen += ["", f"Minterme: Σm({', '.join(map(str, e['minterme']))})   ·   "
                    f"Maxterme: Πm({', '.join(map(str, e['maxterme']))})",
                f"DNF minimal: Y = {e['min_dnf']}",
@@ -250,11 +237,10 @@ def _wahrheitstabelle(w):
     return zeilen
 
 
-def wahrheitstabelle(master):
-    return FormelRechner(
-        master, "Wahrheitstabelle und Normalformen", "Schreibweisen: ¬A !A /A A'  ·  A·B A*B AB  ·  A+B  ·  A⊕B",
-        felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + /A·C"})],
-        berechnen=_wahrheitstabelle, formel="DNF = ODER der Minterme (1-Zeilen)     KNF = UND der Maxterme (0-Zeilen)")
+wahrheitstabelle = FormelDaten(
+    "Wahrheitstabelle und Normalformen", "Schreibweisen: ¬A !A /A A'  ·  A·B A*B AB  ·  A+B  ·  A⊕B",
+    felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + /A·C"})],
+    berechnen=_wahrheitstabelle, formel="DNF = ODER der Minterme (1-Zeilen)     KNF = UND der Maxterme (0-Zeilen)")
 
 
 # =============================================================================
@@ -272,12 +258,11 @@ def _ausdruck_vergleichen(w):
             f"❌ Gegenbeispiel: {belegung}  →  links {info['a']}, rechts {info['b']}"]
 
 
-def ausdruck_vergleichen(master):
-    return FormelRechner(
-        master, "Zwei Ausdrücke vergleichen", "Umformung prüfen (z.B. De Morgan) – alle Belegungen werden durchprobiert",
-        felder=[("a", "Ausdruck 1", "text", {"platzhalter": "z.B. ¬(A·B)"}),
-                ("b", "Ausdruck 2", "text", {"platzhalter": "z.B. ¬A + ¬B"})],
-        berechnen=_ausdruck_vergleichen, formel="De Morgan: ¬(A·B) = ¬A + ¬B     ¬(A + B) = ¬A·¬B")
+ausdruck_vergleichen = FormelDaten(
+    "Zwei Ausdrücke vergleichen", "Umformung prüfen (z.B. De Morgan) – alle Belegungen werden durchprobiert",
+    felder=[("a", "Ausdruck 1", "text", {"platzhalter": "z.B. ¬(A·B)"}),
+            ("b", "Ausdruck 2", "text", {"platzhalter": "z.B. ¬A + ¬B"})],
+    berechnen=_ausdruck_vergleichen, formel="De Morgan: ¬(A·B) = ¬A + ¬B     ¬(A + B) = ¬A·¬B")
 
 
 # =============================================================================
@@ -312,13 +297,12 @@ def _kv_minimieren(w):
     return zeilen
 
 
-def kv_minimieren(master):
-    return FormelRechner(
-        master, "Minimieren aus Mintermen (KV / Quine-McCluskey)", "Nummern der 1-Zeilen und der don't-care-Zeilen",
-        felder=[("n", "Anzahl Variablen", "auswahl", {"werte": ["4", "3", "2", "5", "6"]}),
-                ("m", "Minterme (1)", "text", {"platzhalter": "z.B. 0 1 2 3 8 10"}),
-                ("d", "don't care (X, opt.)", "text", {"platzhalter": "z.B. 5 7"})],
-        berechnen=_kv_minimieren, formel="Blöcke aus 2^k Feldern -> k Variablen fallen weg")
+kv_minimieren = FormelDaten(
+    "Minimieren aus Mintermen (KV / Quine-McCluskey)", "Nummern der 1-Zeilen und der don't-care-Zeilen",
+    felder=[("n", "Anzahl Variablen", "auswahl", {"werte": ["4", "3", "2", "5", "6"]}),
+            ("m", "Minterme (1)", "text", {"platzhalter": "z.B. 0 1 2 3 8 10"}),
+            ("d", "don't care (X, opt.)", "text", {"platzhalter": "z.B. 5 7"})],
+    berechnen=_kv_minimieren, formel="Blöcke aus 2^k Feldern -> k Variablen fallen weg")
 
 
 # =============================================================================
@@ -337,13 +321,12 @@ def _addierer_laufzeit(w):
             "Schneller: Carry-Lookahead (Überträge parallel berechnen) – Laufzeit wächst nur noch mit log2(n)"]
 
 
-def addierer_laufzeit(master):
-    return FormelRechner(
-        master, "Ripple-Carry-Addierer: Laufzeit", "Wie lange läuft der Übertrag durch die Kette?",
-        felder=[("n", "Bitbreite n", "zahl", {"platzhalter": "z.B. 16"}),
-                ("tc", "Laufzeit Übertrag pro Stufe t_C", "zeit", {"einheit": "ns", "platzhalter": "z.B. 10"}),
-                ("ts", "Laufzeit Summe t_S (opt.)", "zeit", {"einheit": "ns", "platzhalter": "= t_C"})],
-        berechnen=_addierer_laufzeit, formel="t ≈ n · t_C     f_max ≈ 1 / t")
+addierer_laufzeit = FormelDaten(
+    "Ripple-Carry-Addierer: Laufzeit", "Wie lange läuft der Übertrag durch die Kette?",
+    felder=[("n", "Bitbreite n", "zahl", {"platzhalter": "z.B. 16"}),
+            ("tc", "Laufzeit Übertrag pro Stufe t_C", "zeit", {"einheit": "ns", "platzhalter": "z.B. 10"}),
+            ("ts", "Laufzeit Summe t_S (opt.)", "zeit", {"einheit": "ns", "platzhalter": "= t_C"})],
+    berechnen=_addierer_laufzeit, formel="t ≈ n · t_C     f_max ≈ 1 / t")
 
 
 # =============================================================================
@@ -362,12 +345,11 @@ def _mux_funktion(w):
     return zeilen
 
 
-def mux_funktion(master):
-    return FormelRechner(
-        master, "Logikfunktion mit Multiplexer", "Auswahl = erste Variablen, an D_i kommt die Restfunktion",
-        felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + ¬A·C"}),
-                ("k", "Auswahlleitungen", "auswahl", {"werte": ["automatisch (n − 1)", "1", "2", "3", "4"]})],
-        berechnen=_mux_funktion, formel="Y = Σ (Auswahl = i) · D_i     (Shannon-Zerlegung)")
+mux_funktion = FormelDaten(
+    "Logikfunktion mit Multiplexer", "Auswahl = erste Variablen, an D_i kommt die Restfunktion",
+    felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + ¬A·C"}),
+            ("k", "Auswahlleitungen", "auswahl", {"werte": ["automatisch (n − 1)", "1", "2", "3", "4"]})],
+    berechnen=_mux_funktion, formel="Y = Σ (Auswahl = i) · D_i     (Shannon-Zerlegung)")
 
 
 # =============================================================================
@@ -388,12 +370,11 @@ def _siebensegment(w):
             + ("" if anode else "   (gemeinsame Anode: invertieren)")]
 
 
-def siebensegment(master):
-    return FormelRechner(
-        master, "7-Segment-Code", "Welche Segmente leuchten – und welcher Pegel muss an a … g?",
-        felder=[("ziffer", "Ziffer (0 … F)", "text", {"platzhalter": "z.B. 7 oder b"}),
-                ("typ", "Anzeige", "auswahl", {"werte": ["gemeinsame Kathode", "gemeinsame Anode"]})],
-        berechnen=_siebensegment, formel="Kathode: Segment an = HIGH     Anode: Segment an = LOW")
+siebensegment = FormelDaten(
+    "7-Segment-Code", "Welche Segmente leuchten – und welcher Pegel muss an a … g?",
+    felder=[("ziffer", "Ziffer (0 … F)", "text", {"platzhalter": "z.B. 7 oder b"}),
+            ("typ", "Anzeige", "auswahl", {"werte": ["gemeinsame Kathode", "gemeinsame Anode"]})],
+    berechnen=_siebensegment, formel="Kathode: Segment an = HIGH     Anode: Segment an = LOW")
 
 
 # =============================================================================
@@ -418,12 +399,11 @@ def _adressdecoder(w):
     return zeilen
 
 
-def adressdecoder(master):
-    return FormelRechner(
-        master, "Adressdecodierung (Chip-Select)", "Welcher Decoder-Ausgang ist für welchen Adressbereich zuständig?",
-        felder=[("N", "Adressbits N", "zahl", {"platzhalter": "z.B. 16 (64 Ki)"}),
-                ("k", "Decoder-Eingänge k", "zahl", {"platzhalter": "z.B. 3 (74HC138)"})],
-        berechnen=_adressdecoder, formel="Blockgrösse = 2^(N − k)     Ausgang i: i · Block … (i + 1) · Block − 1")
+adressdecoder = FormelDaten(
+    "Adressdecodierung (Chip-Select)", "Welcher Decoder-Ausgang ist für welchen Adressbereich zuständig?",
+    felder=[("N", "Adressbits N", "zahl", {"platzhalter": "z.B. 16 (64 Ki)"}),
+            ("k", "Decoder-Eingänge k", "zahl", {"platzhalter": "z.B. 3 (74HC138)"})],
+    berechnen=_adressdecoder, formel="Blockgrösse = 2^(N − k)     Ausgang i: i · Block … (i + 1) · Block − 1")
 
 
 # =============================================================================
@@ -454,14 +434,13 @@ def _open_drain_pullup(w):
     return zeilen
 
 
-def open_drain_pullup(master):
-    return FormelRechner(
-        master, "Pull-up für Open Drain / I²C", "Nach der I²C-Spezifikation: U_OL ≤ 0.4 V, Anstieg 30 → 70 %",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("C", "Buskapazität C", "kapazitaet", {"einheit": "pF", "platzhalter": "z.B. 200"}),
-                ("modus", "I²C-Modus", "auswahl", {"werte": list(I2C_MODI)}),
-                ("R", "gewählter R (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
-        berechnen=_open_drain_pullup, formel="R_min = (U_B − U_OL) / I_OL     R_max = t_r / (0.847 · C_Bus)")
+open_drain_pullup = FormelDaten(
+    "Pull-up für Open Drain / I²C", "Nach der I²C-Spezifikation: U_OL ≤ 0.4 V, Anstieg 30 → 70 %",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("C", "Buskapazität C", "kapazitaet", {"einheit": "pF", "platzhalter": "z.B. 200"}),
+            ("modus", "I²C-Modus", "auswahl", {"werte": list(I2C_MODI)}),
+            ("R", "gewählter R (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
+    berechnen=_open_drain_pullup, formel="R_min = (U_B − U_OL) / I_OL     R_max = t_r / (0.847 · C_Bus)")
 
 
 # =============================================================================
@@ -484,12 +463,11 @@ def _zaehler_entwurf(w):
     return zeilen
 
 
-def zaehler_entwurf(master):
-    return FormelRechner(
-        master, "Synchronen Zähler entwerfen", "Zustandsfolge eingeben – die Ansteuergleichungen werden minimiert",
-        felder=[("folge", "Zustandsfolge", "text", {"platzhalter": "z.B. 0 1 2 3 4 5 6 7 8 9"}),
-                ("ff", "Flipflop-Typ", "auswahl", {"werte": ["D-Flipflop", "JK-Flipflop"]})],
-        berechnen=_zaehler_entwurf, formel="D_i = Q_i⁺     JK: 0→0 J=0 K=X, 0→1 J=1 K=X, 1→0 J=X K=1, 1→1 J=X K=0")
+zaehler_entwurf = FormelDaten(
+    "Synchronen Zähler entwerfen", "Zustandsfolge eingeben – die Ansteuergleichungen werden minimiert",
+    felder=[("folge", "Zustandsfolge", "text", {"platzhalter": "z.B. 0 1 2 3 4 5 6 7 8 9"}),
+            ("ff", "Flipflop-Typ", "auswahl", {"werte": ["D-Flipflop", "JK-Flipflop"]})],
+    berechnen=_zaehler_entwurf, formel="D_i = Q_i⁺     JK: 0→0 J=0 K=X, 0→1 J=1 K=X, 1→0 J=X K=1, 1→1 J=X K=0")
 
 
 # =============================================================================
@@ -510,15 +488,14 @@ def _fmax_schaltwerk(w):
     return zeilen
 
 
-def fmax_schaltwerk(master):
-    return FormelRechner(
-        master, "Höchste Taktfrequenz (synchron)", "Längster Weg von Flipflop zu Flipflop – mit Setup und Hold",
-        felder=[("tpd", "t_pd (Takt → Q)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 10"}),
-                ("tsu", "t_setup", "zeit", {"einheit": "ns", "platzhalter": "z.B. 5"}),
-                ("tlog", "t_Logik (längster Pfad, opt.)", "zeit", {"einheit": "ns", "platzhalter": "0"}),
-                ("tskew", "t_skew (Taktversatz, opt.)", "zeit", {"einheit": "ns", "platzhalter": "0"}),
-                ("th", "t_hold (opt.)", "zeit", {"einheit": "ns", "platzhalter": "optional"})],
-        berechnen=_fmax_schaltwerk, formel="f_max = 1 / (t_pd + t_Logik + t_setup + t_skew)")
+fmax_schaltwerk = FormelDaten(
+    "Höchste Taktfrequenz (synchron)", "Längster Weg von Flipflop zu Flipflop – mit Setup und Hold",
+    felder=[("tpd", "t_pd (Takt → Q)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 10"}),
+            ("tsu", "t_setup", "zeit", {"einheit": "ns", "platzhalter": "z.B. 5"}),
+            ("tlog", "t_Logik (längster Pfad, opt.)", "zeit", {"einheit": "ns", "platzhalter": "0"}),
+            ("tskew", "t_skew (Taktversatz, opt.)", "zeit", {"einheit": "ns", "platzhalter": "0"}),
+            ("th", "t_hold (opt.)", "zeit", {"einheit": "ns", "platzhalter": "optional"})],
+    berechnen=_fmax_schaltwerk, formel="f_max = 1 / (t_pd + t_Logik + t_setup + t_skew)")
 
 
 # =============================================================================
@@ -541,12 +518,11 @@ def _frequenzteiler(w):
     return zeilen
 
 
-def frequenzteiler(master):
-    return FormelRechner(
-        master, "Frequenzteiler mit Flipflops", "Wie viele Flipflops braucht ein Teiler durch m?",
-        felder=[("f", "Eingangsfrequenz f", "frequenz", {"platzhalter": "z.B. 32768"}),
-                ("m", "Teiler m", "zahl", {"platzhalter": "z.B. 32768"})],
-        berechnen=_frequenzteiler, formel="f_aus = f / m     Flipflops = ⌈log2 m⌉")
+frequenzteiler = FormelDaten(
+    "Frequenzteiler mit Flipflops", "Wie viele Flipflops braucht ein Teiler durch m?",
+    felder=[("f", "Eingangsfrequenz f", "frequenz", {"platzhalter": "z.B. 32768"}),
+            ("m", "Teiler m", "zahl", {"platzhalter": "z.B. 32768"})],
+    berechnen=_frequenzteiler, formel="f_aus = f / m     Flipflops = ⌈log2 m⌉")
 
 
 # =============================================================================
@@ -576,15 +552,14 @@ def _uart_timing(w):
     return zeilen
 
 
-def uart_timing(master):
-    return FormelRechner(
-        master, "UART: Bitzeit und Datenrate", "Wie lange dauert ein Zeichen, wie viele passen in eine Sekunde?",
-        felder=[("baud", "Baudrate", "zahl", {"platzhalter": "z.B. 9600"}),
-                ("datenbits", "Datenbits", "auswahl", {"werte": DATENBITS}),
-                ("paritaet", "Parität", "auswahl", {"werte": bm.PARITAETEN}),
-                ("stopbits", "Stoppbits", "auswahl", {"werte": ["1", "2", "1.5"]}),
-                ("n", "Anzahl Zeichen (opt.)", "zahl", {"platzhalter": "optional"})],
-        berechnen=_uart_timing, formel="t_bit = 1 / Baudrate     Zeichen/s = Baudrate / Rahmenbits")
+uart_timing = FormelDaten(
+    "UART: Bitzeit und Datenrate", "Wie lange dauert ein Zeichen, wie viele passen in eine Sekunde?",
+    felder=[("baud", "Baudrate", "zahl", {"platzhalter": "z.B. 9600"}),
+            ("datenbits", "Datenbits", "auswahl", {"werte": DATENBITS}),
+            ("paritaet", "Parität", "auswahl", {"werte": bm.PARITAETEN}),
+            ("stopbits", "Stoppbits", "auswahl", {"werte": ["1", "2", "1.5"]}),
+            ("n", "Anzahl Zeichen (opt.)", "zahl", {"platzhalter": "optional"})],
+    berechnen=_uart_timing, formel="t_bit = 1 / Baudrate     Zeichen/s = Baudrate / Rahmenbits")
 
 
 # =============================================================================
@@ -619,13 +594,12 @@ def _uart_baudrate(w):
     return zeilen
 
 
-def uart_baudrate(master):
-    return FormelRechner(
-        master, "UART: Baudraten-Teiler und Fehler", "Trifft der µC-Takt die gewünschte Baudrate genau genug?",
-        felder=[("f", "Takt f des µC", "frequenz", {"einheit": "MHz", "platzhalter": "z.B. 16"}),
-                ("baud", "Baudrate", "zahl", {"platzhalter": "z.B. 115200"}),
-                ("ueber", "Überabtastung", "auswahl", {"werte": list(UEBERABTASTUNG)})],
-        berechnen=_uart_baudrate, formel="N = round(f / (16 · Baudrate))     Fehler = f / (16 · N · Baudrate) − 1")
+uart_baudrate = FormelDaten(
+    "UART: Baudraten-Teiler und Fehler", "Trifft der µC-Takt die gewünschte Baudrate genau genug?",
+    felder=[("f", "Takt f des µC", "frequenz", {"einheit": "MHz", "platzhalter": "z.B. 16"}),
+            ("baud", "Baudrate", "zahl", {"platzhalter": "z.B. 115200"}),
+            ("ueber", "Überabtastung", "auswahl", {"werte": list(UEBERABTASTUNG)})],
+    berechnen=_uart_baudrate, formel="N = round(f / (16 · Baudrate))     Fehler = f / (16 · N · Baudrate) − 1")
 
 
 # =============================================================================
@@ -650,13 +624,12 @@ def _spi_uebertragung(w):
     return zeilen
 
 
-def spi_uebertragung(master):
-    return FormelRechner(
-        master, "SPI: Modus und Übertragungsdauer", "CPOL/CPHA nachschlagen und die Dauer einer Übertragung berechnen",
-        felder=[("modus", "SPI-Modus", "auswahl", {"werte": SPI_MODI}),
-                ("f", "Takt f_SCLK (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "z.B. 8"}),
-                ("n", "Anzahl Bytes (opt.)", "zahl", {"platzhalter": "1"})],
-        berechnen=_spi_uebertragung, formel="Modus = 2 · CPOL + CPHA     t = 8 · n / f_SCLK")
+spi_uebertragung = FormelDaten(
+    "SPI: Modus und Übertragungsdauer", "CPOL/CPHA nachschlagen und die Dauer einer Übertragung berechnen",
+    felder=[("modus", "SPI-Modus", "auswahl", {"werte": SPI_MODI}),
+            ("f", "Takt f_SCLK (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "z.B. 8"}),
+            ("n", "Anzahl Bytes (opt.)", "zahl", {"platzhalter": "1"})],
+    berechnen=_spi_uebertragung, formel="Modus = 2 · CPOL + CPHA     t = 8 · n / f_SCLK")
 
 
 # =============================================================================
@@ -685,14 +658,13 @@ def _i2c_uebertragung(w):
     return zeilen
 
 
-def i2c_uebertragung(master):
-    return FormelRechner(
-        master, "I²C: Dauer einer Übertragung", "Wie lange braucht ein Schreib- oder Lesezugriff?",
-        felder=[("modus", "Modus", "auswahl", {"werte": list(bm.I2C_MODI)}),
-                ("art", "Zugriff", "auswahl", {"werte": bm.I2C_ARTEN}),
-                ("n", "Datenbytes", "zahl", {"platzhalter": "z.B. 2"}),
-                ("f", "eigener Takt f_SCL (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"})],
-        berechnen=_i2c_uebertragung, formel="Takte ≈ 1 + 9 · (1 + n) + 1     t = Takte / f_SCL")
+i2c_uebertragung = FormelDaten(
+    "I²C: Dauer einer Übertragung", "Wie lange braucht ein Schreib- oder Lesezugriff?",
+    felder=[("modus", "Modus", "auswahl", {"werte": list(bm.I2C_MODI)}),
+            ("art", "Zugriff", "auswahl", {"werte": bm.I2C_ARTEN}),
+            ("n", "Datenbytes", "zahl", {"platzhalter": "z.B. 2"}),
+            ("f", "eigener Takt f_SCL (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"})],
+    berechnen=_i2c_uebertragung, formel="Takte ≈ 1 + 9 · (1 + n) + 1     t = Takte / f_SCL")
 
 
 # =============================================================================
@@ -713,12 +685,11 @@ def _speicher_organisation(w):
             f"(A{a - 1} … A0, Daten D{d - 1} … D0)"]
 
 
-def speicher_organisation(master):
-    return FormelRechner(
-        master, "Speicher: Organisation und Kapazität", "Aus Adress- und Datenbits: Wörter, Bit, Byte, Adressbereich",
-        felder=[("a", "Adressbits a", "zahl", {"platzhalter": "z.B. 15 (62256)"}),
-                ("d", "Datenbits d (Wortbreite)", "zahl", {"platzhalter": "z.B. 8"})],
-        berechnen=_speicher_organisation, formel="Wörter = 2^a     Kapazität = 2^a · d Bit")
+speicher_organisation = FormelDaten(
+    "Speicher: Organisation und Kapazität", "Aus Adress- und Datenbits: Wörter, Bit, Byte, Adressbereich",
+    felder=[("a", "Adressbits a", "zahl", {"platzhalter": "z.B. 15 (62256)"}),
+            ("d", "Datenbits d (Wortbreite)", "zahl", {"platzhalter": "z.B. 8"})],
+    berechnen=_speicher_organisation, formel="Wörter = 2^a     Kapazität = 2^a · d Bit")
 
 
 # =============================================================================
@@ -751,15 +722,14 @@ def _speicher_erweitern(w):
     return zeilen
 
 
-def speicher_erweitern(master):
-    return FormelRechner(
-        master, "Speicher erweitern (Tiefe und Wortbreite)", "Aus kleinen Speicherchips einen grösseren Speicher bauen",
-        felder=[("ziel", "Ziel: Wörter", "text", {"platzhalter": "z.B. 64K"}),
-                ("zb", "Ziel: Wortbreite (Bit)", "zahl", {"platzhalter": "z.B. 16"}),
-                ("chip", "Chip: Wörter", "text", {"platzhalter": "z.B. 32K"}),
-                ("cb", "Chip: Wortbreite (Bit)", "zahl", {"platzhalter": "z.B. 8"})],
-        berechnen=_speicher_erweitern,
-        formel="Chips = ⌈Breite_Ziel / Breite_Chip⌉ · Wörter_Ziel / Wörter_Chip     Decoder-Bits = log2(Reihen)")
+speicher_erweitern = FormelDaten(
+    "Speicher erweitern (Tiefe und Wortbreite)", "Aus kleinen Speicherchips einen grösseren Speicher bauen",
+    felder=[("ziel", "Ziel: Wörter", "text", {"platzhalter": "z.B. 64K"}),
+            ("zb", "Ziel: Wortbreite (Bit)", "zahl", {"platzhalter": "z.B. 16"}),
+            ("chip", "Chip: Wörter", "text", {"platzhalter": "z.B. 32K"}),
+            ("cb", "Chip: Wortbreite (Bit)", "zahl", {"platzhalter": "z.B. 8"})],
+    berechnen=_speicher_erweitern,
+    formel="Chips = ⌈Breite_Ziel / Breite_Chip⌉ · Wörter_Ziel / Wörter_Chip     Decoder-Bits = log2(Reihen)")
 
 
 # =============================================================================
@@ -771,39 +741,39 @@ RECHNER = {
     "binaer_addieren": binaer_addieren,
     "bitmaske": bitmaske,
     "logikpegel": logikpegel,
-    "werkzeug_zahlensystem": ZahlensystemKarte,
-    "werkzeug_zweierkomplement": ZweierkomplementKarte,
-    "werkzeug_bitmaske": BitmaskenKarte,
-    "werkzeug_logikpegel": LogikpegelKarte,
+    "werkzeug_zahlensystem": GrafikVerweis("digitaltechnik.grafiken", "ZahlensystemKarte"),
+    "werkzeug_zweierkomplement": GrafikVerweis("digitaltechnik.grafiken", "ZweierkomplementKarte"),
+    "werkzeug_bitmaske": GrafikVerweis("digitaltechnik.grafiken", "BitmaskenKarte"),
+    "werkzeug_logikpegel": GrafikVerweis("digitaltechnik.grafiken", "LogikpegelKarte"),
     "wahrheitstabelle": wahrheitstabelle,
     "ausdruck_vergleichen": ausdruck_vergleichen,
     "kv_minimieren": kv_minimieren,
-    "werkzeug_gatter": GatterKarte,
-    "werkzeug_ausdruck": AusdruckKarte,
-    "werkzeug_kv": KVKarte,
+    "werkzeug_gatter": GrafikVerweis("digitaltechnik.grafiken_logik", "GatterKarte"),
+    "werkzeug_ausdruck": GrafikVerweis("digitaltechnik.grafiken_logik", "AusdruckKarte"),
+    "werkzeug_kv": GrafikVerweis("digitaltechnik.grafiken_logik", "KVKarte"),
     "addierer_laufzeit": addierer_laufzeit,
     "mux_funktion": mux_funktion,
     "siebensegment": siebensegment,
     "adressdecoder": adressdecoder,
     "open_drain_pullup": open_drain_pullup,
-    "werkzeug_addierer": AddiererKarte,
-    "werkzeug_mux": MuxKarte,
-    "werkzeug_decoder": DecoderKarte,
-    "werkzeug_ausgang": AusgangKarte,
+    "werkzeug_addierer": GrafikVerweis("digitaltechnik.grafiken_schaltnetze", "AddiererKarte"),
+    "werkzeug_mux": GrafikVerweis("digitaltechnik.grafiken_schaltnetze", "MuxKarte"),
+    "werkzeug_decoder": GrafikVerweis("digitaltechnik.grafiken_schaltnetze", "DecoderKarte"),
+    "werkzeug_ausgang": GrafikVerweis("digitaltechnik.grafiken_schaltnetze", "AusgangKarte"),
     "zaehler_entwurf": zaehler_entwurf,
     "fmax_schaltwerk": fmax_schaltwerk,
     "frequenzteiler": frequenzteiler,
-    "werkzeug_flipflop": FlipflopKarte,
-    "werkzeug_zaehler": ZaehlerKarte,
-    "werkzeug_schieberegister": SchieberegisterKarte,
+    "werkzeug_flipflop": GrafikVerweis("digitaltechnik.grafiken_schaltwerke", "FlipflopKarte"),
+    "werkzeug_zaehler": GrafikVerweis("digitaltechnik.grafiken_schaltwerke", "ZaehlerKarte"),
+    "werkzeug_schieberegister": GrafikVerweis("digitaltechnik.grafiken_schaltwerke", "SchieberegisterKarte"),
     "uart_timing": uart_timing,
     "uart_baudrate": uart_baudrate,
     "spi_uebertragung": spi_uebertragung,
     "i2c_uebertragung": i2c_uebertragung,
     "speicher_organisation": speicher_organisation,
     "speicher_erweitern": speicher_erweitern,
-    "werkzeug_uart": UartKarte,
-    "werkzeug_spi": SpiKarte,
-    "werkzeug_i2c": I2cKarte,
-    "werkzeug_speicher": SpeicherKarte,
+    "werkzeug_uart": GrafikVerweis("digitaltechnik.grafiken_busse", "UartKarte"),
+    "werkzeug_spi": GrafikVerweis("digitaltechnik.grafiken_busse", "SpiKarte"),
+    "werkzeug_i2c": GrafikVerweis("digitaltechnik.grafiken_busse", "I2cKarte"),
+    "werkzeug_speicher": GrafikVerweis("digitaltechnik.grafiken_busse", "SpeicherKarte"),
 }

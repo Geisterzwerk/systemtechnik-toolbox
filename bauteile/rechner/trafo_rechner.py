@@ -12,9 +12,8 @@
 
 import math
 
-from bauteile.grafiken.trafo_animation import TrafoAnimation       # -> grafiken/trafo_animation.py
 from bauteile.rechner import normreihen                            # -> rechner/normreihen.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, anzahl_gegeben, fmt   # -> rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, anzahl_gegeben, fmt   # -> bauteile/rechner/kern.py
 
 
 def _uebersetzung(w):
@@ -42,13 +41,12 @@ def _uebersetzung(w):
     return zeilen
 
 
-def uebersetzung(master):
-    return FormelRechner(
-        master, "Übersetzung", "Drei Werte eingeben, der vierte wird berechnet (idealer Trafo)",
-        felder=[("U1", "Primär U1", "spannung", {"platzhalter": "z.B. 230"}), ("U2", "Sekundär U2", "spannung"),
-                ("N1", "Windungen N1", "zahl"), ("N2", "Windungen N2", "zahl"),
-                ("I2", "Sekundärstrom (opt.)", "strom", {"platzhalter": "optional"})],
-        berechnen=_uebersetzung, formel="U1 / U2 = N1 / N2 = I2 / I1 = ü")
+uebersetzung = FormelDaten(
+    "Übersetzung", "Drei Werte eingeben, der vierte wird berechnet (idealer Trafo)",
+    felder=[("U1", "Primär U1", "spannung", {"platzhalter": "z.B. 230"}), ("U2", "Sekundär U2", "spannung"),
+            ("N1", "Windungen N1", "zahl"), ("N2", "Windungen N2", "zahl"),
+            ("I2", "Sekundärstrom (opt.)", "strom", {"platzhalter": "optional"})],
+    berechnen=_uebersetzung, formel="U1 / U2 = N1 / N2 = I2 / I1 = ü")
 
 
 def _leistung(w):
@@ -70,12 +68,11 @@ def _leistung(w):
     return zeilen
 
 
-def leistung_trafo(master):
-    return FormelRechner(
-        master, "Leistung & Wirkungsgrad", "Kleine Trafos: η ≈ 70–85 %, grosse: > 95 %",
-        felder=[("U1", "Primär U1", "spannung", {"platzhalter": "230"}), ("U2", "Sekundär U2", "spannung"),
-                ("I2", "Sekundärstrom I2", "strom"), ("eta", "Wirkungsgrad η", "prozent", {"platzhalter": "85"})],
-        berechnen=_leistung, formel="S = U · I     η = P_ab / P_zu")
+leistung_trafo = FormelDaten(
+    "Leistung & Wirkungsgrad", "Kleine Trafos: η ≈ 70–85 %, grosse: > 95 %",
+    felder=[("U1", "Primär U1", "spannung", {"platzhalter": "230"}), ("U2", "Sekundär U2", "spannung"),
+            ("I2", "Sekundärstrom I2", "strom"), ("eta", "Wirkungsgrad η", "prozent", {"platzhalter": "85"})],
+    berechnen=_leistung, formel="S = U · I     η = P_ab / P_zu")
 
 
 def _windungen(w):
@@ -93,15 +90,14 @@ def _windungen(w):
     return zeilen
 
 
-def windungen(master):
-    return FormelRechner(
-        master, "Windungen pro Volt", "Für Eigenbau/Umwickeln: A = Querschnitt des Mittelschenkels",
-        felder=[("A", "Kernquerschnitt A", "flaeche", {"einheit": "cm²"}),
-                ("B", "Flussdichte B", "flussdichte", {"platzhalter": "z.B. 1.2"}),
-                ("f", "Frequenz f", "frequenz", {"platzhalter": "50"}),
-                ("U1", "Primär U1 (opt.)", "spannung", {"platzhalter": "optional"}),
-                ("U2", "Sekundär U2 (opt.)", "spannung", {"platzhalter": "optional"})],
-        berechnen=_windungen, formel="N / U = 1 / (4.44 · f · B · A)")
+windungen = FormelDaten(
+    "Windungen pro Volt", "Für Eigenbau/Umwickeln: A = Querschnitt des Mittelschenkels",
+    felder=[("A", "Kernquerschnitt A", "flaeche", {"einheit": "cm²"}),
+            ("B", "Flussdichte B", "flussdichte", {"platzhalter": "z.B. 1.2"}),
+            ("f", "Frequenz f", "frequenz", {"platzhalter": "50"}),
+            ("U1", "Primär U1 (opt.)", "spannung", {"platzhalter": "optional"}),
+            ("U2", "Sekundär U2 (opt.)", "spannung", {"platzhalter": "optional"})],
+    berechnen=_windungen, formel="N / U = 1 / (4.44 · f · B · A)")
 
 
 def _netzteil(w):
@@ -128,19 +124,18 @@ def _netzteil(w):
     return zeilen
 
 
-def netzteil(master):
-    return FormelRechner(
-        master, "Trafo + Gleichrichter + Elko", "Was kommt nach dem Brückengleichrichter heraus?",
-        felder=[("U2", "Trafo U2 (eff)", "spannung", {"platzhalter": "z.B. 12"}),
-                ("I", "Laststrom", "strom", {"einheit": "mA"}),
-                ("C", "Ladeelko (opt.)", "kapazitaet", {"platzhalter": "optional"}),
-                ("f", "Netzfrequenz", "frequenz", {"platzhalter": "50"}),
-                ("uf", "Diodenspannung", "spannung", {"platzhalter": "0.7"})],
-        berechnen=_netzteil, formel="Û = U · √2     ΔU ≈ I / (2 · f · C)   (Brücke = doppelte Netzfrequenz)")
+netzteil = FormelDaten(
+    "Trafo + Gleichrichter + Elko", "Was kommt nach dem Brückengleichrichter heraus?",
+    felder=[("U2", "Trafo U2 (eff)", "spannung", {"platzhalter": "z.B. 12"}),
+            ("I", "Laststrom", "strom", {"einheit": "mA"}),
+            ("C", "Ladeelko (opt.)", "kapazitaet", {"platzhalter": "optional"}),
+            ("f", "Netzfrequenz", "frequenz", {"platzhalter": "50"}),
+            ("uf", "Diodenspannung", "spannung", {"platzhalter": "0.7"})],
+    berechnen=_netzteil, formel="Û = U · √2     ΔU ≈ I / (2 · f · C)   (Brücke = doppelte Netzfrequenz)")
 
 
 RECHNER = {
-    "trafo_animation": TrafoAnimation,
+    "trafo_animation": GrafikVerweis("bauteile.grafiken.trafo_animation", "TrafoAnimation"),
     "uebersetzung": uebersetzung,
     "leistung_trafo": leistung_trafo,
     "windungen": windungen,

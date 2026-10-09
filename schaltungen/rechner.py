@@ -65,7 +65,7 @@
 import math
 
 from bauteile.rechner import normreihen                                          # -> bauteile/rechner/normreihen.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt             # -> bauteile/rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, fmt   # -> bauteile/rechner/kern.py
 from schaltungen import dioden_mathe as dm                                       # -> schaltungen/dioden_mathe.py
 from schaltungen import filter_mathe as fm                                       # -> schaltungen/filter_mathe.py
 from schaltungen import mess_mathe as mm                                         # -> schaltungen/mess_mathe.py
@@ -77,31 +77,6 @@ from schaltungen import netzwerk_mathe as nm                                    
 from schaltungen import opv_mathe as om                                          # -> schaltungen/opv_mathe.py
 from schaltungen import rc_mathe as rm                                           # -> schaltungen/rc_mathe.py
 from schaltungen import verstaerker_mathe as vm                                  # -> schaltungen/verstaerker_mathe.py
-from schaltungen.grafiken_filter import (LcFilterSchaltung, SallenKeySchaltung,  # -> schaltungen/grafiken_filter.py
-                                         SchwingkreisSchaltung)
-from schaltungen.grafiken_mess import (DmsKetteSchaltung, NtcTeilerSchaltung,    # -> schaltungen/grafiken_mess.py
-                                       PtLeitungSchaltung)
-from schaltungen.grafiken_schnittstellen import (AdcEingangSchaltung, BusabschlussSchaltung,  # -> grafiken_schnittstellen.py
-                                                 GateTreiberSchaltung, HBrueckeSchaltung, OptokopplerSchaltung,
-                                                 PegelwandlerSchaltung)
-from schaltungen.grafiken_oszillator import (FunktionsgeneratorSchaltung,      # -> schaltungen/grafiken_oszillator.py
-                                             MultivibratorSchaltung, Ne555Schaltung, VcoSchaltung,
-                                             WatchdogSchaltung)
-from schaltungen.grafiken_endstufen import DarlingtonSchaltung, GegentaktSchaltung  # -> grafiken_endstufen.py
-from schaltungen.grafiken_netzteil import (LinearreglerSchaltung, QuelleSchaltung,  # -> schaltungen/grafiken_netzteil.py
-                                           SchaltreglerSchaltung, StrombegrenzungSchaltung,
-                                           StromquelleOpvSchaltung, VirtuelleMasseSchaltung)
-from schaltungen.grafiken_opv import (AddiererSchaltung, DifferenzSchaltung,      # -> schaltungen/grafiken_opv.py
-                                      IntegratorSchaltung, OpvVerstaerkerSchaltung, SchmittSchaltung)
-from schaltungen.grafiken_rc import (AntiAliasingSchaltung, EntprellSchaltung,   # -> schaltungen/grafiken_rc.py
-                                     RcFilterSchaltung)
-from schaltungen.grafiken_transistor import (EmitterfolgerSchaltung, EmitterSchaltung,  # -> schaltungen/grafiken_transistor.py
-                                             KonstantstromSchaltung, LastTreiberSchaltung)
-from schaltungen.grafiken_dioden import (BegrenzerSchaltung, EingangsschutzSchaltung,   # -> schaltungen/grafiken_dioden.py
-                                         FreilaufSchaltung, GleichrichterSchaltung, TvsSchaltung,
-                                         VerpolSchaltung, ZStabiSchaltung)
-from schaltungen.grafiken import (BrueckeSchaltung, PotiSchaltung,               # -> schaltungen/grafiken.py
-                                  PullSchaltung, SpannungsteilerSchaltung, StromteilerSchaltung)
 
 
 def _fehler_umwandeln(funktion, *args):
@@ -128,12 +103,11 @@ def _stromteiler(w):
     return zeilen
 
 
-def stromteiler(master):
-    return FormelRechner(
-        master, "Stromteiler", "Wie teilt sich ein Strom auf parallele Zweige auf?",
-        felder=[("I", "Gesamtstrom I", "strom", {"einheit": "mA"}),
-                ("liste", "Zweig-Widerstände", "widerstand", {"liste": True, "platzhalter": "100 300"})],
-        berechnen=_stromteiler, formel="I_k = I · R_ges / R_k     zwei Zweige: I1 = I · R2 / (R1 + R2)")
+stromteiler = FormelDaten(
+    "Stromteiler", "Wie teilt sich ein Strom auf parallele Zweige auf?",
+    felder=[("I", "Gesamtstrom I", "strom", {"einheit": "mA"}),
+            ("liste", "Zweig-Widerstände", "widerstand", {"liste": True, "platzhalter": "100 300"})],
+    berechnen=_stromteiler, formel="I_k = I · R_ges / R_k     zwei Zweige: I1 = I · R2 / (R1 + R2)")
 
 
 # =============================================================================
@@ -179,15 +153,14 @@ def _pull(w):
     return zeilen
 
 
-def pull_widerstand(master):
-    return FormelRechner(
-        master, "Pull-up / Pull-down dimensionieren", "Grenzen für R aus Strom, Leckstrom und Flanke",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("Imax", "Strom gedrückt max.", "strom", {"einheit": "mA", "platzhalter": "z.B. 1"}),
-                ("Ileck", "Leckstrom (opt.)", "strom", {"einheit": "µA", "platzhalter": "Datenblatt, z.B. 1"}),
-                ("C", "Kapazität (opt.)", "kapazitaet", {"einheit": "pF", "platzhalter": "Pin + Leitung"}),
-                ("tr", "Flanke t_r max (opt.)", "zeit", {"einheit": "µs", "platzhalter": "10 → 90 %"})],
-        berechnen=_pull, formel="R_min = U_B / I_max     R_max = 0.3 · U_B / I_leck     R_max = t_r / (2.2 · C)")
+pull_widerstand = FormelDaten(
+    "Pull-up / Pull-down dimensionieren", "Grenzen für R aus Strom, Leckstrom und Flanke",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("Imax", "Strom gedrückt max.", "strom", {"einheit": "mA", "platzhalter": "z.B. 1"}),
+            ("Ileck", "Leckstrom (opt.)", "strom", {"einheit": "µA", "platzhalter": "Datenblatt, z.B. 1"}),
+            ("C", "Kapazität (opt.)", "kapazitaet", {"einheit": "pF", "platzhalter": "Pin + Leitung"}),
+            ("tr", "Flanke t_r max (opt.)", "zeit", {"einheit": "µs", "platzhalter": "10 → 90 %"})],
+    berechnen=_pull, formel="R_min = U_B / I_max     R_max = 0.3 · U_B / I_leck     R_max = t_r / (2.2 · C)")
 
 
 # =============================================================================
@@ -209,14 +182,13 @@ def _poti(w):
     return zeilen
 
 
-def poti_last(master):
-    return FormelRechner(
-        master, "Potentiometer mit Last", "Wie stark verbiegt eine Last die Poti-Kennlinie?",
-        felder=[("Ue", "Eingang Ue", "spannung", {"platzhalter": "z.B. 10"}),
-                ("Rp", "Poti R_P", "widerstand", {"einheit": "kΩ"}),
-                ("RL", "Last R_L", "widerstand", {"einheit": "kΩ"}),
-                ("a", "Schleiferstellung", "prozent", {"platzhalter": "50"})],
-        berechnen=_poti, formel="Ua = Ue · (R_u || R_L) / (R_o + R_u || R_L),   R_u = α · R_P")
+poti_last = FormelDaten(
+    "Potentiometer mit Last", "Wie stark verbiegt eine Last die Poti-Kennlinie?",
+    felder=[("Ue", "Eingang Ue", "spannung", {"platzhalter": "z.B. 10"}),
+            ("Rp", "Poti R_P", "widerstand", {"einheit": "kΩ"}),
+            ("RL", "Last R_L", "widerstand", {"einheit": "kΩ"}),
+            ("a", "Schleiferstellung", "prozent", {"platzhalter": "50"})],
+    berechnen=_poti, formel="Ua = Ue · (R_u || R_L) / (R_o + R_u || R_L),   R_u = α · R_P")
 
 
 # =============================================================================
@@ -253,15 +225,14 @@ def _eingangsschutz(w):
     return zeilen
 
 
-def eingangsschutz(master):
-    return FormelRechner(
-        master, "Eingangsschutz: Serienwiderstand", "Wie gross muss R sein, damit die Klemmdioden überleben?",
-        felder=[("Umax", "Grösste Spannung am Eingang", "spannung", {"platzhalter": "z.B. 24"}),
-                ("Umin", "Kleinste Spannung (opt.)", "spannung", {"platzhalter": "z.B. −24"}),
-                ("Udd", "Versorgung U_DD", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("Iinj", "Injektionsstrom max.", "strom", {"einheit": "mA", "platzhalter": "Datenblatt, leer = 1"}),
-                ("Uf", "U_F der Dioden (opt.)", "spannung", {"platzhalter": "0.7 (Schottky 0.3)"})],
-        berechnen=_eingangsschutz, formel="R ≥ (U_max − U_DD − U_F) / I_inj")
+eingangsschutz = FormelDaten(
+    "Eingangsschutz: Serienwiderstand", "Wie gross muss R sein, damit die Klemmdioden überleben?",
+    felder=[("Umax", "Grösste Spannung am Eingang", "spannung", {"platzhalter": "z.B. 24"}),
+            ("Umin", "Kleinste Spannung (opt.)", "spannung", {"platzhalter": "z.B. −24"}),
+            ("Udd", "Versorgung U_DD", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("Iinj", "Injektionsstrom max.", "strom", {"einheit": "mA", "platzhalter": "Datenblatt, leer = 1"}),
+            ("Uf", "U_F der Dioden (opt.)", "spannung", {"platzhalter": "0.7 (Schottky 0.3)"})],
+    berechnen=_eingangsschutz, formel="R ≥ (U_max − U_DD − U_F) / I_inj")
 
 
 # =============================================================================
@@ -282,13 +253,12 @@ def _verpolschutz(w):
     return zeilen
 
 
-def verpolschutz(master):
-    return FormelRechner(
-        master, "Verpolschutz im Vergleich", "Si-Diode, Schottky oder P-MOSFET in der Plusleitung?",
-        felder=[("Ub", "Batterie U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("I", "Laststrom (Nenn)", "strom", {"einheit": "A"}),
-                ("Rds", "R_DS(on) P-MOSFET", "widerstand", {"einheit": "mΩ", "platzhalter": "leer = 20"})],
-        berechnen=_verpolschutz, formel="Diode: P = U_F · I     P-MOSFET: P = I² · R_DS(on)")
+verpolschutz = FormelDaten(
+    "Verpolschutz im Vergleich", "Si-Diode, Schottky oder P-MOSFET in der Plusleitung?",
+    felder=[("Ub", "Batterie U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("I", "Laststrom (Nenn)", "strom", {"einheit": "A"}),
+            ("Rds", "R_DS(on) P-MOSFET", "widerstand", {"einheit": "mΩ", "platzhalter": "leer = 20"})],
+    berechnen=_verpolschutz, formel="Diode: P = U_F · I     P-MOSFET: P = I² · R_DS(on)")
 
 
 # =============================================================================
@@ -327,17 +297,16 @@ def _tvs(w):
     return zeilen
 
 
-def tvs_auswahl(master):
-    return FormelRechner(
-        master, "TVS-Diode prüfen", "Passt die TVS zu Betriebsspannung, Störspitze und Gerät?",
-        felder=[("Ub", "Betriebsspannung U_B", "spannung", {"platzhalter": "z.B. 24"}),
-                ("Uwm", "TVS U_WM (Stand-off)", "spannung", {"platzhalter": "Datenblatt, z.B. 26"}),
-                ("Uc", "TVS U_C bei I_PP", "spannung", {"platzhalter": "Datenblatt, z.B. 42.1"}),
-                ("Ipp", "TVS I_PP", "strom", {"einheit": "A", "platzhalter": "Datenblatt, z.B. 14.3"}),
-                ("Up", "Störspitze U_peak", "spannung", {"platzhalter": "z.B. 500"}),
-                ("Rq", "Quellwiderstand R_q", "widerstand", {"platzhalter": "leer = 2 Ω (Norm)"}),
-                ("Umax", "U_max des Geräts (opt.)", "spannung", {"platzhalter": "optional"})],
-        berechnen=_tvs, formel="U_WM ≥ U_B     I ≈ (U_peak − U_C) / R_q ≤ I_PP     U_C ≤ U_max")
+tvs_auswahl = FormelDaten(
+    "TVS-Diode prüfen", "Passt die TVS zu Betriebsspannung, Störspitze und Gerät?",
+    felder=[("Ub", "Betriebsspannung U_B", "spannung", {"platzhalter": "z.B. 24"}),
+            ("Uwm", "TVS U_WM (Stand-off)", "spannung", {"platzhalter": "Datenblatt, z.B. 26"}),
+            ("Uc", "TVS U_C bei I_PP", "spannung", {"platzhalter": "Datenblatt, z.B. 42.1"}),
+            ("Ipp", "TVS I_PP", "strom", {"einheit": "A", "platzhalter": "Datenblatt, z.B. 14.3"}),
+            ("Up", "Störspitze U_peak", "spannung", {"platzhalter": "z.B. 500"}),
+            ("Rq", "Quellwiderstand R_q", "widerstand", {"platzhalter": "leer = 2 Ω (Norm)"}),
+            ("Umax", "U_max des Geräts (opt.)", "spannung", {"platzhalter": "optional"})],
+    berechnen=_tvs, formel="U_WM ≥ U_B     I ≈ (U_peak − U_C) / R_q ≤ I_PP     U_C ≤ U_max")
 
 # =============================================================================
 # 7) EMITTERFOLGER
@@ -359,15 +328,14 @@ def _emitterfolger(w):
     return zeilen
 
 
-def emitterfolger(master):
-    return FormelRechner(
-        master, "Emitterfolger", "Kollektorschaltung als Impedanzwandler",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Ue", "Eingang (Basis)", "spannung", {"platzhalter": "z.B. 6"}),
-                ("Re", "R_E", "widerstand", {"einheit": "kΩ"}),
-                ("RL", "Last R_L (opt.)", "widerstand", {"platzhalter": "optional"}),
-                ("beta", "β (opt.)", "zahl", {"platzhalter": "200"})],
-        berechnen=_emitterfolger, formel="Ua = Ue − 0.7 V     I_B = I_E / (β + 1)     r_ein ≈ β · R_E")
+emitterfolger = FormelDaten(
+    "Emitterfolger", "Kollektorschaltung als Impedanzwandler",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Ue", "Eingang (Basis)", "spannung", {"platzhalter": "z.B. 6"}),
+            ("Re", "R_E", "widerstand", {"einheit": "kΩ"}),
+            ("RL", "Last R_L (opt.)", "widerstand", {"platzhalter": "optional"}),
+            ("beta", "β (opt.)", "zahl", {"platzhalter": "200"})],
+    berechnen=_emitterfolger, formel="Ua = Ue − 0.7 V     I_B = I_E / (β + 1)     r_ein ≈ β · R_E")
 
 
 # =============================================================================
@@ -408,16 +376,15 @@ def _konstantstrom(w):
             "Nur 2 Anschlüsse nötig – aber I_DSS und U_P streuen pro Exemplar oft um Faktor 2"]
 
 
-def konstantstrom(master):
-    return FormelRechner(
-        master, "Konstantstromquelle dimensionieren", "Transistor + Referenz oder JFET + R_S",
-        felder=[("art", "Schaltung", "auswahl", {"werte": KONSTANT_ARTEN}),
-                ("I", "Gewünschter Strom", "strom", {"einheit": "mA", "platzhalter": "z.B. 10"}),
-                ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Uref", "U_ref an der Basis", "spannung", {"platzhalter": "Transistor: z.B. 3.3"}),
-                ("IDSS", "JFET I_DSS", "strom", {"einheit": "mA", "platzhalter": "JFET: z.B. 10"}),
-                ("UP", "JFET |U_P|", "spannung", {"platzhalter": "JFET: z.B. 2.5"})],
-        berechnen=_konstantstrom, formel="Transistor: I = (U_ref − 0.7 V) / R_E     JFET: I = I_DSS · (1 − U_GS / U_P)²")
+konstantstrom = FormelDaten(
+    "Konstantstromquelle dimensionieren", "Transistor + Referenz oder JFET + R_S",
+    felder=[("art", "Schaltung", "auswahl", {"werte": KONSTANT_ARTEN}),
+            ("I", "Gewünschter Strom", "strom", {"einheit": "mA", "platzhalter": "z.B. 10"}),
+            ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Uref", "U_ref an der Basis", "spannung", {"platzhalter": "Transistor: z.B. 3.3"}),
+            ("IDSS", "JFET I_DSS", "strom", {"einheit": "mA", "platzhalter": "JFET: z.B. 10"}),
+            ("UP", "JFET |U_P|", "spannung", {"platzhalter": "JFET: z.B. 2.5"})],
+    berechnen=_konstantstrom, formel="Transistor: I = (U_ref − 0.7 V) / R_E     JFET: I = I_DSS · (1 − U_GS / U_P)²")
 
 
 # =============================================================================
@@ -439,16 +406,15 @@ def _rc_frequenzgang(w):
     return zeilen
 
 
-def rc_frequenzgang(master):
-    return FormelRechner(
-        master, "RC-Tief-/Hochpass: Frequenzgang", "Wie viel kommt bei einer bestimmten Frequenz am Ausgang an?",
-        felder=[("art", "Filter", "auswahl", {"werte": rm.FILTER_ARTEN}),
-                ("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
-                ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}),
-                ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 1k"}),
-                ("Ue", "Eingang Ue (opt.)", "spannung", {"platzhalter": "optional"})],
-        berechnen=_rc_frequenzgang,
-        formel="TP: |H| = 1 / √(1 + (f/fg)²)     HP: |H| = (f/fg) / √(1 + (f/fg)²)     dB = 20 · log|H|")
+rc_frequenzgang = FormelDaten(
+    "RC-Tief-/Hochpass: Frequenzgang", "Wie viel kommt bei einer bestimmten Frequenz am Ausgang an?",
+    felder=[("art", "Filter", "auswahl", {"werte": rm.FILTER_ARTEN}),
+            ("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
+            ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}),
+            ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 1k"}),
+            ("Ue", "Eingang Ue (opt.)", "spannung", {"platzhalter": "optional"})],
+    berechnen=_rc_frequenzgang,
+    formel="TP: |H| = 1 / √(1 + (f/fg)²)     HP: |H| = (f/fg) / √(1 + (f/fg)²)     dB = 20 · log|H|")
 
 
 # =============================================================================
@@ -483,15 +449,14 @@ def _entprellung(w):
     return zeilen
 
 
-def entprellung(master):
-    return FormelRechner(
-        master, "Taster entprellen (RC + Schmitt-Trigger)", "Pull-up R1, R2 zum Kondensator, Schmitt-Trigger-Eingang",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 5"}),
-                ("R1", "Pull-up R1", "widerstand", {"einheit": "kΩ"}),
-                ("R2", "R2 (zum C)", "widerstand", {"einheit": "kΩ"}),
-                ("C", "Kapazität C", "kapazitaet", {"platzhalter": "leer = berechnen"}),
-                ("tp", "Prellzeit", "zeit", {"platzhalter": "z.B. 5 (ms)"})],
-        berechnen=_entprellung, formel="t_ab = R2 · C · ln(U_B / U_T−)     t_auf = (R1 + R2) · C · ln(U_B / (U_B − U_T+))")
+entprellung = FormelDaten(
+    "Taster entprellen (RC + Schmitt-Trigger)", "Pull-up R1, R2 zum Kondensator, Schmitt-Trigger-Eingang",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 5"}),
+            ("R1", "Pull-up R1", "widerstand", {"einheit": "kΩ"}),
+            ("R2", "R2 (zum C)", "widerstand", {"einheit": "kΩ"}),
+            ("C", "Kapazität C", "kapazitaet", {"platzhalter": "leer = berechnen"}),
+            ("tp", "Prellzeit", "zeit", {"platzhalter": "z.B. 5 (ms)"})],
+    berechnen=_entprellung, formel="t_ab = R2 · C · ln(U_B / U_T−)     t_auf = (R1 + R2) · C · ln(U_B / (U_B − U_T+))")
 
 
 # =============================================================================
@@ -523,15 +488,14 @@ def _anti_aliasing(w):
     return zeilen
 
 
-def anti_aliasing(master):
-    return FormelRechner(
-        master, "Anti-Aliasing (RC vor dem ADC)", "Erscheint eine Frequenz nach dem Abtasten falsch – und wie stark?",
-        felder=[("fs", "Abtastrate f_s", "frequenz", {"platzhalter": "z.B. 1k"}),
-                ("f", "Signal-/Störfrequenz f", "frequenz", {"platzhalter": "z.B. 900"}),
-                ("R", "R (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"}),
-                ("C", "C (opt.)", "kapazitaet", {"einheit": "nF", "platzhalter": "optional"}),
-                ("N", "ADC-Auflösung N (opt.)", "zahl", {"platzhalter": "z.B. 12"})],
-        berechnen=_anti_aliasing, formel="f_alias = |f − n · f_s|     f_s > 2 · f_max     Dämpfung ≥ 6.02 · N dB")
+anti_aliasing = FormelDaten(
+    "Anti-Aliasing (RC vor dem ADC)", "Erscheint eine Frequenz nach dem Abtasten falsch – und wie stark?",
+    felder=[("fs", "Abtastrate f_s", "frequenz", {"platzhalter": "z.B. 1k"}),
+            ("f", "Signal-/Störfrequenz f", "frequenz", {"platzhalter": "z.B. 900"}),
+            ("R", "R (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"}),
+            ("C", "C (opt.)", "kapazitaet", {"einheit": "nF", "platzhalter": "optional"}),
+            ("N", "ADC-Auflösung N (opt.)", "zahl", {"platzhalter": "z.B. 12"})],
+    berechnen=_anti_aliasing, formel="f_alias = |f − n · f_s|     f_s > 2 · f_max     Dämpfung ≥ 6.02 · N dB")
 
 
 
@@ -575,17 +539,16 @@ def _opv_verstaerker(w):
     return zeilen
 
 
-def opv_verstaerker(master):
-    return FormelRechner(
-        master, "OPV-Verstärker", "Folger, nichtinvertierend oder invertierend – leeres R2 wird aus Vu berechnet",
-        felder=[("art", "Schaltung", "auswahl", {"werte": om.VERSTAERKER_ARTEN, "standard": "nichtinvertierend"}),
-                ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
-                ("R2", "R2 (Gegenkopplung)", "widerstand", {"einheit": "kΩ", "platzhalter": "leer = aus Vu"}),
-                ("Vu", "gewünschte Vu (opt.)", "zahl", {"platzhalter": "z.B. 10"}),
-                ("Ue", "Eingang Ue (opt.)", "spannung", {"platzhalter": "z.B. 0.5"}),
-                ("Ub", "Versorgung ±U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("GBW", "GBW (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "1 MHz"})],
-        berechnen=_opv_verstaerker, formel="nichtinv.: Vu = 1 + R2/R1     inv.: Vu = −R2/R1     f_g = GBW / (1 + R2/R1)")
+opv_verstaerker = FormelDaten(
+    "OPV-Verstärker", "Folger, nichtinvertierend oder invertierend – leeres R2 wird aus Vu berechnet",
+    felder=[("art", "Schaltung", "auswahl", {"werte": om.VERSTAERKER_ARTEN, "standard": "nichtinvertierend"}),
+            ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
+            ("R2", "R2 (Gegenkopplung)", "widerstand", {"einheit": "kΩ", "platzhalter": "leer = aus Vu"}),
+            ("Vu", "gewünschte Vu (opt.)", "zahl", {"platzhalter": "z.B. 10"}),
+            ("Ue", "Eingang Ue (opt.)", "spannung", {"platzhalter": "z.B. 0.5"}),
+            ("Ub", "Versorgung ±U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("GBW", "GBW (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "1 MHz"})],
+    berechnen=_opv_verstaerker, formel="nichtinv.: Vu = 1 + R2/R1     inv.: Vu = −R2/R1     f_g = GBW / (1 + R2/R1)")
 
 
 # =============================================================================
@@ -608,14 +571,13 @@ def _opv_addierer(w):
     return zeilen
 
 
-def opv_addierer(master):
-    return FormelRechner(
-        master, "OPV-Addierer (Summierer)", "Mehrere Werte mit Leerzeichen trennen, z.B.  1 2 -0.5",
-        felder=[("U", "Eingangsspannungen", "spannung", {"liste": True, "platzhalter": "z.B. 1 2 -0.5"}),
-                ("R", "Eingangswiderstände", "widerstand", {"liste": True, "einheit": "kΩ", "platzhalter": "z.B. 10 10 10"}),
-                ("Rf", "R_f", "widerstand", {"einheit": "kΩ"}),
-                ("Ub", "Versorgung ±U_B (opt.)", "spannung", {"platzhalter": "15"})],
-        berechnen=_opv_addierer, formel="Ua = −R_f · (U1/R1 + U2/R2 + …)")
+opv_addierer = FormelDaten(
+    "OPV-Addierer (Summierer)", "Mehrere Werte mit Leerzeichen trennen, z.B.  1 2 -0.5",
+    felder=[("U", "Eingangsspannungen", "spannung", {"liste": True, "platzhalter": "z.B. 1 2 -0.5"}),
+            ("R", "Eingangswiderstände", "widerstand", {"liste": True, "einheit": "kΩ", "platzhalter": "z.B. 10 10 10"}),
+            ("Rf", "R_f", "widerstand", {"einheit": "kΩ"}),
+            ("Ub", "Versorgung ±U_B (opt.)", "spannung", {"platzhalter": "15"})],
+    berechnen=_opv_addierer, formel="Ua = −R_f · (U1/R1 + U2/R2 + …)")
 
 
 # =============================================================================
@@ -650,18 +612,17 @@ def _differenzverstaerker(w):
     return zeilen
 
 
-def differenzverstaerker(master):
-    return FormelRechner(
-        master, "Differenz- / Instrumentenverstärker", "Ua aus U2 − U1, Gleichtaktfehler durch Widerstandstoleranz",
-        felder=[("art", "Schaltung", "auswahl", {"werte": DIFFERENZ_ARTEN}),
-                ("U1", "U1 (an −)", "spannung", {"platzhalter": "z.B. 2.45"}),
-                ("U2", "U2 (an +)", "spannung", {"platzhalter": "z.B. 2.55"}),
-                ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
-                ("R2", "R2", "widerstand", {"einheit": "kΩ"}),
-                ("RG", "R_G (nur INA)", "widerstand", {"einheit": "kΩ", "platzhalter": "nur Instrumentenv."}),
-                ("tol", "Toleranz (opt.)", "prozent", {"platzhalter": "z.B. 1"}),
-                ("Ub", "Versorgung ±U_B (opt.)", "spannung", {"platzhalter": "15"})],
-        berechnen=_differenzverstaerker, formel="Ua = R2/R1 · (U2 − U1)     INA: G = 1 + 2R/R_G     CMRR ≈ (1 + R2/R1)/(4 · tol)")
+differenzverstaerker = FormelDaten(
+    "Differenz- / Instrumentenverstärker", "Ua aus U2 − U1, Gleichtaktfehler durch Widerstandstoleranz",
+    felder=[("art", "Schaltung", "auswahl", {"werte": DIFFERENZ_ARTEN}),
+            ("U1", "U1 (an −)", "spannung", {"platzhalter": "z.B. 2.45"}),
+            ("U2", "U2 (an +)", "spannung", {"platzhalter": "z.B. 2.55"}),
+            ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
+            ("R2", "R2", "widerstand", {"einheit": "kΩ"}),
+            ("RG", "R_G (nur INA)", "widerstand", {"einheit": "kΩ", "platzhalter": "nur Instrumentenv."}),
+            ("tol", "Toleranz (opt.)", "prozent", {"platzhalter": "z.B. 1"}),
+            ("Ub", "Versorgung ±U_B (opt.)", "spannung", {"platzhalter": "15"})],
+    berechnen=_differenzverstaerker, formel="Ua = R2/R1 · (U2 − U1)     INA: G = 1 + 2R/R_G     CMRR ≈ (1 + R2/R1)/(4 · tol)")
 
 
 # =============================================================================
@@ -697,17 +658,16 @@ def _schmitt(w):
     return zeilen
 
 
-def schmitt_trigger(master):
-    return FormelRechner(
-        master, "Schmitt-Trigger mit OPV", "Schwellen berechnen – oder U_T+ / U_T− vorgeben, dann R1 und U_ref auslegen",
-        felder=[("art", "Schaltung", "auswahl", {"werte": om.SCHMITT_ARTEN}),
-                ("Usat", "U_sat (± am Ausgang)", "spannung", {"platzhalter": "z.B. 10.5"}),
-                ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
-                ("Rf", "R_f (Mitkopplung)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 100"}),
-                ("Uref", "U_ref (opt.)", "spannung", {"platzhalter": "0"}),
-                ("UTp", "gewünschte U_T+ (opt.)", "spannung", {"platzhalter": "zum Auslegen"}),
-                ("UTm", "gewünschte U_T− (opt.)", "spannung", {"platzhalter": "zum Auslegen"})],
-        berechnen=_schmitt, formel="Hysterese: inv. 2·U_sat·R1/(R1 + R_f)     nichtinv. 2·U_sat·R1/R_f")
+schmitt_trigger = FormelDaten(
+    "Schmitt-Trigger mit OPV", "Schwellen berechnen – oder U_T+ / U_T− vorgeben, dann R1 und U_ref auslegen",
+    felder=[("art", "Schaltung", "auswahl", {"werte": om.SCHMITT_ARTEN}),
+            ("Usat", "U_sat (± am Ausgang)", "spannung", {"platzhalter": "z.B. 10.5"}),
+            ("R1", "R1", "widerstand", {"einheit": "kΩ"}),
+            ("Rf", "R_f (Mitkopplung)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 100"}),
+            ("Uref", "U_ref (opt.)", "spannung", {"platzhalter": "0"}),
+            ("UTp", "gewünschte U_T+ (opt.)", "spannung", {"platzhalter": "zum Auslegen"}),
+            ("UTm", "gewünschte U_T− (opt.)", "spannung", {"platzhalter": "zum Auslegen"})],
+    berechnen=_schmitt, formel="Hysterese: inv. 2·U_sat·R1/(R1 + R_f)     nichtinv. 2·U_sat·R1/R_f")
 
 
 # =============================================================================
@@ -750,16 +710,15 @@ def _integrator(w):
     return zeilen
 
 
-def integrator(master):
-    return FormelRechner(
-        master, "Integrator / Differenzierer", "Mit OPV (invertierend): Steigung, Amplitude, Grenzfrequenzen",
-        felder=[("art", "Schaltung", "auswahl", {"werte": INTEGRATOR_ARTEN}),
-                ("R", "R", "widerstand", {"einheit": "kΩ"}),
-                ("C", "C", "kapazitaet", {"einheit": "nF"}),
-                ("Ue", "Eingang Ue / û (opt.)", "spannung", {"platzhalter": "z.B. 1"}),
-                ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "z.B. 1k"}),
-                ("Rx", "R_p bzw. R_s (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
-        berechnen=_integrator, formel="Integrator: Ua = −1/(R·C) · ∫Ue dt     Differenzierer: Ua = −R·C · dUe/dt")
+integrator = FormelDaten(
+    "Integrator / Differenzierer", "Mit OPV (invertierend): Steigung, Amplitude, Grenzfrequenzen",
+    felder=[("art", "Schaltung", "auswahl", {"werte": INTEGRATOR_ARTEN}),
+            ("R", "R", "widerstand", {"einheit": "kΩ"}),
+            ("C", "C", "kapazitaet", {"einheit": "nF"}),
+            ("Ue", "Eingang Ue / û (opt.)", "spannung", {"platzhalter": "z.B. 1"}),
+            ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "z.B. 1k"}),
+            ("Rx", "R_p bzw. R_s (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
+    berechnen=_integrator, formel="Integrator: Ua = −1/(R·C) · ∫Ue dt     Differenzierer: Ua = −R·C · dUe/dt")
 
 
 
@@ -791,15 +750,14 @@ def _innenwiderstand(w):
     return zeilen
 
 
-def innenwiderstand(master):
-    return FormelRechner(
-        master, "Innenwiderstand einer Quelle", "Aus zwei Messungen (Leerlauf + Last) – oder Last an bekannter Quelle",
-        felder=[("U0", "Leerlaufspannung U0", "spannung", {"platzhalter": "z.B. 12.6"}),
-                ("Ulast", "U unter Last (opt.)", "spannung", {"platzhalter": "z.B. 12.0"}),
-                ("RL", "Last R_L", "widerstand", {"platzhalter": "z.B. 10"}),
-                ("I", "Laststrom (opt.)", "strom", {"platzhalter": "statt R_L"}),
-                ("Ri", "R_i (opt.)", "widerstand", {"platzhalter": "falls bekannt"})],
-        berechnen=_innenwiderstand, formel="R_i = (U0 − U_last) / I     U_K = U0 · R_L / (R_i + R_L)")
+innenwiderstand = FormelDaten(
+    "Innenwiderstand einer Quelle", "Aus zwei Messungen (Leerlauf + Last) – oder Last an bekannter Quelle",
+    felder=[("U0", "Leerlaufspannung U0", "spannung", {"platzhalter": "z.B. 12.6"}),
+            ("Ulast", "U unter Last (opt.)", "spannung", {"platzhalter": "z.B. 12.0"}),
+            ("RL", "Last R_L", "widerstand", {"platzhalter": "z.B. 10"}),
+            ("I", "Laststrom (opt.)", "strom", {"platzhalter": "statt R_L"}),
+            ("Ri", "R_i (opt.)", "widerstand", {"platzhalter": "falls bekannt"})],
+    berechnen=_innenwiderstand, formel="R_i = (U0 − U_last) / I     U_K = U0 · R_L / (R_i + R_L)")
 
 
 # =============================================================================
@@ -824,15 +782,14 @@ def _netzteil_auslegen(w):
     return zeilen
 
 
-def netzteil_auslegen(master):
-    return FormelRechner(
-        master, "Netzteil auslegen (Trafo, Elko)", "Vom Ausgang rückwärts: Welche Trafospannung und welcher Elko?",
-        felder=[("Ua", "Ausgang nach dem Regler", "spannung", {"platzhalter": "z.B. 5"}),
-                ("I", "Laststrom", "strom", {"einheit": "A", "platzhalter": "z.B. 1"}),
-                ("Ud", "Dropout des Reglers", "spannung", {"platzhalter": "78xx: 2, LDO: 0.3"}),
-                ("dU", "Welligkeit ΔU (opt.)", "spannung", {"platzhalter": "10 % des Tals"}),
-                ("C", "Ladeelko (opt.)", "kapazitaet", {"einheit": "mF", "platzhalter": "statt ΔU"})],
-        berechnen=_netzteil_auslegen, formel="ΔU = I / (2 · f · C)     U_sek = (U_aus + U_D + ΔU + 1.4 V) / (√2 · 0.9)")
+netzteil_auslegen = FormelDaten(
+    "Netzteil auslegen (Trafo, Elko)", "Vom Ausgang rückwärts: Welche Trafospannung und welcher Elko?",
+    felder=[("Ua", "Ausgang nach dem Regler", "spannung", {"platzhalter": "z.B. 5"}),
+            ("I", "Laststrom", "strom", {"einheit": "A", "platzhalter": "z.B. 1"}),
+            ("Ud", "Dropout des Reglers", "spannung", {"platzhalter": "78xx: 2, LDO: 0.3"}),
+            ("dU", "Welligkeit ΔU (opt.)", "spannung", {"platzhalter": "10 % des Tals"}),
+            ("C", "Ladeelko (opt.)", "kapazitaet", {"einheit": "mF", "platzhalter": "statt ΔU"})],
+    berechnen=_netzteil_auslegen, formel="ΔU = I / (2 · f · C)     U_sek = (U_aus + U_D + ΔU + 1.4 V) / (√2 · 0.9)")
 
 
 # =============================================================================
@@ -856,16 +813,15 @@ def _linearregler(w):
     return zeilen
 
 
-def linearregler(master):
-    return FormelRechner(
-        master, "Linearregler (78xx / LDO / LM317)", "Reicht die Spannung im Wellental? Wie heiss wird der Regler?",
-        felder=[("Ue", "Eingang: Spitze am Elko", "spannung", {"platzhalter": "z.B. 11.5"}),
-                ("dU", "Welligkeit ΔU (opt.)", "spannung", {"platzhalter": "0"}),
-                ("Ua", "Ausgang U_aus", "spannung", {"platzhalter": "z.B. 5"}),
-                ("I", "Laststrom", "strom", {"einheit": "mA"}),
-                ("Ud", "Dropout (opt.)", "spannung", {"platzhalter": "2 (78xx)"}),
-                ("Rth", "R_th J→Luft K/W (opt.)", "zahl", {"platzhalter": "50 (TO-220 frei)"})],
-        berechnen=_linearregler, formel="P = (U_ein − U_aus) · I     T_j = T_a + P · R_th     η = U_aus / U_ein")
+linearregler = FormelDaten(
+    "Linearregler (78xx / LDO / LM317)", "Reicht die Spannung im Wellental? Wie heiss wird der Regler?",
+    felder=[("Ue", "Eingang: Spitze am Elko", "spannung", {"platzhalter": "z.B. 11.5"}),
+            ("dU", "Welligkeit ΔU (opt.)", "spannung", {"platzhalter": "0"}),
+            ("Ua", "Ausgang U_aus", "spannung", {"platzhalter": "z.B. 5"}),
+            ("I", "Laststrom", "strom", {"einheit": "mA"}),
+            ("Ud", "Dropout (opt.)", "spannung", {"platzhalter": "2 (78xx)"}),
+            ("Rth", "R_th J→Luft K/W (opt.)", "zahl", {"platzhalter": "50 (TO-220 frei)"})],
+    berechnen=_linearregler, formel="P = (U_ein − U_aus) · I     T_j = T_a + P · R_th     η = U_aus / U_ein")
 
 
 # =============================================================================
@@ -890,13 +846,12 @@ def _lm317(w):
     return zeilen
 
 
-def lm317(master):
-    return FormelRechner(
-        master, "LM317 einstellen", "Ausgangsspannung aus R1/R2 – oder R2 für eine gewünschte Spannung",
-        felder=[("R1", "R1 (OUT → ADJ)", "widerstand", {"platzhalter": "240"}),
-                ("R2", "R2 (ADJ → GND)", "widerstand", {"platzhalter": "leer = berechnen"}),
-                ("Ua", "gewünschte U_aus (opt.)", "spannung", {"platzhalter": "z.B. 12"})],
-        berechnen=_lm317, formel="U_aus = 1.25 V · (1 + R2 / R1) + I_ADJ · R2     I_ADJ ≈ 50 µA")
+lm317 = FormelDaten(
+    "LM317 einstellen", "Ausgangsspannung aus R1/R2 – oder R2 für eine gewünschte Spannung",
+    felder=[("R1", "R1 (OUT → ADJ)", "widerstand", {"platzhalter": "240"}),
+            ("R2", "R2 (ADJ → GND)", "widerstand", {"platzhalter": "leer = berechnen"}),
+            ("Ua", "gewünschte U_aus (opt.)", "spannung", {"platzhalter": "z.B. 12"})],
+    berechnen=_lm317, formel="U_aus = 1.25 V · (1 + R2 / R1) + I_ADJ · R2     I_ADJ ≈ 50 µA")
 
 
 # =============================================================================
@@ -920,12 +875,11 @@ def _strombegrenzung(w):
     return zeilen
 
 
-def strombegrenzung(master):
-    return FormelRechner(
-        master, "Strombegrenzung mit Shunt + Transistor", "Längsregler kurzschlussfest machen",
-        felder=[("Imax", "Maximalstrom I_max", "strom", {"einheit": "mA", "platzhalter": "z.B. 500"}),
-                ("Ue", "Eingang U_e (opt.)", "spannung", {"platzhalter": "für den Kurzschlussverlust"})],
-        berechnen=_strombegrenzung, formel="R_S = 0.6 V / I_max     P_T1,Kurzschluss ≈ U_e · I_max")
+strombegrenzung = FormelDaten(
+    "Strombegrenzung mit Shunt + Transistor", "Längsregler kurzschlussfest machen",
+    felder=[("Imax", "Maximalstrom I_max", "strom", {"einheit": "mA", "platzhalter": "z.B. 500"}),
+            ("Ue", "Eingang U_e (opt.)", "spannung", {"platzhalter": "für den Kurzschlussverlust"})],
+    berechnen=_strombegrenzung, formel="R_S = 0.6 V / I_max     P_T1,Kurzschluss ≈ U_e · I_max")
 
 
 # =============================================================================
@@ -953,15 +907,14 @@ def _stromquelle_opv(w):
     return zeilen
 
 
-def stromquelle_opv(master):
-    return FormelRechner(
-        master, "Geregelte Stromquelle (OPV + MOSFET)", "Low-Side-Stromsenke: I = U_soll / R_S",
-        felder=[("I", "Strom I", "strom", {"einheit": "mA", "platzhalter": "z.B. 100"}),
-                ("Rs", "Shunt R_S (opt.)", "widerstand", {"platzhalter": "z.B. 1"}),
-                ("Us", "U_soll (opt.)", "spannung", {"einheit": "mV", "platzhalter": "statt R_S"}),
-                ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("RL", "Last R_L (opt.)", "widerstand", {"platzhalter": "optional"})],
-        berechnen=_stromquelle_opv, formel="I = U_soll / R_S     R_L,max = U_B / I − R_S")
+stromquelle_opv = FormelDaten(
+    "Geregelte Stromquelle (OPV + MOSFET)", "Low-Side-Stromsenke: I = U_soll / R_S",
+    felder=[("I", "Strom I", "strom", {"einheit": "mA", "platzhalter": "z.B. 100"}),
+            ("Rs", "Shunt R_S (opt.)", "widerstand", {"platzhalter": "z.B. 1"}),
+            ("Us", "U_soll (opt.)", "spannung", {"einheit": "mV", "platzhalter": "statt R_S"}),
+            ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("RL", "Last R_L (opt.)", "widerstand", {"platzhalter": "optional"})],
+    berechnen=_stromquelle_opv, formel="I = U_soll / R_S     R_L,max = U_B / I − R_S")
 
 
 # =============================================================================
@@ -991,17 +944,16 @@ def _schaltregler(w):
     return zeilen
 
 
-def schaltregler(master):
-    return FormelRechner(
-        master, "Schaltregler Buck / Boost", "Idealer Wandler im Dauerbetrieb – leeres L wird für 30 % Rippel berechnet",
-        felder=[("art", "Wandler", "auswahl", {"werte": ntm.SCHALTREGLER_ARTEN}),
-                ("Ue", "Eingang U_e", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Ua", "Ausgang U_a", "spannung", {"platzhalter": "z.B. 5"}),
-                ("Ia", "Ausgangsstrom I_a", "strom", {"einheit": "A", "platzhalter": "z.B. 1"}),
-                ("f", "Schaltfrequenz f", "frequenz", {"einheit": "kHz", "platzhalter": "z.B. 100"}),
-                ("L", "Spule L (opt.)", "induktivitaet", {"einheit": "µH", "platzhalter": "leer = berechnen"}),
-                ("C", "Ausgangs-C (opt.)", "kapazitaet", {"einheit": "µF", "platzhalter": "optional"})],
-        berechnen=_schaltregler, formel="Buck: U_a = D · U_e     Boost: U_a = U_e / (1 − D)     ΔI = U_L · t / L")
+schaltregler = FormelDaten(
+    "Schaltregler Buck / Boost", "Idealer Wandler im Dauerbetrieb – leeres L wird für 30 % Rippel berechnet",
+    felder=[("art", "Wandler", "auswahl", {"werte": ntm.SCHALTREGLER_ARTEN}),
+            ("Ue", "Eingang U_e", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Ua", "Ausgang U_a", "spannung", {"platzhalter": "z.B. 5"}),
+            ("Ia", "Ausgangsstrom I_a", "strom", {"einheit": "A", "platzhalter": "z.B. 1"}),
+            ("f", "Schaltfrequenz f", "frequenz", {"einheit": "kHz", "platzhalter": "z.B. 100"}),
+            ("L", "Spule L (opt.)", "induktivitaet", {"einheit": "µH", "platzhalter": "leer = berechnen"}),
+            ("C", "Ausgangs-C (opt.)", "kapazitaet", {"einheit": "µF", "platzhalter": "optional"})],
+    berechnen=_schaltregler, formel="Buck: U_a = D · U_e     Boost: U_a = U_e / (1 − D)     ΔI = U_L · t / L")
 
 
 # =============================================================================
@@ -1032,14 +984,13 @@ def _lc_filter(w):
     return zeilen
 
 
-def lc_filter(master):
-    return FormelRechner(
-        master, "LC-Tiefpass mit Last", "Grenzfrequenz, Güte und Überhöhung – die Last bestimmt die Dämpfung",
-        felder=[("L", "Induktivität L", "induktivitaet", {"einheit": "mH"}),
-                ("C", "Kapazität C", "kapazitaet", {"einheit": "µF"}),
-                ("R", "Lastwiderstand R_L", "widerstand", {"einheit": "Ω"}),
-                ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "optional"})],
-        berechnen=_lc_filter, formel="f0 = 1 / (2π√(LC))     Q = R_L · √(C/L)     |H| = 1 / √((1 − x²)² + (x/Q)²)")
+lc_filter = FormelDaten(
+    "LC-Tiefpass mit Last", "Grenzfrequenz, Güte und Überhöhung – die Last bestimmt die Dämpfung",
+    felder=[("L", "Induktivität L", "induktivitaet", {"einheit": "mH"}),
+            ("C", "Kapazität C", "kapazitaet", {"einheit": "µF"}),
+            ("R", "Lastwiderstand R_L", "widerstand", {"einheit": "Ω"}),
+            ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "optional"})],
+    berechnen=_lc_filter, formel="f0 = 1 / (2π√(LC))     Q = R_L · √(C/L)     |H| = 1 / √((1 − x²)² + (x/Q)²)")
 
 
 def _schwingkreis_filter(w):
@@ -1058,15 +1009,14 @@ def _schwingkreis_filter(w):
     return zeilen
 
 
-def schwingkreis_filter(master):
-    return FormelRechner(
-        master, "Schwingkreis als Bandpass / Bandsperre", "RLC-Reihenkreis: Resonanz, Güte und Bandbreite",
-        felder=[("art", "Ausgang", "auswahl", {"werte": ["Bandpass", "Bandsperre"]}),
-                ("R", "Widerstand R", "widerstand", {"einheit": "Ω"}),
-                ("L", "Induktivität L", "induktivitaet", {"einheit": "mH"}),
-                ("C", "Kapazität C", "kapazitaet", {"einheit": "µF"}),
-                ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "optional"})],
-        berechnen=_schwingkreis_filter, formel="f0 = 1 / (2π√(LC))     Q = √(L/C) / R     B = f0 / Q")
+schwingkreis_filter = FormelDaten(
+    "Schwingkreis als Bandpass / Bandsperre", "RLC-Reihenkreis: Resonanz, Güte und Bandbreite",
+    felder=[("art", "Ausgang", "auswahl", {"werte": ["Bandpass", "Bandsperre"]}),
+            ("R", "Widerstand R", "widerstand", {"einheit": "Ω"}),
+            ("L", "Induktivität L", "induktivitaet", {"einheit": "mH"}),
+            ("C", "Kapazität C", "kapazitaet", {"einheit": "µF"}),
+            ("f", "Frequenz f (opt.)", "frequenz", {"platzhalter": "optional"})],
+    berechnen=_schwingkreis_filter, formel="f0 = 1 / (2π√(LC))     Q = √(L/C) / R     B = f0 / Q")
 
 
 def _sallen_key(w):
@@ -1096,16 +1046,15 @@ def _sallen_key(w):
     return zeilen
 
 
-def sallen_key(master):
-    return FormelRechner(
-        master, "Sallen-Key-Filter auslegen", "Aktiver Tief- oder Hochpass 2. Ordnung mit OPV als Spannungsfolger",
-        felder=[("art", "Filter", "auswahl", {"werte": ["Tiefpass", "Hochpass"]}),
-                ("typ", "Charakteristik", "auswahl", {"werte": list(fm.CHARAKTERISTIKEN), "standard":
-                                                      "Butterworth (Q = 0.707)"}),
-                ("f0", "Grenzfrequenz f0", "frequenz", {"platzhalter": "z.B. 1k"}),
-                ("R", "R1 = R2 (Tiefpass)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("C", "C1 = C2 (Hochpass)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 10"})],
-        berechnen=_sallen_key, formel="TP: C1 = 2Q / (ω0·R), C2 = 1 / (2Q·ω0·R)     HP: R1 = 1 / (2Q·ω0·C), R2 = 2Q / (ω0·C)")
+sallen_key = FormelDaten(
+    "Sallen-Key-Filter auslegen", "Aktiver Tief- oder Hochpass 2. Ordnung mit OPV als Spannungsfolger",
+    felder=[("art", "Filter", "auswahl", {"werte": ["Tiefpass", "Hochpass"]}),
+            ("typ", "Charakteristik", "auswahl", {"werte": list(fm.CHARAKTERISTIKEN), "standard":
+                                                  "Butterworth (Q = 0.707)"}),
+            ("f0", "Grenzfrequenz f0", "frequenz", {"platzhalter": "z.B. 1k"}),
+            ("R", "R1 = R2 (Tiefpass)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("C", "C1 = C2 (Hochpass)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 10"})],
+    berechnen=_sallen_key, formel="TP: C1 = 2Q / (ω0·R), C2 = 1 / (2Q·ω0·R)     HP: R1 = 1 / (2Q·ω0·C), R2 = 2Q / (ω0·C)")
 
 
 # =============================================================================
@@ -1132,14 +1081,13 @@ def _pt_leitung(w):
     return zeilen
 
 
-def pt_leitung(master):
-    return FormelRechner(
-        master, "Pt100/Pt1000: Leitungsfehler", "Wie viel Kelvin kostet die Zuleitung in 2-, 3- und 4-Leiter-Schaltung?",
-        felder=[("typ", "Sensor", "auswahl", {"werte": ["Pt100", "Pt1000"]}),
-                ("l", "Leitungslänge (einfach) in m", "zahl", {"platzhalter": "z.B. 20"}),
-                ("a", "Querschnitt in mm²", "zahl", {"platzhalter": "z.B. 0.25"}),
-                ("T", "Temperatur (opt.)", "temperatur", {"platzhalter": "25"})],
-        berechnen=_pt_leitung, formel="R_L = ρ · l / A     2-Leiter: Fehler = 2·R_L / (0.385 Ω/K)  (Pt100)")
+pt_leitung = FormelDaten(
+    "Pt100/Pt1000: Leitungsfehler", "Wie viel Kelvin kostet die Zuleitung in 2-, 3- und 4-Leiter-Schaltung?",
+    felder=[("typ", "Sensor", "auswahl", {"werte": ["Pt100", "Pt1000"]}),
+            ("l", "Leitungslänge (einfach) in m", "zahl", {"platzhalter": "z.B. 20"}),
+            ("a", "Querschnitt in mm²", "zahl", {"platzhalter": "z.B. 0.25"}),
+            ("T", "Temperatur (opt.)", "temperatur", {"platzhalter": "25"})],
+    berechnen=_pt_leitung, formel="R_L = ρ · l / A     2-Leiter: Fehler = 2·R_L / (0.385 Ω/K)  (Pt100)")
 
 
 def _ntc_teiler(w):
@@ -1159,15 +1107,14 @@ def _ntc_teiler(w):
     return zeilen
 
 
-def ntc_teiler(master):
-    return FormelRechner(
-        master, "NTC-Spannungsteiler auslegen", "Festwiderstand, der den Teiler im Messbereich am besten linearisiert",
-        felder=[("R25", "NTC R25", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("B", "B-Wert", "zahl", {"platzhalter": "z.B. 3950"}),
-                ("T1", "Bereich von T1", "temperatur", {"platzhalter": "z.B. 0"}),
-                ("T2", "bis T2", "temperatur", {"platzhalter": "z.B. 100"}),
-                ("Ub", "Versorgung U_B (opt.)", "spannung", {"platzhalter": "3.3"})],
-        berechnen=_ntc_teiler, formel="R_fix = (R1R2 + R2R3 − 2R1R3) / (R1 + R3 − 2R2),  R1/R2/R3 bei T1, Mitte, T2")
+ntc_teiler = FormelDaten(
+    "NTC-Spannungsteiler auslegen", "Festwiderstand, der den Teiler im Messbereich am besten linearisiert",
+    felder=[("R25", "NTC R25", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("B", "B-Wert", "zahl", {"platzhalter": "z.B. 3950"}),
+            ("T1", "Bereich von T1", "temperatur", {"platzhalter": "z.B. 0"}),
+            ("T2", "bis T2", "temperatur", {"platzhalter": "z.B. 100"}),
+            ("Ub", "Versorgung U_B (opt.)", "spannung", {"platzhalter": "3.3"})],
+    berechnen=_ntc_teiler, formel="R_fix = (R1R2 + R2R3 − 2R1R3) / (R1 + R3 − 2R2),  R1/R2/R3 bei T1, Mitte, T2")
 
 
 def _dms_verstaerker(w):
@@ -1193,14 +1140,13 @@ def _dms_verstaerker(w):
     return zeilen
 
 
-def dms_verstaerker(master):
-    return FormelRechner(
-        master, "DMS-Brücke: Instrumentenverstärker auslegen", "Wägezelle mit Nennkennwert in mV/V auf den ADC-Bereich",
-        felder=[("kw", "Nennkennwert (mV/V)", "zahl", {"platzhalter": "z.B. 2"}),
-                ("Ue", "Brückenspeisung U_e", "spannung", {"platzhalter": "z.B. 5"}),
-                ("Ua", "gewünschte Ausgangsspanne", "spannung", {"platzhalter": "z.B. 2"}),
-                ("ina", "Instrumentenverstärker", "auswahl", {"werte": list(mm.INAMPS)})],
-        berechnen=_dms_verstaerker, formel="U_d = Kennwert · U_e     G = U_a / U_d     R_G = R_intern / (G − 1)")
+dms_verstaerker = FormelDaten(
+    "DMS-Brücke: Instrumentenverstärker auslegen", "Wägezelle mit Nennkennwert in mV/V auf den ADC-Bereich",
+    felder=[("kw", "Nennkennwert (mV/V)", "zahl", {"platzhalter": "z.B. 2"}),
+            ("Ue", "Brückenspeisung U_e", "spannung", {"platzhalter": "z.B. 5"}),
+            ("Ua", "gewünschte Ausgangsspanne", "spannung", {"platzhalter": "z.B. 2"}),
+            ("ina", "Instrumentenverstärker", "auswahl", {"werte": list(mm.INAMPS)})],
+    berechnen=_dms_verstaerker, formel="U_d = Kennwert · U_e     G = U_a / U_d     R_G = R_intern / (G − 1)")
 
 
 # =============================================================================
@@ -1221,14 +1167,13 @@ def _pegelteiler(w):
             "Nur in eine Richtung (hoch -> niedrig). Für I²C/bidirektional: MOSFET-Pegelwandler"]
 
 
-def pegelteiler(master):
-    return FormelRechner(
-        master, "Pegelanpassung mit Spannungsteiler", "z.B. 5-V-Ausgang an 3.3-V-Eingang",
-        felder=[("Uh", "hohe Spannung (Ausgang)", "spannung", {"platzhalter": "z.B. 5"}),
-                ("Uz", "Zielspannung (Eingang)", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("C", "Eingangskapazität (opt.)", "kapazitaet", {"einheit": "pF", "platzhalter": "10"})],
-        berechnen=_pegelteiler, formel="R2 = R1 · U_Ziel / (U_hoch − U_Ziel)     t_r = 2.2 · (R1∥R2) · C")
+pegelteiler = FormelDaten(
+    "Pegelanpassung mit Spannungsteiler", "z.B. 5-V-Ausgang an 3.3-V-Eingang",
+    felder=[("Uh", "hohe Spannung (Ausgang)", "spannung", {"platzhalter": "z.B. 5"}),
+            ("Uz", "Zielspannung (Eingang)", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("C", "Eingangskapazität (opt.)", "kapazitaet", {"einheit": "pF", "platzhalter": "10"})],
+    berechnen=_pegelteiler, formel="R2 = R1 · U_Ziel / (U_hoch − U_Ziel)     t_r = 2.2 · (R1∥R2) · C")
 
 
 def _optokoppler(w):
@@ -1248,15 +1193,14 @@ def _optokoppler(w):
             "Logik-Ausgang verwenden"]
 
 
-def optokoppler(master):
-    return FormelRechner(
-        master, "Optokoppler auslegen", "Vorwiderstand und Pull-up für ein sicheres LOW am Ausgang",
-        felder=[("Ue", "Eingangsspannung U_e", "spannung", {"platzhalter": "z.B. 24"}),
-                ("Uf", "LED-Flussspannung (opt.)", "spannung", {"platzhalter": "1.2"}),
-                ("If", "LED-Strom I_F", "strom", {"einheit": "mA", "platzhalter": "z.B. 5"}),
-                ("ctr", "CTR min. in %", "zahl", {"platzhalter": "z.B. 50"}),
-                ("Ub", "Versorgung Ausgang U_B", "spannung", {"platzhalter": "z.B. 3.3"})],
-        berechnen=_optokoppler, formel="R_V = (U_e − U_F) / I_F     R_L ≥ (U_B − U_CE,sat) / (CTR · 0.5 · I_F)")
+optokoppler = FormelDaten(
+    "Optokoppler auslegen", "Vorwiderstand und Pull-up für ein sicheres LOW am Ausgang",
+    felder=[("Ue", "Eingangsspannung U_e", "spannung", {"platzhalter": "z.B. 24"}),
+            ("Uf", "LED-Flussspannung (opt.)", "spannung", {"platzhalter": "1.2"}),
+            ("If", "LED-Strom I_F", "strom", {"einheit": "mA", "platzhalter": "z.B. 5"}),
+            ("ctr", "CTR min. in %", "zahl", {"platzhalter": "z.B. 50"}),
+            ("Ub", "Versorgung Ausgang U_B", "spannung", {"platzhalter": "z.B. 3.3"})],
+    berechnen=_optokoppler, formel="R_V = (U_e − U_F) / I_F     R_L ≥ (U_B − U_CE,sat) / (CTR · 0.5 · I_F)")
 
 
 def _h_bruecke(w):
@@ -1274,15 +1218,14 @@ def _h_bruecke(w):
             f"Totzeit im Treiber > Ausschaltzeit der MOSFETs (typ. 100 ns … 1 µs), sonst Brückenkurzschluss"]
 
 
-def h_bruecke(master):
-    return FormelRechner(
-        master, "H-Brücke: Verluste", "Wie warm werden die vier Schalter?",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 24"}),
-                ("I", "Motorstrom", "strom", {"platzhalter": "z.B. 5"}),
-                ("Rds", "R_DS(on) je Schalter", "widerstand", {"einheit": "mΩ", "platzhalter": "z.B. 20"}),
-                ("f", "PWM-Frequenz (opt.)", "frequenz", {"platzhalter": "20 kHz"}),
-                ("tsw", "Schaltzeit t_sw (opt.)", "zeit", {"einheit": "ns", "platzhalter": "100"})],
-        berechnen=_h_bruecke, formel="P_L = I² · 2 · R_DS     P_S ≈ U_B · I · t_sw · f")
+h_bruecke = FormelDaten(
+    "H-Brücke: Verluste", "Wie warm werden die vier Schalter?",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 24"}),
+            ("I", "Motorstrom", "strom", {"platzhalter": "z.B. 5"}),
+            ("Rds", "R_DS(on) je Schalter", "widerstand", {"einheit": "mΩ", "platzhalter": "z.B. 20"}),
+            ("f", "PWM-Frequenz (opt.)", "frequenz", {"platzhalter": "20 kHz"}),
+            ("tsw", "Schaltzeit t_sw (opt.)", "zeit", {"einheit": "ns", "platzhalter": "100"})],
+    berechnen=_h_bruecke, formel="P_L = I² · 2 · R_DS     P_S ≈ U_B · I · t_sw · f")
 
 
 def _gate_schaltzeit(w):
@@ -1304,17 +1247,16 @@ def _gate_schaltzeit(w):
     return zeilen
 
 
-def gate_schaltzeit(master):
-    return FormelRechner(
-        master, "MOSFET: Schaltzeit und Schaltverlust", "Wie lange dauert das Miller-Plateau?",
-        felder=[("Udr", "Treiberspannung U_Tr", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Rg", "R_G (inkl. Treiber)", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 10"}),
-                ("Qgd", "Q_gd (Datenblatt)", "ladung", {"einheit": "nC", "platzhalter": "z.B. 25"}),
-                ("Upl", "Plateauspannung U_pl", "spannung", {"platzhalter": "z.B. 4.5"}),
-                ("Uds", "U_DS (opt.)", "spannung", {"platzhalter": "optional"}),
-                ("Id", "I_D (opt.)", "strom", {"platzhalter": "optional"}),
-                ("f", "Schaltfrequenz (opt.)", "frequenz", {"platzhalter": "optional"})],
-        berechnen=_gate_schaltzeit, formel="t = Q_gd · R_G / (U_Tr − U_pl)     P ≈ U_DS · I_D · t · f")
+gate_schaltzeit = FormelDaten(
+    "MOSFET: Schaltzeit und Schaltverlust", "Wie lange dauert das Miller-Plateau?",
+    felder=[("Udr", "Treiberspannung U_Tr", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Rg", "R_G (inkl. Treiber)", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 10"}),
+            ("Qgd", "Q_gd (Datenblatt)", "ladung", {"einheit": "nC", "platzhalter": "z.B. 25"}),
+            ("Upl", "Plateauspannung U_pl", "spannung", {"platzhalter": "z.B. 4.5"}),
+            ("Uds", "U_DS (opt.)", "spannung", {"platzhalter": "optional"}),
+            ("Id", "I_D (opt.)", "strom", {"platzhalter": "optional"}),
+            ("f", "Schaltfrequenz (opt.)", "frequenz", {"platzhalter": "optional"})],
+    berechnen=_gate_schaltzeit, formel="t = Q_gd · R_G / (U_Tr − U_pl)     P ≈ U_DS · I_D · t · f")
 
 
 def _bootstrap(w):
@@ -1331,14 +1273,13 @@ def _bootstrap(w):
             "Der Low-Side-Schalter muss regelmässig einschalten, damit der Kondensator nachladen kann (kein 100 % Tastgrad)"]
 
 
-def bootstrap(master):
-    return FormelRechner(
-        master, "Bootstrap-Kondensator", "High-Side-Treiber: Welcher Kondensator versorgt das Gate?",
-        felder=[("Qg", "Gate-Ladung Q_g", "ladung", {"einheit": "nC", "platzhalter": "z.B. 70"}),
-                ("Udd", "Treiberversorgung U_DD", "spannung", {"platzhalter": "z.B. 12"}),
-                ("ton", "längste Einschaltzeit (opt.)", "zeit", {"einheit": "ms", "platzhalter": "1 ms"}),
-                ("du", "zulässiger Spannungseinbruch (opt.)", "spannung", {"platzhalter": "0.5 V"})],
-        berechnen=_bootstrap, formel="C ≥ 2 · (Q_g + I_leck · t_ein) / ΔU")
+bootstrap = FormelDaten(
+    "Bootstrap-Kondensator", "High-Side-Treiber: Welcher Kondensator versorgt das Gate?",
+    felder=[("Qg", "Gate-Ladung Q_g", "ladung", {"einheit": "nC", "platzhalter": "z.B. 70"}),
+            ("Udd", "Treiberversorgung U_DD", "spannung", {"platzhalter": "z.B. 12"}),
+            ("ton", "längste Einschaltzeit (opt.)", "zeit", {"einheit": "ms", "platzhalter": "1 ms"}),
+            ("du", "zulässiger Spannungseinbruch (opt.)", "spannung", {"platzhalter": "0.5 V"})],
+    berechnen=_bootstrap, formel="C ≥ 2 · (Q_g + I_leck · t_ein) / ΔU")
 
 
 def _adc_eingang(w):
@@ -1357,14 +1298,13 @@ def _adc_eingang(w):
             "(Grafik „ADC-Eingang“)"]
 
 
-def adc_eingang(master):
-    return FormelRechner(
-        master, "ADC-Eingang: Quellwiderstand und C_ext", "Wird der Abtastkondensator auf ½ LSB genau geladen?",
-        felder=[("ts", "Abtastzeit t_s", "zeit", {"einheit": "µs", "platzhalter": "z.B. 1"}),
-                ("cs", "Abtastkondensator C_S", "kapazitaet", {"einheit": "pF", "platzhalter": "z.B. 10"}),
-                ("N", "Auflösung N (Bit)", "zahl", {"platzhalter": "z.B. 12"}),
-                ("rsw", "Schalterwiderstand R_sw (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "1 kΩ"})],
-        berechnen=_adc_eingang, formel="R ≤ t_s / (C_S · ln 2^(N+1)) − R_sw     C_ext ≥ (2^(N+1) − 1) · C_S")
+adc_eingang = FormelDaten(
+    "ADC-Eingang: Quellwiderstand und C_ext", "Wird der Abtastkondensator auf ½ LSB genau geladen?",
+    felder=[("ts", "Abtastzeit t_s", "zeit", {"einheit": "µs", "platzhalter": "z.B. 1"}),
+            ("cs", "Abtastkondensator C_S", "kapazitaet", {"einheit": "pF", "platzhalter": "z.B. 10"}),
+            ("N", "Auflösung N (Bit)", "zahl", {"platzhalter": "z.B. 12"}),
+            ("rsw", "Schalterwiderstand R_sw (opt.)", "widerstand", {"einheit": "kΩ", "platzhalter": "1 kΩ"})],
+    berechnen=_adc_eingang, formel="R ≤ t_s / (C_S · ln 2^(N+1)) − R_sw     C_ext ≥ (2^(N+1) − 1) · C_S")
 
 
 # =============================================================================
@@ -1392,14 +1332,13 @@ def _ne555(w):
     return zeilen
 
 
-def ne555(master):
-    return FormelRechner(
-        master, "NE555: Frequenz und Impulsdauer", "Astabil (Taktgeber) oder monostabil (Monoflop)",
-        felder=[("art", "Betriebsart", "auswahl", {"werte": NE555_ARTEN}),
-                ("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("R2", "R2 (astabil)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 47"}),
-                ("C", "C", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"})],
-        berechnen=_ne555, formel="astabil: f = 1.44 / ((R1 + 2·R2) · C)     monostabil: t = 1.1 · R · C")
+ne555 = FormelDaten(
+    "NE555: Frequenz und Impulsdauer", "Astabil (Taktgeber) oder monostabil (Monoflop)",
+    felder=[("art", "Betriebsart", "auswahl", {"werte": NE555_ARTEN}),
+            ("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("R2", "R2 (astabil)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 47"}),
+            ("C", "C", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"})],
+    berechnen=_ne555, formel="astabil: f = 1.44 / ((R1 + 2·R2) · C)     monostabil: t = 1.1 · R · C")
 
 
 def _ne555_auslegen(w):
@@ -1420,13 +1359,12 @@ def _ne555_auslegen(w):
     return zeilen
 
 
-def ne555_auslegen(master):
-    return FormelRechner(
-        master, "NE555 astabil auslegen", "R1 und R2 für eine gewünschte Frequenz und einen Tastgrad",
-        felder=[("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 1k"}),
-                ("D", "Tastgrad in %", "zahl", {"platzhalter": "z.B. 60"}),
-                ("C", "gewähltes C", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"})],
-        berechnen=_ne555_auslegen, formel="D > 50 %: R1 = (2D − 1) / (ln2·f·C), R2 = (1 − D) / (ln2·f·C)")
+ne555_auslegen = FormelDaten(
+    "NE555 astabil auslegen", "R1 und R2 für eine gewünschte Frequenz und einen Tastgrad",
+    felder=[("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 1k"}),
+            ("D", "Tastgrad in %", "zahl", {"platzhalter": "z.B. 60"}),
+            ("C", "gewähltes C", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"})],
+    berechnen=_ne555_auslegen, formel="D > 50 %: R1 = (2D − 1) / (ln2·f·C), R2 = (1 − D) / (ln2·f·C)")
 
 
 def _multivibrator(w):
@@ -1443,15 +1381,14 @@ def _multivibrator(w):
     return zeilen
 
 
-def multivibrator(master):
-    return FormelRechner(
-        master, "Astabiler Multivibrator", "Zwei Transistoren als Taktgeber (symmetrisch)",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 5"}),
-                ("Rc", "R_C", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 1"}),
-                ("Rb", "R_B", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 47"}),
-                ("C", "C", "kapazitaet", {"einheit": "µF", "platzhalter": "z.B. 10"}),
-                ("beta", "β (opt.)", "zahl", {"platzhalter": "100"})],
-        berechnen=_multivibrator, formel="f ≈ 1 / (2 · ln2 · R_B · C) = 0.72 / (R_B · C)     R_B ≤ β · R_C")
+multivibrator = FormelDaten(
+    "Astabiler Multivibrator", "Zwei Transistoren als Taktgeber (symmetrisch)",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 5"}),
+            ("Rc", "R_C", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 1"}),
+            ("Rb", "R_B", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 47"}),
+            ("C", "C", "kapazitaet", {"einheit": "µF", "platzhalter": "z.B. 10"}),
+            ("beta", "β (opt.)", "zahl", {"platzhalter": "100"})],
+    berechnen=_multivibrator, formel="f ≈ 1 / (2 · ln2 · R_B · C) = 0.72 / (R_B · C)     R_B ≤ β · R_C")
 
 
 def _funktionsgenerator(w):
@@ -1475,16 +1412,15 @@ def _funktionsgenerator(w):
     return zeilen
 
 
-def funktionsgenerator(master):
-    return FormelRechner(
-        master, "Rechteck-/Dreieckgenerator", "Schmitt-Trigger + Integrator mit zwei OPV",
-        felder=[("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("R2", "R2", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 20"}),
-                ("R", "R (Integrator)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("C", "C (oder leer)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"}),
-                ("f", "… oder gewünschte f", "frequenz", {"platzhalter": "optional"}),
-                ("Us", "Ausgang ±U_sat", "spannung", {"platzhalter": "z.B. 12"})],
-        berechnen=_funktionsgenerator, formel="f = R2 / (4 · R1 · R · C)     û_Dreieck = U_sat · R1 / R2")
+funktionsgenerator = FormelDaten(
+    "Rechteck-/Dreieckgenerator", "Schmitt-Trigger + Integrator mit zwei OPV",
+    felder=[("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("R2", "R2", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 20"}),
+            ("R", "R (Integrator)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("C", "C (oder leer)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"}),
+            ("f", "… oder gewünschte f", "frequenz", {"platzhalter": "optional"}),
+            ("Us", "Ausgang ±U_sat", "spannung", {"platzhalter": "z.B. 12"})],
+    berechnen=_funktionsgenerator, formel="f = R2 / (4 · R1 · R · C)     û_Dreieck = U_sat · R1 / R2")
 
 
 def _watchdog(w):
@@ -1509,15 +1445,14 @@ def _watchdog(w):
     return zeilen
 
 
-def watchdog(master):
-    return FormelRechner(
-        master, "Watchdog prüfen", "Passt der Trigger-Abstand zum Timeout – auch im ungünstigsten Fall?",
-        felder=[("twd", "Timeout (typisch)", "zeit", {"einheit": "ms", "platzhalter": "z.B. 1600"}),
-                ("tol", "Toleranz in % (opt.)", "zahl", {"platzhalter": "30"}),
-                ("ttr", "Trigger-Abstand im Programm", "zeit", {"einheit": "ms", "platzhalter": "z.B. 500"}),
-                ("boot", "Bootzeit (opt.)", "zeit", {"einheit": "ms", "platzhalter": "optional"}),
-                ("tf", "Fenster: frühester Trigger (opt.)", "zeit", {"einheit": "ms", "platzhalter": "optional"})],
-        berechnen=_watchdog, formel="Trigger-Abstand < Timeout · (1 − Toleranz)     Boot + Trigger < Timeout,min")
+watchdog = FormelDaten(
+    "Watchdog prüfen", "Passt der Trigger-Abstand zum Timeout – auch im ungünstigsten Fall?",
+    felder=[("twd", "Timeout (typisch)", "zeit", {"einheit": "ms", "platzhalter": "z.B. 1600"}),
+            ("tol", "Toleranz in % (opt.)", "zahl", {"platzhalter": "30"}),
+            ("ttr", "Trigger-Abstand im Programm", "zeit", {"einheit": "ms", "platzhalter": "z.B. 500"}),
+            ("boot", "Bootzeit (opt.)", "zeit", {"einheit": "ms", "platzhalter": "optional"}),
+            ("tf", "Fenster: frühester Trigger (opt.)", "zeit", {"einheit": "ms", "platzhalter": "optional"})],
+    berechnen=_watchdog, formel="Trigger-Abstand < Timeout · (1 − Toleranz)     Boot + Trigger < Timeout,min")
 
 
 # =============================================================================
@@ -1543,14 +1478,13 @@ def _darlington(w):
     return zeilen
 
 
-def darlington(master):
-    return FormelRechner(
-        master, "Darlington oder Einzeltransistor?", "Basiswiderstand und Verlust für einen Laststrom",
-        felder=[("I", "Laststrom I", "strom", {"platzhalter": "z.B. 2"}),
-                ("Ust", "Steuerspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("b1", "β T1 (opt.)", "zahl", {"platzhalter": "100"}),
-                ("b2", "β T2 (opt.)", "zahl", {"platzhalter": "50"})],
-        berechnen=_darlington, formel="Darlington: β ≈ β1 · β2, U_BE ≈ 1.4 V, U_CE ≥ 0.9 V     R_B = (U_St − U_BE) / (2 · I / β)")
+darlington = FormelDaten(
+    "Darlington oder Einzeltransistor?", "Basiswiderstand und Verlust für einen Laststrom",
+    felder=[("I", "Laststrom I", "strom", {"platzhalter": "z.B. 2"}),
+            ("Ust", "Steuerspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("b1", "β T1 (opt.)", "zahl", {"platzhalter": "100"}),
+            ("b2", "β T2 (opt.)", "zahl", {"platzhalter": "50"})],
+    berechnen=_darlington, formel="Darlington: β ≈ β1 · β2, U_BE ≈ 1.4 V, U_CE ≥ 0.9 V     R_B = (U_St − U_BE) / (2 · I / β)")
 
 
 def _endstufe(w):
@@ -1568,14 +1502,13 @@ def _endstufe(w):
     return zeilen
 
 
-def endstufe(master):
-    return FormelRechner(
-        master, "Gegentakt-Endstufe: Leistung und Wirkungsgrad", "Klasse B an ±U_B, idealisiert",
-        felder=[("Ub", "Versorgung ±U_B", "spannung", {"platzhalter": "z.B. 15"}),
-                ("Rl", "Last R_L", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 8"}),
-                ("P", "gewünschte Leistung P (oder û)", "leistung", {"platzhalter": "z.B. 10"}),
-                ("u", "… oder Amplitude û", "spannung", {"platzhalter": "optional"})],
-        berechnen=_endstufe, formel="P = û² / (2R_L)     η = π/4 · û / U_B     P_V,max = 2·U_B² / (π²·R_L)")
+endstufe = FormelDaten(
+    "Gegentakt-Endstufe: Leistung und Wirkungsgrad", "Klasse B an ±U_B, idealisiert",
+    felder=[("Ub", "Versorgung ±U_B", "spannung", {"platzhalter": "z.B. 15"}),
+            ("Rl", "Last R_L", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 8"}),
+            ("P", "gewünschte Leistung P (oder û)", "leistung", {"platzhalter": "z.B. 10"}),
+            ("u", "… oder Amplitude û", "spannung", {"platzhalter": "optional"})],
+    berechnen=_endstufe, formel="P = û² / (2R_L)     η = π/4 · û / U_B     P_V,max = 2·U_B² / (π²·R_L)")
 
 
 # =============================================================================
@@ -1601,15 +1534,14 @@ def _busabschluss(w):
     return zeilen
 
 
-def busabschluss(master):
-    return FormelRechner(
-        master, "Busabschluss RS-485 / CAN", "Braucht die Leitung einen Abschluss? Reicht die Fail-safe-Vorspannung?",
-        felder=[("l", "Leitungslänge", "laenge", {"einheit": "m", "platzhalter": "z.B. 100"}),
-                ("tr", "Anstiegszeit des Senders", "zeit", {"einheit": "ns", "platzhalter": "z.B. 50"}),
-                ("z0", "Wellenwiderstand (opt.)", "widerstand", {"einheit": "Ω", "platzhalter": "120"}),
-                ("rb", "Fail-safe R_bias (opt.)", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 560"}),
-                ("ub", "Versorgung für R_bias (opt.)", "spannung", {"platzhalter": "5"})],
-        berechnen=_busabschluss, formel="t_d = l / v,  v ≈ 2·10⁸ m/s     l_krit ≈ t_r · v / 2     Γ = (R − Z0) / (R + Z0)")
+busabschluss = FormelDaten(
+    "Busabschluss RS-485 / CAN", "Braucht die Leitung einen Abschluss? Reicht die Fail-safe-Vorspannung?",
+    felder=[("l", "Leitungslänge", "laenge", {"einheit": "m", "platzhalter": "z.B. 100"}),
+            ("tr", "Anstiegszeit des Senders", "zeit", {"einheit": "ns", "platzhalter": "z.B. 50"}),
+            ("z0", "Wellenwiderstand (opt.)", "widerstand", {"einheit": "Ω", "platzhalter": "120"}),
+            ("rb", "Fail-safe R_bias (opt.)", "widerstand", {"einheit": "Ω", "platzhalter": "z.B. 560"}),
+            ("ub", "Versorgung für R_bias (opt.)", "spannung", {"platzhalter": "5"})],
+    berechnen=_busabschluss, formel="t_d = l / v,  v ≈ 2·10⁸ m/s     l_krit ≈ t_r · v / 2     Γ = (R − Z0) / (R + Z0)")
 
 
 def _vco(w):
@@ -1635,17 +1567,16 @@ def _vco(w):
     return zeilen
 
 
-def vco(master):
-    return FormelRechner(
-        master, "VCO (spannungsgesteuerter Oszillator)", "Frequenz proportional zur Steuerspannung",
-        felder=[("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("R2", "R2", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 20"}),
-                ("R", "R (Integrator)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("C", "C (oder leer)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"}),
-                ("K", "… oder Steilheit K in Hz/V", "zahl", {"platzhalter": "optional"}),
-                ("Us", "±U_sat", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Ust", "Steuerspannung U_st (opt.)", "spannung", {"platzhalter": "z.B. 6"})],
-        berechnen=_vco, formel="f = K · U_st     K = R2 / (4 · R1 · R · C · U_sat)")
+vco = FormelDaten(
+    "VCO (spannungsgesteuerter Oszillator)", "Frequenz proportional zur Steuerspannung",
+    felder=[("R1", "R1", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("R2", "R2", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 20"}),
+            ("R", "R (Integrator)", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("C", "C (oder leer)", "kapazitaet", {"einheit": "nF", "platzhalter": "z.B. 100"}),
+            ("K", "… oder Steilheit K in Hz/V", "zahl", {"platzhalter": "optional"}),
+            ("Us", "±U_sat", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Ust", "Steuerspannung U_st (opt.)", "spannung", {"platzhalter": "z.B. 6"})],
+    berechnen=_vco, formel="f = K · U_st     K = R2 / (4 · R1 · R · C · U_sat)")
 
 
 # =============================================================================
@@ -1655,43 +1586,43 @@ RECHNER = {
     "stromteiler": stromteiler,
     "pull_widerstand": pull_widerstand,
     "poti_last": poti_last,
-    "schaltung_spannungsteiler": SpannungsteilerSchaltung,
-    "schaltung_stromteiler": StromteilerSchaltung,
-    "schaltung_pull": PullSchaltung,
-    "schaltung_poti": PotiSchaltung,
-    "schaltung_bruecke": BrueckeSchaltung,
+    "schaltung_spannungsteiler": GrafikVerweis("schaltungen.grafiken", "SpannungsteilerSchaltung"),
+    "schaltung_stromteiler": GrafikVerweis("schaltungen.grafiken", "StromteilerSchaltung"),
+    "schaltung_pull": GrafikVerweis("schaltungen.grafiken", "PullSchaltung"),
+    "schaltung_poti": GrafikVerweis("schaltungen.grafiken", "PotiSchaltung"),
+    "schaltung_bruecke": GrafikVerweis("schaltungen.grafiken", "BrueckeSchaltung"),
     "eingangsschutz": eingangsschutz,
     "verpolschutz": verpolschutz,
     "tvs_auswahl": tvs_auswahl,
-    "schaltung_begrenzer": BegrenzerSchaltung,
-    "schaltung_eingangsschutz": EingangsschutzSchaltung,
-    "schaltung_verpol": VerpolSchaltung,
-    "schaltung_freilauf": FreilaufSchaltung,
-    "schaltung_gleichrichter": GleichrichterSchaltung,
-    "schaltung_zstabi": ZStabiSchaltung,
-    "schaltung_tvs": TvsSchaltung,
+    "schaltung_begrenzer": GrafikVerweis("schaltungen.grafiken_dioden", "BegrenzerSchaltung"),
+    "schaltung_eingangsschutz": GrafikVerweis("schaltungen.grafiken_dioden", "EingangsschutzSchaltung"),
+    "schaltung_verpol": GrafikVerweis("schaltungen.grafiken_dioden", "VerpolSchaltung"),
+    "schaltung_freilauf": GrafikVerweis("schaltungen.grafiken_dioden", "FreilaufSchaltung"),
+    "schaltung_gleichrichter": GrafikVerweis("schaltungen.grafiken_dioden", "GleichrichterSchaltung"),
+    "schaltung_zstabi": GrafikVerweis("schaltungen.grafiken_dioden", "ZStabiSchaltung"),
+    "schaltung_tvs": GrafikVerweis("schaltungen.grafiken_dioden", "TvsSchaltung"),
     "emitterfolger": emitterfolger,
     "konstantstrom": konstantstrom,
-    "schaltung_lasttreiber": LastTreiberSchaltung,
-    "schaltung_emitter": EmitterSchaltung,
-    "schaltung_emitterfolger": EmitterfolgerSchaltung,
-    "schaltung_konstantstrom": KonstantstromSchaltung,
+    "schaltung_lasttreiber": GrafikVerweis("schaltungen.grafiken_transistor", "LastTreiberSchaltung"),
+    "schaltung_emitter": GrafikVerweis("schaltungen.grafiken_transistor", "EmitterSchaltung"),
+    "schaltung_emitterfolger": GrafikVerweis("schaltungen.grafiken_transistor", "EmitterfolgerSchaltung"),
+    "schaltung_konstantstrom": GrafikVerweis("schaltungen.grafiken_transistor", "KonstantstromSchaltung"),
     "rc_frequenzgang": rc_frequenzgang,
     "entprellung": entprellung,
     "anti_aliasing": anti_aliasing,
-    "schaltung_rc_filter": RcFilterSchaltung,
-    "schaltung_entprellung": EntprellSchaltung,
-    "schaltung_anti_aliasing": AntiAliasingSchaltung,
+    "schaltung_rc_filter": GrafikVerweis("schaltungen.grafiken_rc", "RcFilterSchaltung"),
+    "schaltung_entprellung": GrafikVerweis("schaltungen.grafiken_rc", "EntprellSchaltung"),
+    "schaltung_anti_aliasing": GrafikVerweis("schaltungen.grafiken_rc", "AntiAliasingSchaltung"),
     "opv_verstaerker": opv_verstaerker,
     "opv_addierer": opv_addierer,
     "differenzverstaerker": differenzverstaerker,
     "schmitt_trigger": schmitt_trigger,
     "integrator": integrator,
-    "schaltung_opv_verstaerker": OpvVerstaerkerSchaltung,
-    "schaltung_addierer": AddiererSchaltung,
-    "schaltung_differenz": DifferenzSchaltung,
-    "schaltung_schmitt": SchmittSchaltung,
-    "schaltung_integrator": IntegratorSchaltung,
+    "schaltung_opv_verstaerker": GrafikVerweis("schaltungen.grafiken_opv", "OpvVerstaerkerSchaltung"),
+    "schaltung_addierer": GrafikVerweis("schaltungen.grafiken_opv", "AddiererSchaltung"),
+    "schaltung_differenz": GrafikVerweis("schaltungen.grafiken_opv", "DifferenzSchaltung"),
+    "schaltung_schmitt": GrafikVerweis("schaltungen.grafiken_opv", "SchmittSchaltung"),
+    "schaltung_integrator": GrafikVerweis("schaltungen.grafiken_opv", "IntegratorSchaltung"),
     "innenwiderstand": innenwiderstand,
     "netzteil_auslegen": netzteil_auslegen,
     "linearregler": linearregler,
@@ -1699,18 +1630,18 @@ RECHNER = {
     "strombegrenzung": strombegrenzung,
     "stromquelle_opv": stromquelle_opv,
     "schaltregler": schaltregler,
-    "schaltung_quelle": QuelleSchaltung,
-    "schaltung_linearregler": LinearreglerSchaltung,
-    "schaltung_strombegrenzung": StrombegrenzungSchaltung,
-    "schaltung_stromquelle_opv": StromquelleOpvSchaltung,
-    "schaltung_virtuelle_masse": VirtuelleMasseSchaltung,
-    "schaltung_schaltregler": SchaltreglerSchaltung,
+    "schaltung_quelle": GrafikVerweis("schaltungen.grafiken_netzteil", "QuelleSchaltung"),
+    "schaltung_linearregler": GrafikVerweis("schaltungen.grafiken_netzteil", "LinearreglerSchaltung"),
+    "schaltung_strombegrenzung": GrafikVerweis("schaltungen.grafiken_netzteil", "StrombegrenzungSchaltung"),
+    "schaltung_stromquelle_opv": GrafikVerweis("schaltungen.grafiken_netzteil", "StromquelleOpvSchaltung"),
+    "schaltung_virtuelle_masse": GrafikVerweis("schaltungen.grafiken_netzteil", "VirtuelleMasseSchaltung"),
+    "schaltung_schaltregler": GrafikVerweis("schaltungen.grafiken_netzteil", "SchaltreglerSchaltung"),
     "lc_filter": lc_filter,
     "schwingkreis_filter": schwingkreis_filter,
     "sallen_key": sallen_key,
-    "schaltung_lc_filter": LcFilterSchaltung,
-    "schaltung_sallen_key": SallenKeySchaltung,
-    "schaltung_schwingkreis": SchwingkreisSchaltung,
+    "schaltung_lc_filter": GrafikVerweis("schaltungen.grafiken_filter", "LcFilterSchaltung"),
+    "schaltung_sallen_key": GrafikVerweis("schaltungen.grafiken_filter", "SallenKeySchaltung"),
+    "schaltung_schwingkreis": GrafikVerweis("schaltungen.grafiken_filter", "SchwingkreisSchaltung"),
     "pt_leitung": pt_leitung,
     "ntc_teiler": ntc_teiler,
     "dms_verstaerker": dms_verstaerker,
@@ -1720,14 +1651,14 @@ RECHNER = {
     "gate_schaltzeit": gate_schaltzeit,
     "bootstrap": bootstrap,
     "adc_eingang": adc_eingang,
-    "schaltung_pt_leitung": PtLeitungSchaltung,
-    "schaltung_ntc_teiler": NtcTeilerSchaltung,
-    "schaltung_dms_kette": DmsKetteSchaltung,
-    "schaltung_pegelwandler": PegelwandlerSchaltung,
-    "schaltung_optokoppler": OptokopplerSchaltung,
-    "schaltung_h_bruecke": HBrueckeSchaltung,
-    "schaltung_gate_treiber": GateTreiberSchaltung,
-    "schaltung_adc_eingang": AdcEingangSchaltung,
+    "schaltung_pt_leitung": GrafikVerweis("schaltungen.grafiken_mess", "PtLeitungSchaltung"),
+    "schaltung_ntc_teiler": GrafikVerweis("schaltungen.grafiken_mess", "NtcTeilerSchaltung"),
+    "schaltung_dms_kette": GrafikVerweis("schaltungen.grafiken_mess", "DmsKetteSchaltung"),
+    "schaltung_pegelwandler": GrafikVerweis("schaltungen.grafiken_schnittstellen", "PegelwandlerSchaltung"),
+    "schaltung_optokoppler": GrafikVerweis("schaltungen.grafiken_schnittstellen", "OptokopplerSchaltung"),
+    "schaltung_h_bruecke": GrafikVerweis("schaltungen.grafiken_schnittstellen", "HBrueckeSchaltung"),
+    "schaltung_gate_treiber": GrafikVerweis("schaltungen.grafiken_schnittstellen", "GateTreiberSchaltung"),
+    "schaltung_adc_eingang": GrafikVerweis("schaltungen.grafiken_schnittstellen", "AdcEingangSchaltung"),
     "ne555": ne555,
     "ne555_auslegen": ne555_auslegen,
     "multivibrator": multivibrator,
@@ -1735,14 +1666,14 @@ RECHNER = {
     "watchdog": watchdog,
     "darlington": darlington,
     "endstufe": endstufe,
-    "schaltung_ne555": Ne555Schaltung,
-    "schaltung_multivibrator": MultivibratorSchaltung,
-    "schaltung_funktionsgenerator": FunktionsgeneratorSchaltung,
-    "schaltung_watchdog": WatchdogSchaltung,
-    "schaltung_darlington": DarlingtonSchaltung,
-    "schaltung_gegentakt": GegentaktSchaltung,
+    "schaltung_ne555": GrafikVerweis("schaltungen.grafiken_oszillator", "Ne555Schaltung"),
+    "schaltung_multivibrator": GrafikVerweis("schaltungen.grafiken_oszillator", "MultivibratorSchaltung"),
+    "schaltung_funktionsgenerator": GrafikVerweis("schaltungen.grafiken_oszillator", "FunktionsgeneratorSchaltung"),
+    "schaltung_watchdog": GrafikVerweis("schaltungen.grafiken_oszillator", "WatchdogSchaltung"),
+    "schaltung_darlington": GrafikVerweis("schaltungen.grafiken_endstufen", "DarlingtonSchaltung"),
+    "schaltung_gegentakt": GrafikVerweis("schaltungen.grafiken_endstufen", "GegentaktSchaltung"),
     "busabschluss": busabschluss,
     "vco": vco,
-    "schaltung_busabschluss": BusabschlussSchaltung,
-    "schaltung_vco": VcoSchaltung,
+    "schaltung_busabschluss": GrafikVerweis("schaltungen.grafiken_schnittstellen", "BusabschlussSchaltung"),
+    "schaltung_vco": GrafikVerweis("schaltungen.grafiken_oszillator", "VcoSchaltung"),
 }

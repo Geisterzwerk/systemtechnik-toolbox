@@ -25,8 +25,7 @@
 import math
 
 from bauteile import einheiten                                                   # -> bauteile/einheiten.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, anzahl_gegeben, fmt   # -> bauteile/rechner/basis.py
-from messtechnik.grafiken import AbtastGrafik                                   # -> messtechnik/grafiken.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, anzahl_gegeben, fmt   # -> bauteile/rechner/kern.py
 from schaltungen import netzwerk_mathe as nm                                    # -> schaltungen/netzwerk_mathe.py
 
 # ---- Zusätzliche Einheiten nur für diesen Bereich (bauteile/einheiten.py bleibt unverändert) ----
@@ -81,13 +80,12 @@ def _statistik(w):
             "Nur zufällige Fehler! Systematische (Kalibrierung, Belastung) kommen noch dazu."]
 
 
-def statistik(master):
-    return FormelRechner(
-        master, "Messreihe auswerten", "Werte mit Leerzeichen oder ; trennen (Dezimalpunkt verwenden)",
-        felder=[("liste", "Messwerte", "zahl", {"liste": True, "platzhalter": "4.98 5.02 5.01 4.99"}),
-                ("niveau", "Vertrauensniveau", "auswahl",
-                 {"werte": ["95 % (üblich)", "68 % (1 σ)", "99 %"], "standard": "95 % (üblich)"})],
-        berechnen=_statistik, formel="x̄ = Σx/n     s = √(Σ(x−x̄)²/(n−1))     u = t · s/√n")
+statistik = FormelDaten(
+    "Messreihe auswerten", "Werte mit Leerzeichen oder ; trennen (Dezimalpunkt verwenden)",
+    felder=[("liste", "Messwerte", "zahl", {"liste": True, "platzhalter": "4.98 5.02 5.01 4.99"}),
+            ("niveau", "Vertrauensniveau", "auswahl",
+             {"werte": ["95 % (üblich)", "68 % (1 σ)", "99 %"], "standard": "95 % (üblich)"})],
+    berechnen=_statistik, formel="x̄ = Σx/n     s = √(Σ(x−x̄)²/(n−1))     u = t · s/√n")
 
 
 def _dmm(w):
@@ -104,15 +102,14 @@ def _dmm(w):
     return zeilen
 
 
-def dmm_genauigkeit(master):
-    return FormelRechner(
-        master, "Genauigkeit Multimeter", "Datenblatt-Angabe z.B. ±(0.5 % + 2 Digits)",
-        felder=[("x", "Anzeigewert", "zahl", {"platzhalter": "z.B. 12.34"}),
-                ("p", "% vom Messwert", "prozent", {"platzhalter": "z.B. 0.5"}),
-                ("d", "Digits", "zahl", {"platzhalter": "z.B. 2"}),
-                ("res", "Auflösung (1 Digit)", "zahl", {"platzhalter": "z.B. 0.01"}),
-                ("bereich", "Messbereich (opt.)", "zahl", {"platzhalter": "z.B. 40"})],
-        berechnen=_dmm, formel="Fehler = ± (p · |Anzeige| + n · Auflösung)")
+dmm_genauigkeit = FormelDaten(
+    "Genauigkeit Multimeter", "Datenblatt-Angabe z.B. ±(0.5 % + 2 Digits)",
+    felder=[("x", "Anzeigewert", "zahl", {"platzhalter": "z.B. 12.34"}),
+            ("p", "% vom Messwert", "prozent", {"platzhalter": "z.B. 0.5"}),
+            ("d", "Digits", "zahl", {"platzhalter": "z.B. 2"}),
+            ("res", "Auflösung (1 Digit)", "zahl", {"platzhalter": "z.B. 0.01"}),
+            ("bereich", "Messbereich (opt.)", "zahl", {"platzhalter": "z.B. 40"})],
+    berechnen=_dmm, formel="Fehler = ± (p · |Anzeige| + n · Auflösung)")
 
 
 def _fehlerfort(w):
@@ -140,15 +137,14 @@ def _fehlerfort(w):
     return zeilen
 
 
-def fehlerfortpflanzung(master):
-    return FormelRechner(
-        master, "Fehlerfortpflanzung", "Wie genau ist ein berechnetes Ergebnis (z.B. P = U · I)?",
-        felder=[("art", "Rechenart", "auswahl",
-                 {"werte": ["Produkt / Quotient (P = U·I, R = U/I)", "Summe / Differenz (U1 ± U2)"]}),
-                ("x", "Wert 1", "zahl"), ("dx", "Unsicherheit 1 (±)", "zahl"),
-                ("y", "Wert 2", "zahl"), ("dy", "Unsicherheit 2 (±)", "zahl")],
-        berechnen=_fehlerfort,
-        formel="Produkt/Quotient: relative Fehler addieren   ·   Summe/Differenz: absolute Fehler addieren")
+fehlerfortpflanzung = FormelDaten(
+    "Fehlerfortpflanzung", "Wie genau ist ein berechnetes Ergebnis (z.B. P = U · I)?",
+    felder=[("art", "Rechenart", "auswahl",
+             {"werte": ["Produkt / Quotient (P = U·I, R = U/I)", "Summe / Differenz (U1 ± U2)"]}),
+            ("x", "Wert 1", "zahl"), ("dx", "Unsicherheit 1 (±)", "zahl"),
+            ("y", "Wert 2", "zahl"), ("dy", "Unsicherheit 2 (±)", "zahl")],
+    berechnen=_fehlerfort,
+    formel="Produkt/Quotient: relative Fehler addieren   ·   Summe/Differenz: absolute Fehler addieren")
 
 
 # =============================================================================
@@ -193,13 +189,12 @@ def _signalform(w):
             f"→ Fehler {fehler:+.1f} %" + ("  ✅ stimmt hier (Formfaktor wie Sinus)" if abs(fehler) < 0.5 else "  ⚠ → True RMS nötig")]
 
 
-def signalform(master):
-    return FormelRechner(
-        master, "Effektivwert & Co.", "Kenngrössen verschiedener Signalformen",
-        felder=[("art", "Signalform", "auswahl", {"werte": SIGNALE}),
-                ("u", "Scheitelwert Û", "spannung", {"platzhalter": "z.B. 10"}),
-                ("d", "Tastgrad (nur PWM)", "prozent", {"platzhalter": "50"})],
-        berechnen=_signalform, formel="Sinus: U_eff = Û/√2 ≈ 0.707·Û     Crestfaktor = Û/U_eff")
+signalform = FormelDaten(
+    "Effektivwert & Co.", "Kenngrössen verschiedener Signalformen",
+    felder=[("art", "Signalform", "auswahl", {"werte": SIGNALE}),
+            ("u", "Scheitelwert Û", "spannung", {"platzhalter": "z.B. 10"}),
+            ("d", "Tastgrad (nur PWM)", "prozent", {"platzhalter": "50"})],
+    berechnen=_signalform, formel="Sinus: U_eff = Û/√2 ≈ 0.707·Û     Crestfaktor = Û/U_eff")
 
 
 # =============================================================================
@@ -226,13 +221,12 @@ def _messbereich(w):
     return zeilen
 
 
-def messbereich(master):
-    return FormelRechner(
-        master, "Messbereichserweiterung", "Vorwiderstand (Spannung) bzw. Shunt (Strom) für ein Messwerk",
-        felder=[("Ri", "Messwerk Ri", "widerstand"), ("Iv", "Vollausschlag Iv", "strom", {"einheit": "µA"}),
-                ("U", "Neuer U-Bereich", "spannung", {"platzhalter": "optional"}),
-                ("I", "Neuer I-Bereich", "strom", {"platzhalter": "optional"})],
-        berechnen=_messbereich, formel="Rv = U / Iv − Ri     Rs = Ri · Iv / (I − Iv)")
+messbereich = FormelDaten(
+    "Messbereichserweiterung", "Vorwiderstand (Spannung) bzw. Shunt (Strom) für ein Messwerk",
+    felder=[("Ri", "Messwerk Ri", "widerstand"), ("Iv", "Vollausschlag Iv", "strom", {"einheit": "µA"}),
+            ("U", "Neuer U-Bereich", "spannung", {"platzhalter": "optional"}),
+            ("I", "Neuer I-Bereich", "strom", {"platzhalter": "optional"})],
+    berechnen=_messbereich, formel="Rv = U / Iv − Ri     Rs = Ri · Iv / (I − Iv)")
 
 
 def _belastung_u(w):
@@ -250,13 +244,12 @@ def _belastung_u(w):
     return zeilen
 
 
-def belastung_u(master):
-    return FormelRechner(
-        master, "Belastungsfehler Spannungsmessung", "Das Messgerät bildet mit der Quelle einen Spannungsteiler",
-        felder=[("Uq", "Leerlaufspannung Uq", "spannung"),
-                ("Rq", "Innenwiderstand Quelle", "widerstand", {"einheit": "kΩ"}),
-                ("Ri", "Ri Messgerät", "widerstand", {"einheit": "MΩ", "platzhalter": "10"})],
-        berechnen=_belastung_u, formel="U_Anzeige = Uq · Ri / (Rq + Ri)")
+belastung_u = FormelDaten(
+    "Belastungsfehler Spannungsmessung", "Das Messgerät bildet mit der Quelle einen Spannungsteiler",
+    felder=[("Uq", "Leerlaufspannung Uq", "spannung"),
+            ("Rq", "Innenwiderstand Quelle", "widerstand", {"einheit": "kΩ"}),
+            ("Ri", "Ri Messgerät", "widerstand", {"einheit": "MΩ", "platzhalter": "10"})],
+    berechnen=_belastung_u, formel="U_Anzeige = Uq · Ri / (Rq + Ri)")
 
 
 def _buerde_i(w):
@@ -276,14 +269,13 @@ def _buerde_i(w):
             "Bei kleinen Spannungen (z.B. 3.3-V-Schaltungen) kann diese Bürdenspannung die Schaltung stören!"]
 
 
-def buerde_i(master):
-    return FormelRechner(
-        master, "Einfluss des Strommessers", "Der Strommesser liegt in Reihe und bremst den Strom etwas",
-        felder=[("U", "Spannung im Kreis", "spannung"), ("R", "Widerstand im Kreis", "widerstand"),
-                ("Rm", "Ri Strommesser", "widerstand", {"platzhalter": "oder unten"}),
-                ("Ub", "Bürdenspannung", "spannung", {"einheit": "mV", "platzhalter": "z.B. 200"}),
-                ("Iv", "… beim Bereichsendwert", "strom", {"einheit": "mA", "platzhalter": "z.B. 200"})],
-        berechnen=_buerde_i, formel="R_Messgerät = Bürdenspannung / Bereichsendwert")
+buerde_i = FormelDaten(
+    "Einfluss des Strommessers", "Der Strommesser liegt in Reihe und bremst den Strom etwas",
+    felder=[("U", "Spannung im Kreis", "spannung"), ("R", "Widerstand im Kreis", "widerstand"),
+            ("Rm", "Ri Strommesser", "widerstand", {"platzhalter": "oder unten"}),
+            ("Ub", "Bürdenspannung", "spannung", {"einheit": "mV", "platzhalter": "z.B. 200"}),
+            ("Iv", "… beim Bereichsendwert", "strom", {"einheit": "mA", "platzhalter": "z.B. 200"})],
+    berechnen=_buerde_i, formel="R_Messgerät = Bürdenspannung / Bereichsendwert")
 
 
 # =============================================================================
@@ -308,13 +300,12 @@ def _oszi(w):
     return zeilen
 
 
-def oszi(master):
-    return FormelRechner(
-        master, "Oszilloskop: reicht die Bandbreite?", "Bandbreite von Oszilloskop UND Tastkopf beachten",
-        felder=[("B", "Bandbreite B", "frequenz", {"einheit": "MHz"}),
-                ("f", "Signalfrequenz (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "optional"}),
-                ("tr", "Anstiegszeit Signal (opt.)", "zeit", {"einheit": "ns", "platzhalter": "optional"})],
-        berechnen=_oszi, formel="tr ≈ 0.35 / B     tr,gemessen ≈ √(tr,Signal² + tr,Oszi²)")
+oszi = FormelDaten(
+    "Oszilloskop: reicht die Bandbreite?", "Bandbreite von Oszilloskop UND Tastkopf beachten",
+    felder=[("B", "Bandbreite B", "frequenz", {"einheit": "MHz"}),
+            ("f", "Signalfrequenz (opt.)", "frequenz", {"einheit": "MHz", "platzhalter": "optional"}),
+            ("tr", "Anstiegszeit Signal (opt.)", "zeit", {"einheit": "ns", "platzhalter": "optional"})],
+    berechnen=_oszi, formel="tr ≈ 0.35 / B     tr,gemessen ≈ √(tr,Signal² + tr,Oszi²)")
 
 
 # =============================================================================
@@ -367,14 +358,13 @@ def _pt100(w):
     return zeilen
 
 
-def pt100(master):
-    return FormelRechner(
-        master, "Pt100 / Pt1000", "Widerstand ↔ Temperatur nach IEC 60751 (Callendar-Van Dusen)",
-        felder=[("typ", "Sensor", "auswahl", {"werte": ["Pt100 (100 Ω bei 0 °C)", "Pt1000 (1000 Ω bei 0 °C)"]}),
-                ("T", "Temperatur", "temperatur", {"platzhalter": "oder R"}),
-                ("R", "… oder Widerstand", "widerstand", {"platzhalter": "oder T"}),
-                ("Rl", "Leitungswiderstand je Ader (opt.)", "widerstand", {"platzhalter": "optional"})],
-        berechnen=_pt100, formel="R(T) = R0 · (1 + A·T + B·T²)  für T ≥ 0 °C,  A = 3.9083·10⁻³, B = −5.775·10⁻⁷")
+pt100 = FormelDaten(
+    "Pt100 / Pt1000", "Widerstand ↔ Temperatur nach IEC 60751 (Callendar-Van Dusen)",
+    felder=[("typ", "Sensor", "auswahl", {"werte": ["Pt100 (100 Ω bei 0 °C)", "Pt1000 (1000 Ω bei 0 °C)"]}),
+            ("T", "Temperatur", "temperatur", {"platzhalter": "oder R"}),
+            ("R", "… oder Widerstand", "widerstand", {"platzhalter": "oder T"}),
+            ("Rl", "Leitungswiderstand je Ader (opt.)", "widerstand", {"platzhalter": "optional"})],
+    berechnen=_pt100, formel="R(T) = R0 · (1 + A·T + B·T²)  für T ≥ 0 °C,  A = 3.9083·10⁻³, B = −5.775·10⁻⁷")
 
 
 def _ntc(w):
@@ -406,14 +396,13 @@ def _ntc(w):
     return zeilen
 
 
-def ntc(master):
-    return FormelRechner(
-        master, "NTC (Heissleiter)", "Widerstand ↔ Temperatur mit dem B-Wert aus dem Datenblatt",
-        felder=[("R25", "R bei 25 °C", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
-                ("B", "B-Wert", "zahl", {"platzhalter": "z.B. 3950 (K)"}),
-                ("T", "Temperatur", "temperatur", {"platzhalter": "oder R"}),
-                ("R", "… oder Widerstand", "widerstand", {"einheit": "kΩ", "platzhalter": "oder T"})],
-        berechnen=_ntc, formel="R(T) = R25 · e^(B · (1/T − 1/T25)),  T in Kelvin")
+ntc = FormelDaten(
+    "NTC (Heissleiter)", "Widerstand ↔ Temperatur mit dem B-Wert aus dem Datenblatt",
+    felder=[("R25", "R bei 25 °C", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 10"}),
+            ("B", "B-Wert", "zahl", {"platzhalter": "z.B. 3950 (K)"}),
+            ("T", "Temperatur", "temperatur", {"platzhalter": "oder R"}),
+            ("R", "… oder Widerstand", "widerstand", {"einheit": "kΩ", "platzhalter": "oder T"})],
+    berechnen=_ntc, formel="R(T) = R25 · e^(B · (1/T − 1/T25)),  T in Kelvin")
 
 
 THERMO = {"Typ K (NiCr-Ni)": 41e-6, "Typ J (Fe-CuNi)": 52e-6, "Typ T (Cu-CuNi)": 43e-6,
@@ -436,14 +425,13 @@ def _thermo(w):
     return zeilen
 
 
-def thermoelement(master):
-    return FormelRechner(
-        master, "Thermoelement (Näherung)", "Nur wenige µV pro Kelvin – Vergleichsstelle nicht vergessen",
-        felder=[("typ", "Typ", "auswahl", {"werte": list(THERMO)}),
-                ("U", "Thermospannung", "spannung", {"einheit": "mV", "platzhalter": "oder T"}),
-                ("T", "… oder Temperatur Messstelle", "temperatur", {"platzhalter": "oder U"}),
-                ("Tv", "Vergleichsstelle", "temperatur", {"platzhalter": "25"})],
-        berechnen=_thermo, formel="U_th ≈ S · (T_Mess − T_Vergleich)")
+thermoelement = FormelDaten(
+    "Thermoelement (Näherung)", "Nur wenige µV pro Kelvin – Vergleichsstelle nicht vergessen",
+    felder=[("typ", "Typ", "auswahl", {"werte": list(THERMO)}),
+            ("U", "Thermospannung", "spannung", {"einheit": "mV", "platzhalter": "oder T"}),
+            ("T", "… oder Temperatur Messstelle", "temperatur", {"platzhalter": "oder U"}),
+            ("Tv", "Vergleichsstelle", "temperatur", {"platzhalter": "25"})],
+    berechnen=_thermo, formel="U_th ≈ S · (T_Mess − T_Vergleich)")
 
 
 # =============================================================================
@@ -464,12 +452,11 @@ def _bruecke(w):
             "Abgeglichen (Ua ≈ 0)" if abs(ua) < 1e-9 * abs(ue) + 1e-12 else f"Abgleichwert R4 wäre {fmt(r3 * r2 / r1, 'widerstand')}"]
 
 
-def bruecke(master):
-    return FormelRechner(
-        master, "Wheatstone-Brücke", "Links R1 (oben) / R2 (unten), rechts R3 (oben) / R4 (unten), Ua zwischen den Mitten",
-        felder=[("Ue", "Speisespannung Ue", "spannung"), ("R1", "R1", "widerstand"), ("R2", "R2", "widerstand"),
-                ("R3", "R3", "widerstand"), ("R4", "R4 (leer = Abgleich)", "widerstand", {"platzhalter": "optional"})],
-        berechnen=_bruecke, formel="Ua = Ue · (R2/(R1+R2) − R4/(R3+R4))     Abgleich: R1/R2 = R3/R4")
+bruecke = FormelDaten(
+    "Wheatstone-Brücke", "Links R1 (oben) / R2 (unten), rechts R3 (oben) / R4 (unten), Ua zwischen den Mitten",
+    felder=[("Ue", "Speisespannung Ue", "spannung"), ("R1", "R1", "widerstand"), ("R2", "R2", "widerstand"),
+            ("R3", "R3", "widerstand"), ("R4", "R4 (leer = Abgleich)", "widerstand", {"platzhalter": "optional"})],
+    berechnen=_bruecke, formel="Ua = Ue · (R2/(R1+R2) − R4/(R3+R4))     Abgleich: R1/R2 = R3/R4")
 
 
 def _dms(w):
@@ -487,16 +474,15 @@ def _dms(w):
     return zeilen
 
 
-def dms(master):
-    return FormelRechner(
-        master, "Dehnungsmessstreifen (DMS)", "Dehnung in µm/m (= µε)",
-        felder=[("art", "Schaltung", "auswahl", {"werte": ["Viertelbrücke (1 aktiver DMS)", "Halbbrücke (2 aktive DMS)",
-                                                             "Vollbrücke (4 aktive DMS)"]}),
-                ("Ue", "Speisespannung Ue", "spannung", {"platzhalter": "z.B. 5"}),
-                ("eps", "Dehnung ε (µm/m)", "zahl", {"platzhalter": "z.B. 1000"}),
-                ("k", "k-Faktor", "zahl", {"platzhalter": "2"}),
-                ("R", "R des DMS (opt.)", "widerstand", {"platzhalter": "z.B. 350"})],
-        berechnen=_dms, formel="ΔR/R = k · ε     Ua ≈ Ue · k · ε · n / 4")
+dms = FormelDaten(
+    "Dehnungsmessstreifen (DMS)", "Dehnung in µm/m (= µε)",
+    felder=[("art", "Schaltung", "auswahl", {"werte": ["Viertelbrücke (1 aktiver DMS)", "Halbbrücke (2 aktive DMS)",
+                                                         "Vollbrücke (4 aktive DMS)"]}),
+            ("Ue", "Speisespannung Ue", "spannung", {"platzhalter": "z.B. 5"}),
+            ("eps", "Dehnung ε (µm/m)", "zahl", {"platzhalter": "z.B. 1000"}),
+            ("k", "k-Faktor", "zahl", {"platzhalter": "2"}),
+            ("R", "R des DMS (opt.)", "widerstand", {"platzhalter": "z.B. 350"})],
+    berechnen=_dms, formel="ΔR/R = k · ε     Ua ≈ Ue · k · ε · n / 4")
 
 
 # =============================================================================
@@ -524,14 +510,13 @@ def _adc(w):
     return zeilen
 
 
-def adc(master):
-    return FormelRechner(
-        master, "AD-Wandler", "Auflösung, LSB und nötige Abtastrate",
-        felder=[("n", "Auflösung (Bit)", "zahl", {"platzhalter": "z.B. 12"}),
-                ("Uref", "Referenzspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("Uin", "Eingangsspannung (opt.)", "spannung", {"platzhalter": "optional"}),
-                ("fmax", "Höchste Signalfrequenz (opt.)", "frequenz", {"platzhalter": "optional"})],
-        berechnen=_adc, formel="LSB = Uref / 2ⁿ     SNR_ideal = 6.02·n + 1.76 dB     fs > 2·fmax")
+adc = FormelDaten(
+    "AD-Wandler", "Auflösung, LSB und nötige Abtastrate",
+    felder=[("n", "Auflösung (Bit)", "zahl", {"platzhalter": "z.B. 12"}),
+            ("Uref", "Referenzspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("Uin", "Eingangsspannung (opt.)", "spannung", {"platzhalter": "optional"}),
+            ("fmax", "Höchste Signalfrequenz (opt.)", "frequenz", {"platzhalter": "optional"})],
+    berechnen=_adc, formel="LSB = Uref / 2ⁿ     SNR_ideal = 6.02·n + 1.76 dB     fs > 2·fmax")
 
 
 # =============================================================================
@@ -559,14 +544,13 @@ def _mid(w):
     return zeilen
 
 
-def mid(master):
-    return FormelRechner(
-        master, "Magnetisch-induktiver Durchfluss", "Umrechnung Volumenstrom ↔ Geschwindigkeit und Messspannung",
-        felder=[("D", "Innendurchmesser D", "laenge", {"einheit": "mm", "platzhalter": "z.B. 50"}),
-                ("Q", "Volumenstrom Q", "volumenstrom", {"platzhalter": "oder v"}),
-                ("v", "… oder Geschwindigkeit v", "geschwindigkeit", {"platzhalter": "oder Q"}),
-                ("B", "Flussdichte B (opt.)", "flussdichte", {"einheit": "mT", "platzhalter": "optional"})],
-        berechnen=_mid, formel="Q = v · A     U = B · D · v   (Faraday'sches Induktionsgesetz)")
+mid = FormelDaten(
+    "Magnetisch-induktiver Durchfluss", "Umrechnung Volumenstrom ↔ Geschwindigkeit und Messspannung",
+    felder=[("D", "Innendurchmesser D", "laenge", {"einheit": "mm", "platzhalter": "z.B. 50"}),
+            ("Q", "Volumenstrom Q", "volumenstrom", {"platzhalter": "oder v"}),
+            ("v", "… oder Geschwindigkeit v", "geschwindigkeit", {"platzhalter": "oder Q"}),
+            ("B", "Flussdichte B (opt.)", "flussdichte", {"einheit": "mT", "platzhalter": "optional"})],
+    berechnen=_mid, formel="Q = v · A     U = B · D · v   (Faraday'sches Induktionsgesetz)")
 
 
 # =============================================================================
@@ -576,5 +560,5 @@ RECHNER = {
     "statistik": statistik, "dmm_genauigkeit": dmm_genauigkeit, "fehlerfortpflanzung": fehlerfortpflanzung,
     "signalform": signalform, "messbereich": messbereich, "belastung_u": belastung_u, "buerde_i": buerde_i,
     "oszi": oszi, "pt100": pt100, "ntc": ntc, "thermoelement": thermoelement, "bruecke": bruecke,
-    "dms": dms, "adc": adc, "mid": mid, "abtastung": AbtastGrafik,
+    "dms": dms, "adc": adc, "mid": mid, "abtastung": GrafikVerweis("messtechnik.grafiken", "AbtastGrafik"),
 }

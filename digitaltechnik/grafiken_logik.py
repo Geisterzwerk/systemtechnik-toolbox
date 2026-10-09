@@ -7,7 +7,7 @@
 #   AusdruckKarte   boolescher Ausdruck -> Wahrheitstabelle, Minterme, kanonische und minimale DNF/KNF
 #   KVKarte         KV-Diagramm (2 … 4 Variablen) anklicken: 0 → 1 → X (don't care), Blöcke + minimale Form
 #
-#   wahrheitstabelle_text()   Tabelle als Text (ab 16 Zeilen in Blöcken nebeneinander)
+#   Wahrheitstabelle als Text: lm.wahrheitstabelle_text() (logik_mathe.py, auch fürs Web)
 #
 # Rechnung: digitaltechnik/logik_mathe.py
 # WER RUFT DAS AUF?  digitaltechnik/rechner.py (Registrierung, z.B. "werkzeug_gatter")
@@ -27,24 +27,6 @@ from digitaltechnik.grafiken import _erklaerung, _ergebnis_label, _farbe   # -> 
 EINS, NULL_FARBE = "#22C55E", "#6B7280"
 GRUPPEN_FARBEN = ["#EF4444", "#3B82F6", "#F59E0B", "#A855F7", "#14B8A6", "#EC4899", "#84CC16", "#F97316"]
 IEC_ZEICHEN = {"AND": "&", "NAND": "&", "OR": "≥1", "NOR": "≥1", "XOR": "=1", "XNOR": "=1", "NOT": "1"}
-
-
-def wahrheitstabelle_text(namen, zeilen, markiert=None):
-    """
-    Nr │ A B C │ Y        bei mehr als 16 Zeilen in Blöcken zu 16 nebeneinander.
-    'markiert' = Zeilennummer, die mit ◀ gekennzeichnet wird.
-    """
-    kopf = f"Nr │ {' '.join(f'{n:>{len(n)}}' for n in namen)} │ Y "
-    zeilentexte = []
-    for k, (bits, aus) in enumerate(zeilen):
-        werte = " ".join(f"{b:>{len(n)}}" for b, n in zip(bits, namen))
-        zeilentexte.append(f"{k:>2} │ {werte} │ {aus}" + (" ◀" if k == markiert else "  "))
-    breite = max(len(kopf), max(len(z) for z in zeilentexte))
-    bloecke = [zeilentexte[i:i + 16] for i in range(0, len(zeilentexte), 16)]
-    ausgabe = ["    ".join(kopf.ljust(breite) for _ in bloecke)]
-    for r in range(len(bloecke[0])):
-        ausgabe.append("    ".join(b[r].ljust(breite) for b in bloecke if r < len(b)))
-    return "\n".join(ausgabe)
 
 
 # =============================================================================
@@ -110,7 +92,7 @@ class GatterKarte(Karte):
         aus = lm.gatter(name, eingaenge)
         zeilen = lm.gatter_tabelle(name, n)
         jetzt = int("".join(map(str, eingaenge)), 2)
-        self.dg_tabelle.configure(text=wahrheitstabelle_text(list("ABC"[:n]), zeilen, jetzt))
+        self.dg_tabelle.configure(text=lm.wahrheitstabelle_text(list("ABC"[:n]), zeilen, jetzt))
         einsen = sum(1 for _, a in zeilen if a)
         self.dg_ergebnis.configure(text=f"Y = {lm.als_text(self._dg_baum(name, n))} = {aus}   ·   "
                                         f"{einsen} von {len(zeilen)} Zeilen ergeben 1",
@@ -261,7 +243,7 @@ class AusdruckKarte(Karte):
             self.dg_tabelle.configure(text="")
             self.dg_ergebnis.configure(text=f"⚠ {fehler}", text_color=WARN)
             return
-        self.dg_tabelle.configure(text=wahrheitstabelle_text(e["namen"], e["tabelle"]) if e["namen"] else "")
+        self.dg_tabelle.configure(text=lm.wahrheitstabelle_text(e["namen"], e["tabelle"]) if e["namen"] else "")
         kurz = lambda text: text if len(text) <= 160 else text[:157] + " …"
         zeilen = [f"Gelesen als:   Y = {e['text']}",
                   f"Minterme:      Σm({', '.join(map(str, e['minterme']))})" if e["namen"] else "konstant",

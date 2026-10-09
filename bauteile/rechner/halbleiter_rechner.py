@@ -20,10 +20,8 @@
 # Grundlagen u.a. nach: Zastrow, Elektronik (Kap. 2 Diode, 3 Z-Diode, 5 Transistor)
 # =============================================================================
 
-from bauteile.grafiken.halbleiter_grafiken import DiodenKennlinie                       # -> grafiken/halbleiter_grafiken.py
-from bauteile.grafiken.schalter_simulator import BjtSchalter, MosfetSchalter            # -> grafiken/schalter_simulator.py
 from bauteile.rechner import normreihen                                                 # -> rechner/normreihen.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt                   # -> rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, fmt   # -> bauteile/rechner/kern.py
 from schaltungen import dioden_mathe as dm                                             # -> schaltungen/dioden_mathe.py
 from schaltungen import verstaerker_mathe as vm                                        # -> schaltungen/verstaerker_mathe.py
 
@@ -46,13 +44,12 @@ def _diode_temperatur(w):
             "Wärmer → kleinere Durchlassspannung. Nutzbar als einfacher Temperatursensor."]
 
 
-def diode_temperatur(master):
-    return FormelRechner(
-        master, "Durchlassspannung & Temperatur", "Uf sinkt bei Silizium um ca. 2 mV pro Kelvin",
-        felder=[("Uf", "Uf bei 25 °C", "spannung", {"platzhalter": "z.B. 0.7"}),
-                ("T", "Temperatur", "temperatur", {"platzhalter": "z.B. 85"}),
-                ("tk", "TK (optional)", "spannung", {"einheit": "mV", "platzhalter": "−2"})],
-        berechnen=_diode_temperatur, formel="Uf(T) ≈ Uf(25 °C) + TK · (T − 25 °C),   TK ≈ −2 mV/K")
+diode_temperatur = FormelDaten(
+    "Durchlassspannung & Temperatur", "Uf sinkt bei Silizium um ca. 2 mV pro Kelvin",
+    felder=[("Uf", "Uf bei 25 °C", "spannung", {"platzhalter": "z.B. 0.7"}),
+            ("T", "Temperatur", "temperatur", {"platzhalter": "z.B. 85"}),
+            ("tk", "TK (optional)", "spannung", {"einheit": "mV", "platzhalter": "−2"})],
+    berechnen=_diode_temperatur, formel="Uf(T) ≈ Uf(25 °C) + TK · (T − 25 °C),   TK ≈ −2 mV/K")
 
 
 def _diode_verlust(w):
@@ -70,14 +67,13 @@ def _diode_verlust(w):
     return zeilen
 
 
-def diode_verlust(master):
-    return FormelRechner(
-        master, "Verlustleistung & Erwärmung", "Wie heiss wird die Diode?",
-        felder=[("Uf", "Durchlassspannung Uf", "spannung", {"platzhalter": "z.B. 0.9"}),
-                ("I", "Mittlerer Strom", "strom"),
-                ("rth", "Rth,JA (optional)", "zahl", {"platzhalter": "K/W, z.B. 60"}),
-                ("Ta", "Umgebung Ta", "temperatur", {"platzhalter": "25"})],
-        berechnen=_diode_verlust, formel="P = Uf · I     Tj = Ta + P · Rth,JA")
+diode_verlust = FormelDaten(
+    "Verlustleistung & Erwärmung", "Wie heiss wird die Diode?",
+    felder=[("Uf", "Durchlassspannung Uf", "spannung", {"platzhalter": "z.B. 0.9"}),
+            ("I", "Mittlerer Strom", "strom"),
+            ("rth", "Rth,JA (optional)", "zahl", {"platzhalter": "K/W, z.B. 60"}),
+            ("Ta", "Umgebung Ta", "temperatur", {"platzhalter": "25"})],
+    berechnen=_diode_verlust, formel="P = Uf · I     Tj = Ta + P · Rth,JA")
 
 
 GLEICHRICHTER = ["Brücke (4 Dioden)", "Einweg (1 Diode)", "Mittelpunkt (2 Dioden, Trafo mit Mittelanzapfung)"]
@@ -105,16 +101,15 @@ def _gleichrichter(w):
     return zeilen
 
 
-def gleichrichter(master):
-    return FormelRechner(
-        master, "Gleichrichter mit Ladeelko", "Einweg, Brücke oder Mittelpunkt im Vergleich",
-        felder=[("art", "Schaltung", "auswahl", {"werte": GLEICHRICHTER}),
-                ("U2", "Trafo U2 (eff)", "spannung", {"platzhalter": "z.B. 12"}),
-                ("I", "Laststrom (opt.)", "strom", {"einheit": "mA", "platzhalter": "optional"}),
-                ("C", "Ladeelko (opt.)", "kapazitaet", {"platzhalter": "optional"}),
-                ("uf", "Uf pro Diode", "spannung", {"platzhalter": "0.7"}),
-                ("f", "Netzfrequenz", "frequenz", {"platzhalter": "50"})],
-        berechnen=_gleichrichter, formel="Û = U · √2     ΔU ≈ I / (f_Brumm · C)")
+gleichrichter = FormelDaten(
+    "Gleichrichter mit Ladeelko", "Einweg, Brücke oder Mittelpunkt im Vergleich",
+    felder=[("art", "Schaltung", "auswahl", {"werte": GLEICHRICHTER}),
+            ("U2", "Trafo U2 (eff)", "spannung", {"platzhalter": "z.B. 12"}),
+            ("I", "Laststrom (opt.)", "strom", {"einheit": "mA", "platzhalter": "optional"}),
+            ("C", "Ladeelko (opt.)", "kapazitaet", {"platzhalter": "optional"}),
+            ("uf", "Uf pro Diode", "spannung", {"platzhalter": "0.7"}),
+            ("f", "Netzfrequenz", "frequenz", {"platzhalter": "50"})],
+    berechnen=_gleichrichter, formel="Û = U · √2     ΔU ≈ I / (f_Brumm · C)")
 
 
 # =============================================================================
@@ -154,18 +149,17 @@ def _zdiode(w):
     return zeilen
 
 
-def zdiode_stabi(master):
-    return FormelRechner(
-        master, "Z-Dioden-Stabilisierung", "Vorwiderstand Rv und Belastung im ungünstigsten Fall",
-        felder=[("Ue_min", "Ue min", "spannung", {"platzhalter": "z.B. 11"}),
-                ("Ue_max", "Ue max (opt.)", "spannung", {"platzhalter": "z.B. 14"}),
-                ("Uz", "Z-Spannung Uz", "spannung", {"platzhalter": "z.B. 5.1"}),
-                ("IL_max", "Laststrom max", "strom", {"einheit": "mA"}),
-                ("IL_min", "Laststrom min (opt.)", "strom", {"einheit": "mA", "platzhalter": "0"}),
-                ("Iz_min", "Iz min (opt.)", "strom", {"einheit": "mA", "platzhalter": "5"}),
-                ("Pz_max", "Pz max der Diode (opt.)", "leistung", {"einheit": "mW", "platzhalter": "z.B. 500"}),
-                ("rz", "rz (opt., Datenblatt)", "widerstand", {"platzhalter": "z.B. 10"})],
-        berechnen=_zdiode, formel="Rv = (Ue,min − Uz) / (Iz,min + IL,max)     Pz = Uz · Iz,max")
+zdiode_stabi = FormelDaten(
+    "Z-Dioden-Stabilisierung", "Vorwiderstand Rv und Belastung im ungünstigsten Fall",
+    felder=[("Ue_min", "Ue min", "spannung", {"platzhalter": "z.B. 11"}),
+            ("Ue_max", "Ue max (opt.)", "spannung", {"platzhalter": "z.B. 14"}),
+            ("Uz", "Z-Spannung Uz", "spannung", {"platzhalter": "z.B. 5.1"}),
+            ("IL_max", "Laststrom max", "strom", {"einheit": "mA"}),
+            ("IL_min", "Laststrom min (opt.)", "strom", {"einheit": "mA", "platzhalter": "0"}),
+            ("Iz_min", "Iz min (opt.)", "strom", {"einheit": "mA", "platzhalter": "5"}),
+            ("Pz_max", "Pz max der Diode (opt.)", "leistung", {"einheit": "mW", "platzhalter": "z.B. 500"}),
+            ("rz", "rz (opt., Datenblatt)", "widerstand", {"platzhalter": "z.B. 10"})],
+    berechnen=_zdiode, formel="Rv = (Ue,min − Uz) / (Iz,min + IL,max)     Pz = Uz · Iz,max")
 
 
 # =============================================================================
@@ -200,17 +194,16 @@ def _bjt_schalter(w):
             "Induktive Last (Relais, Motor)? → Freilaufdiode nicht vergessen"]
 
 
-def bjt_schalter(master):
-    return FormelRechner(
-        master, "Transistor als Schalter: Basiswiderstand", "NPN, Last zwischen +Ub und Kollektor, Emitter an GND",
-        felder=[("Ub", "Versorgung Ub", "spannung", {"platzhalter": "z.B. 12"}),
-                ("RL", "Lastwiderstand RL", "widerstand", {"platzhalter": "oder Ic eingeben"}),
-                ("Ic", "… oder Laststrom Ic", "strom", {"einheit": "mA", "platzhalter": "optional"}),
-                ("Ue", "Ansteuerspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("beta", "β (hFE) minimal", "zahl", {"platzhalter": "z.B. 100"}),
-                ("k", "Übersteuerung (opt.)", "zahl", {"platzhalter": "3"}),
-                ("Ube", "Ube (opt.)", "spannung", {"platzhalter": "0.7"})],
-        berechnen=_bjt_schalter, formel="Ib = k · Ic / β_min     Rb = (Ue − Ube) / Ib     (k = 2 … 5)")
+bjt_schalter = FormelDaten(
+    "Transistor als Schalter: Basiswiderstand", "NPN, Last zwischen +Ub und Kollektor, Emitter an GND",
+    felder=[("Ub", "Versorgung Ub", "spannung", {"platzhalter": "z.B. 12"}),
+            ("RL", "Lastwiderstand RL", "widerstand", {"platzhalter": "oder Ic eingeben"}),
+            ("Ic", "… oder Laststrom Ic", "strom", {"einheit": "mA", "platzhalter": "optional"}),
+            ("Ue", "Ansteuerspannung", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("beta", "β (hFE) minimal", "zahl", {"platzhalter": "z.B. 100"}),
+            ("k", "Übersteuerung (opt.)", "zahl", {"platzhalter": "3"}),
+            ("Ube", "Ube (opt.)", "spannung", {"platzhalter": "0.7"})],
+    berechnen=_bjt_schalter, formel="Ib = k · Ic / β_min     Rb = (Ue − Ube) / Ib     (k = 2 … 5)")
 
 
 def _bjt_arbeitspunkt(w):
@@ -246,15 +239,14 @@ def _bjt_arbeitspunkt(w):
     return zeilen
 
 
-def bjt_arbeitspunkt(master):
-    return FormelRechner(
-        master, "Arbeitspunkt Emitterschaltung", "Basisspannungsteiler R1 (oben) / R2 (unten), Rc, Re",
-        felder=[("Ub", "Versorgung Ub", "spannung"), ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ"}),
-                ("R2", "R2 (unten)", "widerstand", {"einheit": "kΩ"}), ("Rc", "Rc", "widerstand", {"einheit": "kΩ"}),
-                ("Re", "Re (opt.)", "widerstand", {"platzhalter": "optional"}),
-                ("beta", "β (hFE)", "zahl", {"platzhalter": "z.B. 200"}),
-                ("Ube", "Ube (opt.)", "spannung", {"platzhalter": "0.7"})],
-        berechnen=_bjt_arbeitspunkt, formel="Ib = (U_th − Ube) / (R_th + (β+1)·Re)     Uce = Ub − Ic·Rc − Ie·Re")
+bjt_arbeitspunkt = FormelDaten(
+    "Arbeitspunkt Emitterschaltung", "Basisspannungsteiler R1 (oben) / R2 (unten), Rc, Re",
+    felder=[("Ub", "Versorgung Ub", "spannung"), ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ"}),
+            ("R2", "R2 (unten)", "widerstand", {"einheit": "kΩ"}), ("Rc", "Rc", "widerstand", {"einheit": "kΩ"}),
+            ("Re", "Re (opt.)", "widerstand", {"platzhalter": "optional"}),
+            ("beta", "β (hFE)", "zahl", {"platzhalter": "z.B. 200"}),
+            ("Ube", "Ube (opt.)", "spannung", {"platzhalter": "0.7"})],
+    berechnen=_bjt_arbeitspunkt, formel="Ib = (U_th − Ube) / (R_th + (β+1)·Re)     Uce = Ub − Ic·Rc − Ie·Re")
 
 
 # =============================================================================
@@ -279,16 +271,15 @@ def _mosfet_verlust(w):
     return zeilen
 
 
-def mosfet_verlust(master):
-    return FormelRechner(
-        master, "MOSFET: Verlustleistung", "Leitverluste + Schaltverluste bei PWM",
-        felder=[("I", "Drainstrom I (eff)", "strom"),
-                ("Rds", "Rds(on) bei 25 °C", "widerstand", {"einheit": "mΩ"}),
-                ("faktor", "Faktor heiss (opt.)", "zahl", {"platzhalter": "1.5"}),
-                ("U", "Schaltspannung (opt.)", "spannung", {"platzhalter": "für PWM"}),
-                ("f", "PWM-Frequenz (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "für PWM"}),
-                ("t", "tr + tf (opt.)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 100"})],
-        berechnen=_mosfet_verlust, formel="P_leit = I² · Rds(on)     P_schalt ≈ ½ · U · I · (tr + tf) · f")
+mosfet_verlust = FormelDaten(
+    "MOSFET: Verlustleistung", "Leitverluste + Schaltverluste bei PWM",
+    felder=[("I", "Drainstrom I (eff)", "strom"),
+            ("Rds", "Rds(on) bei 25 °C", "widerstand", {"einheit": "mΩ"}),
+            ("faktor", "Faktor heiss (opt.)", "zahl", {"platzhalter": "1.5"}),
+            ("U", "Schaltspannung (opt.)", "spannung", {"platzhalter": "für PWM"}),
+            ("f", "PWM-Frequenz (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "für PWM"}),
+            ("t", "tr + tf (opt.)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 100"})],
+    berechnen=_mosfet_verlust, formel="P_leit = I² · Rds(on)     P_schalt ≈ ½ · U · I · (tr + tf) · f")
 
 
 def _mosfet_gate(w):
@@ -310,14 +301,13 @@ def _mosfet_gate(w):
     return zeilen
 
 
-def mosfet_gate(master):
-    return FormelRechner(
-        master, "MOSFET: Gate-Ansteuerung", "Das Gate ist ein Kondensator – umladen kostet Strom",
-        felder=[("Qg", "Gate-Ladung Qg", "ladung", {"einheit": "nC", "platzhalter": "Datenblatt"}),
-                ("Ugs", "Treiberspannung Ugs", "spannung", {"platzhalter": "z.B. 10"}),
-                ("t", "Schaltzeit (opt.)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 100"}),
-                ("f", "PWM-Frequenz (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"})],
-        berechnen=_mosfet_gate, formel="Ig = Qg / t     P_Treiber = Qg · Ugs · f")
+mosfet_gate = FormelDaten(
+    "MOSFET: Gate-Ansteuerung", "Das Gate ist ein Kondensator – umladen kostet Strom",
+    felder=[("Qg", "Gate-Ladung Qg", "ladung", {"einheit": "nC", "platzhalter": "Datenblatt"}),
+            ("Ugs", "Treiberspannung Ugs", "spannung", {"platzhalter": "z.B. 10"}),
+            ("t", "Schaltzeit (opt.)", "zeit", {"einheit": "ns", "platzhalter": "z.B. 100"}),
+            ("f", "PWM-Frequenz (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"})],
+    berechnen=_mosfet_gate, formel="Ig = Qg / t     P_Treiber = Qg · Ugs · f")
 
 
 # =============================================================================
@@ -345,26 +335,25 @@ def _kuehlkoerper(w):
     return zeilen
 
 
-def kuehlkoerper(master):
-    return FormelRechner(
-        master, "Kühlkörper auslegen", "Wärme fliesst wie Strom: Temperatur = Leistung × Wärmewiderstand",
-        felder=[("P", "Verlustleistung P", "leistung"),
-                ("Tj", "Tj max (opt.)", "temperatur", {"platzhalter": "125 (mit Reserve)"}),
-                ("Ta", "Umgebung Ta (opt.)", "temperatur", {"platzhalter": "40"}),
-                ("Rjc", "Rth,JC (Datenblatt)", "zahl", {"platzhalter": "K/W"}),
-                ("Rcs", "Rth,CS (opt.)", "zahl", {"platzhalter": "0.5 K/W (Paste)"}),
-                ("Rja", "Rth,JA ohne KK (opt.)", "zahl", {"platzhalter": "K/W"})],
-        berechnen=_kuehlkoerper, formel="Tj = Ta + P · (Rth,JC + Rth,CS + Rth,SA)")
+kuehlkoerper = FormelDaten(
+    "Kühlkörper auslegen", "Wärme fliesst wie Strom: Temperatur = Leistung × Wärmewiderstand",
+    felder=[("P", "Verlustleistung P", "leistung"),
+            ("Tj", "Tj max (opt.)", "temperatur", {"platzhalter": "125 (mit Reserve)"}),
+            ("Ta", "Umgebung Ta (opt.)", "temperatur", {"platzhalter": "40"}),
+            ("Rjc", "Rth,JC (Datenblatt)", "zahl", {"platzhalter": "K/W"}),
+            ("Rcs", "Rth,CS (opt.)", "zahl", {"platzhalter": "0.5 K/W (Paste)"}),
+            ("Rja", "Rth,JA ohne KK (opt.)", "zahl", {"platzhalter": "K/W"})],
+    berechnen=_kuehlkoerper, formel="Tj = Ta + P · (Rth,JC + Rth,CS + Rth,SA)")
 
 
 # =============================================================================
 # REGISTRIERUNG
 # =============================================================================
 RECHNER = {
-    "diode_kennlinie": DiodenKennlinie,
-    "zdiode_kennlinie": lambda master: DiodenKennlinie(master, start_typ="Z-Diode 5.1 V"),
-    "transistor_simulator": BjtSchalter,
-    "mosfet_simulator": MosfetSchalter,
+    "diode_kennlinie": GrafikVerweis("bauteile.grafiken.halbleiter_grafiken", "DiodenKennlinie"),
+    "zdiode_kennlinie": GrafikVerweis("bauteile.grafiken.halbleiter_grafiken", "DiodenKennlinie", start_typ="Z-Diode 5.1 V"),
+    "transistor_simulator": GrafikVerweis("bauteile.grafiken.schalter_simulator", "BjtSchalter"),
+    "mosfet_simulator": GrafikVerweis("bauteile.grafiken.schalter_simulator", "MosfetSchalter"),
     "diode_temperatur": diode_temperatur,
     "diode_verlust": diode_verlust,
     "gleichrichter": gleichrichter,

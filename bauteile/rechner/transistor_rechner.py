@@ -19,7 +19,7 @@
 # =============================================================================
 
 from bauteile.rechner import transistor_mathe as tm                      # -> rechner/transistor_mathe.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt     # -> rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, RechnerFehler, fmt   # -> bauteile/rechner/kern.py
 
 TYP_NPN = "NPN (Low-Side)"
 TYP_PNP = "PNP (High-Side)"
@@ -69,18 +69,17 @@ def _basiswiderstand(w):
     return zeilen
 
 
-def basiswiderstand(master):
-    return FormelRechner(
-        master, "Basiswiderstand (Schalter)", "Transistor sicher in die Sättigung bringen – mit Übersteuerung",
-        felder=[("typ", "Transistor", "auswahl", {"werte": [TYP_NPN, TYP_PNP]}),
-                ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Rl", "Lastwiderstand", "widerstand", {"platzhalter": "z.B. 120"}),
-                ("Il", "… oder Laststrom", "strom", {"einheit": "mA", "platzhalter": "statt R, z.B. 30"}),
-                ("Us", "Steuerspannung", "spannung", {"platzhalter": "NPN: 3.3 · PNP: 0"}),
-                ("B", "B min (hFE)", "zahl", {"platzhalter": "Datenblatt, z.B. 110"}),
-                ("ue", "Übersteuerung ü", "zahl", {"platzhalter": "2 … 5 (leer = 3)"})],
-        berechnen=_basiswiderstand,
-        formel="I_C = (U_B − 0.2 V) / R_L     I_B = ü · I_C / B_min     R_B = (U_St − 0.7 V) / I_B")
+basiswiderstand = FormelDaten(
+    "Basiswiderstand (Schalter)", "Transistor sicher in die Sättigung bringen – mit Übersteuerung",
+    felder=[("typ", "Transistor", "auswahl", {"werte": [TYP_NPN, TYP_PNP]}),
+            ("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Rl", "Lastwiderstand", "widerstand", {"platzhalter": "z.B. 120"}),
+            ("Il", "… oder Laststrom", "strom", {"einheit": "mA", "platzhalter": "statt R, z.B. 30"}),
+            ("Us", "Steuerspannung", "spannung", {"platzhalter": "NPN: 3.3 · PNP: 0"}),
+            ("B", "B min (hFE)", "zahl", {"platzhalter": "Datenblatt, z.B. 110"}),
+            ("ue", "Übersteuerung ü", "zahl", {"platzhalter": "2 … 5 (leer = 3)"})],
+    berechnen=_basiswiderstand,
+    formel="I_C = (U_B − 0.2 V) / R_L     I_B = ü · I_C / B_min     R_B = (U_St − 0.7 V) / I_B")
 
 
 # =============================================================================
@@ -111,15 +110,14 @@ def _arbeitspunkt(w):
     return zeilen
 
 
-def arbeitspunkt(master):
-    return FormelRechner(
-        master, "Arbeitspunkt prüfen", "NPN-Schalter: gesperrt, aktiv oder gesättigt?",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
-                ("Rl", "Lastwiderstand", "widerstand", {"platzhalter": "z.B. 120"}),
-                ("Us", "Steuerspannung", "spannung", {"platzhalter": "z.B. 5"}),
-                ("Rb", "Basiswiderstand", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 4.7"}),
-                ("B", "Stromverstärkung B", "zahl", {"platzhalter": "z.B. 100"})],
-        berechnen=_arbeitspunkt, formel="I_B = (U_St − 0.7 V) / R_B     gesättigt, wenn B · I_B ≥ (U_B − 0.2 V) / R_L")
+arbeitspunkt = FormelDaten(
+    "Arbeitspunkt prüfen", "NPN-Schalter: gesperrt, aktiv oder gesättigt?",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 12"}),
+            ("Rl", "Lastwiderstand", "widerstand", {"platzhalter": "z.B. 120"}),
+            ("Us", "Steuerspannung", "spannung", {"platzhalter": "z.B. 5"}),
+            ("Rb", "Basiswiderstand", "widerstand", {"einheit": "kΩ", "platzhalter": "z.B. 4.7"}),
+            ("B", "Stromverstärkung B", "zahl", {"platzhalter": "z.B. 100"})],
+    berechnen=_arbeitspunkt, formel="I_B = (U_St − 0.7 V) / R_B     gesättigt, wenn B · I_B ≥ (U_B − 0.2 V) / R_L")
 
 
 # =============================================================================
@@ -146,18 +144,17 @@ def _verlustleistung(w):
     return zeilen
 
 
-def verlustleistung(master):
-    return FormelRechner(
-        master, "Verlustleistung", "Wie viel Wärme entsteht im Transistor?",
-        felder=[("Uce", "U_CE (leitend)", "spannung", {"platzhalter": "gesättigt ≈ 0.2"}),
-                ("Ic", "Kollektorstrom I_C", "strom", {"einheit": "mA"}),
-                ("Ib", "Basisstrom (opt.)", "strom", {"einheit": "mA", "platzhalter": "optional"}),
-                ("D", "Tastgrad PWM (opt.)", "prozent", {"platzhalter": "leer = 100"}),
-                ("f", "Schaltfrequenz (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"}),
-                ("t", "t_r + t_f (opt.)", "zeit", {"einheit": "ns", "platzhalter": "Datenblatt"}),
-                ("Ub", "Sperrspannung U_B", "spannung", {"platzhalter": "für Schaltverlust"})],
-        berechnen=_verlustleistung,
-        formel="P_D = (U_CE · I_C + U_BE · I_B) · D     P_S ≈ ½ · U_B · I_C · (t_r + t_f) · f")
+verlustleistung = FormelDaten(
+    "Verlustleistung", "Wie viel Wärme entsteht im Transistor?",
+    felder=[("Uce", "U_CE (leitend)", "spannung", {"platzhalter": "gesättigt ≈ 0.2"}),
+            ("Ic", "Kollektorstrom I_C", "strom", {"einheit": "mA"}),
+            ("Ib", "Basisstrom (opt.)", "strom", {"einheit": "mA", "platzhalter": "optional"}),
+            ("D", "Tastgrad PWM (opt.)", "prozent", {"platzhalter": "leer = 100"}),
+            ("f", "Schaltfrequenz (opt.)", "frequenz", {"einheit": "kHz", "platzhalter": "optional"}),
+            ("t", "t_r + t_f (opt.)", "zeit", {"einheit": "ns", "platzhalter": "Datenblatt"}),
+            ("Ub", "Sperrspannung U_B", "spannung", {"platzhalter": "für Schaltverlust"})],
+    berechnen=_verlustleistung,
+    formel="P_D = (U_CE · I_C + U_BE · I_B) · D     P_S ≈ ½ · U_B · I_C · (t_r + t_f) · f")
 
 
 RECHNER = {

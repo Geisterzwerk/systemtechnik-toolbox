@@ -3,7 +3,8 @@
 # -----------------------------------------------------------------------------
 # Alle RECHNER für die Seite "Widerstand".
 #
-# Unten im Dictionary RECHNER steht: ID -> Funktion, die die Rechner-Karte baut.
+# Unten im Dictionary RECHNER steht: ID -> FormelDaten oder GrafikVerweis (kern.py).
+# KEIN tkinter hier - die Karten mit Zeichnung liegen in bauteile/grafiken/farbcode_karten.py.
 # Die ID wird in bauteile/inhalte/01_passiv/widerstand.py unter "rechner" benutzt.
 #
 #   ohm_leistung        U, I, R, P - zwei eingeben, Rest wird berechnet
@@ -20,13 +21,9 @@
 
 import math
 
-import customtkinter as ctk
-
-import config                                                       # -> config.py
-from bauteile.rechner.basis import (Auswahl, EinheitenEingabe,      # -> rechner/basis.py
-                                    FormelRechner, RechnerFehler, anzahl_gegeben, fmt)
 from bauteile.rechner import normreihen                             # -> rechner/normreihen.py
-from core.layout import Karte, ResponsiveCanvas, WrapLabel          # -> core/layout.py
+from bauteile.rechner.kern import (FormelDaten, GrafikVerweis,      # -> rechner/kern.py
+                                   RechnerFehler, anzahl_gegeben, fmt)
 
 
 # =============================================================================
@@ -54,16 +51,15 @@ def _ohm_leistung(w):
             f"R = {fmt(R, 'widerstand')}", f"P = {fmt(P, 'leistung')}"]
 
 
-def ohm_leistung(master):
-    return FormelRechner(
-        master, "Ohm'sches Gesetz & Leistung", "Zwei beliebige Werte eingeben, der Rest wird berechnet",
-        felder=[("U", "Spannung U", "spannung"), ("I", "Strom I", "strom", {"einheit": "mA"}),
-                ("R", "Widerstand R", "widerstand"), ("P", "Leistung P", "leistung")],
-        berechnen=_ohm_leistung, formel="U = R · I     P = U · I = I² · R = U² / R")
+ohm_leistung = FormelDaten(
+    "Ohm'sches Gesetz & Leistung", "Zwei beliebige Werte eingeben, der Rest wird berechnet",
+    felder=[("U", "Spannung U", "spannung"), ("I", "Strom I", "strom", {"einheit": "mA"}),
+            ("R", "Widerstand R", "widerstand"), ("P", "Leistung P", "leistung")],
+    berechnen=_ohm_leistung, formel="U = R · I     P = U · I = I² · R = U² / R")
 
 
 # =============================================================================
-# FARBCODE - Daten + Zeichnung
+# FARBCODE - Daten (Zeichnung: bauteile/grafiken/farbcode_karten.py)
 # =============================================================================
 FARB_HEX = {"Schwarz": "#111111", "Braun": "#8B4513", "Rot": "#E02424", "Orange": "#FF8C00",
             "Gelb": "#FFD500", "Grün": "#1E9E3A", "Blau": "#1F5FD6", "Violett": "#8A2BE2",
@@ -86,108 +82,36 @@ RINGE = {
 }
 
 
-def widerstand_zeichnen(c, w, h, farben):
-    """Zeichnet einen Widerstand mit Farbringen. farben = Liste (None = noch nicht gewählt)."""
-    mitte = h / 2
-    c.create_line(0.03 * w, mitte, 0.97 * w, mitte, fill="#9AA1AD", width=max(2, h / 40))      # Anschlussdrähte
-    x1, x2, y1, y2 = 0.2 * w, 0.8 * w, 0.22 * h, 0.78 * h
-    koerper = "#E8D3A8"                                                                       # typische Farbe (beige)
-    c.create_oval(x1 - 0.03 * w, y1 - 0.04 * h, x1 + 0.07 * w, y2 + 0.04 * h, fill=koerper, outline="")
-    c.create_oval(x2 - 0.07 * w, y1 - 0.04 * h, x2 + 0.03 * w, y2 + 0.04 * h, fill=koerper, outline="")
-    c.create_rectangle(x1 + 0.02 * w, y1, x2 - 0.02 * w, y2, fill=koerper, outline="")
-
-    n = len(farben)
-    breite = 0.035 * w
-    # Ziffern + Multiplikator links gruppiert, Toleranz (und TK) rechts mit Abstand
-    links = n - (2 if n == 6 else 1)
-    positionen = [0.27 * w + i * 0.085 * w for i in range(links)]
-    positionen += [0.70 * w] if n != 6 else [0.66 * w, 0.73 * w]
-    for x, farbe in zip(positionen, farben):
-        if farbe:
-            c.create_rectangle(x - breite / 2, y1 - 0.02 * h, x + breite / 2, y2 + 0.02 * h,
-                               fill=FARB_HEX[farbe], outline="#555555" if farbe in ("Weiss", "Gelb", "Silber") else "")
-        else:
-            c.create_rectangle(x - breite / 2, y1, x + breite / 2, y2, outline="#777777", dash=(3, 3))
-    c.create_text(0.5 * w, 0.93 * h, text="Lesen von links nach rechts →   (Toleranzring rechts)",
-                  fill="#9AA1AD", font=(config.SCHRIFT, max(8, int(h / 14))))
-
-
-class _FarbCanvas(ResponsiveCanvas):
-    """Canvas, der sich die aktuellen Farben merkt und neu zeichnen kann."""
-
-    def __init__(self, master):
-        self.fc_farben = [None] * 4
-        super().__init__(master, lambda c, w, h: widerstand_zeichnen(c, w, h, self.fc_farben),
-                         seitenverhaeltnis=0.3, max_hoehe=170)
-
-    def farben_setzen(self, farben):
-        self.fc_farben = list(farben)
-        breite, hoehe = self.winfo_width(), self.winfo_height()
-        if breite > 1:
-            self.delete("all")
-            widerstand_zeichnen(self, breite, hoehe, self.fc_farben)
-
-
 def _wert_text(ohm):
     return fmt(ohm, "widerstand", 5)
 
 
 # =============================================================================
-# 2) FARBCODE -> WERT
+# 2) FARBCODE -> WERT   (Karte mit Zeichnung: bauteile/grafiken/farbcode_karten.py)
 # =============================================================================
-class FarbcodeZuWert(Karte):
-    def __init__(self, master):
-        super().__init__(master, titel="Farbcode → Wert", untertitel="Ringe von links nach rechts wählen")
-        b = self.body
-        self.fz_anzahl = ctk.CTkSegmentedButton(b, values=["4 Ringe", "5 Ringe", "6 Ringe"],
-                                                command=lambda _v: self._fz_aufbauen())
-        self.fz_anzahl.set("4 Ringe")
-        self.fz_anzahl.grid(row=0, column=0, sticky="w")
-        self.fz_bild = _FarbCanvas(b)
-        self.fz_bild.grid(row=1, column=0, sticky="ew", pady=8)
-        self.fz_rahmen = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        self.fz_rahmen.grid(row=2, column=0, sticky="ew")
-        self.fz_ergebnis = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"),
-                                     text_color=config.FARBEN["akzent"])
-        self.fz_ergebnis.grid(row=3, column=0, sticky="ew", pady=(8, 0))
-        self.fz_menues = []
-        self._fz_aufbauen()
-
-    def _fz_aufbauen(self):
-        for kind in self.fz_rahmen.winfo_children():
-            kind.destroy()
-        n = int(self.fz_anzahl.get()[0])
-        self.fz_menues = []
-        for zeile, (name, tabelle) in enumerate(RINGE[n]):
-            ctk.CTkLabel(self.fz_rahmen, text=f"Ring {zeile + 1}: {name}", anchor="w").grid(
-                row=zeile, column=0, sticky="w", padx=(0, 12), pady=2)
-            menue = ctk.CTkOptionMenu(self.fz_rahmen, values=list(tabelle.keys()), width=140,
-                                      dynamic_resizing=False, command=lambda _v: self._fz_rechnen())
-            menue.set("wählen")
-            menue.grid(row=zeile, column=1, sticky="w", pady=2)
-            self.fz_menues.append((menue, tabelle))
-        self._fz_rechnen()
-
-    def _fz_rechnen(self):
-        farben = [m.get() if m.get() in t else None for m, t in self.fz_menues]
-        self.fz_bild.farben_setzen(farben)
-        if None in farben:
-            self.fz_ergebnis.configure(text="Alle Ringe wählen …", text_color=config.FARBEN["text_leise"])
-            return
-        n = len(farben)
-        ziffern = 2 if n == 4 else 3
-        zahl = int("".join(str(ZIFFER[f]) for f in farben[:ziffern]))
-        wert = zahl * 10 ** MULTI[farben[ziffern]]
-        tol = TOLERANZ[farben[ziffern + 1]]
-        zeilen = [f"R = {_wert_text(wert)}  ±{tol:g} %",
-                  f"Bereich: {_wert_text(wert * (1 - tol / 100))} … {_wert_text(wert * (1 + tol / 100))}"]
-        if n == 6:
-            zeilen.append(f"TK = {TK[farben[5]]} ppm/K")
-        self.fz_ergebnis.configure(text="\n".join(zeilen), text_color=config.FARBEN["akzent"])
+def farben_zu_wert(farben):
+    """['Braun', 'Schwarz', 'Rot', 'Gold'] -> Ergebniszeilen. Fehlt ein Ring (None) -> RechnerFehler."""
+    if None in farben:
+        raise RechnerFehler("Alle Ringe wählen …")
+    n = len(farben)
+    if n not in RINGE:
+        raise RechnerFehler("4, 5 oder 6 Ringe")
+    for farbe, (name, tabelle) in zip(farben, RINGE[n]):
+        if farbe not in tabelle:
+            raise RechnerFehler(f"{farbe} gibt es beim Ring „{name}“ nicht")
+    ziffern = 2 if n == 4 else 3
+    zahl = int("".join(str(ZIFFER[f]) for f in farben[:ziffern]))
+    wert = zahl * 10 ** MULTI[farben[ziffern]]
+    tol = TOLERANZ[farben[ziffern + 1]]
+    zeilen = [f"R = {_wert_text(wert)}  ±{tol:g} %",
+              f"Bereich: {_wert_text(wert * (1 - tol / 100))} … {_wert_text(wert * (1 + tol / 100))}"]
+    if n == 6:
+        zeilen.append(f"TK = {TK[farben[5]]} ppm/K")
+    return zeilen
 
 
 # =============================================================================
-# 3) WERT -> FARBCODE
+# 3) WERT -> FARBCODE   (Karte: bauteile/grafiken/farbcode_karten.py)
 # =============================================================================
 def wert_zu_farben(wert, ringe, toleranz_farbe):
     """Gibt (farben, gerundeter_wert) zurück. ringe = 4 oder 5."""
@@ -206,55 +130,21 @@ def wert_zu_farben(wert, ringe, toleranz_farbe):
     return ziffern_farben + [multi, toleranz_farbe], zahl * 10 ** exponent
 
 
-class WertZuFarbcode(Karte):
-    def __init__(self, master):
-        super().__init__(master, titel="Wert → Farbcode", untertitel="Welche Ringe hat mein Widerstand?")
-        b = self.body
-        zeile = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        zeile.grid(row=0, column=0, sticky="w")
-        self.wf_wert = EinheitenEingabe(zeile, "widerstand", "z.B. 4k7", "kΩ")
-        self.wf_wert.grid(row=0, column=0, sticky="w")
-        self.wf_wert.bei_enter(self._wf_rechnen)
-        self.wf_ringe = ctk.CTkSegmentedButton(b, values=["4 Ringe", "5 Ringe"], command=lambda _v: self._wf_rechnen())
-        self.wf_ringe.set("4 Ringe")
-        self.wf_ringe.grid(row=1, column=0, sticky="w", pady=(6, 0))
-        tol_zeile = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        tol_zeile.grid(row=2, column=0, sticky="w", pady=(6, 0))
-        ctk.CTkLabel(tol_zeile, text="Toleranz", anchor="w").grid(row=0, column=0, padx=(0, 12))
-        self.wf_tol = Auswahl(tol_zeile, [f"±{v:g} % ({f})" for f, v in TOLERANZ.items()],
-                              standard="±5 % (Gold)", breite=150, bei_aenderung=self._wf_rechnen)
-        self.wf_tol.grid(row=0, column=1)
-        ctk.CTkButton(b, text="Farben anzeigen", width=140, command=self._wf_rechnen).grid(
-            row=3, column=0, sticky="w", pady=(10, 0))
-        self.wf_bild = _FarbCanvas(b)
-        self.wf_bild.grid(row=4, column=0, sticky="ew", pady=8)
-        self.wf_ergebnis = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"),
-                                     text_color=config.FARBEN["akzent"])
-        self.wf_ergebnis.grid(row=5, column=0, sticky="ew")
-
-    def _wf_rechnen(self):
-        try:
-            wert = self.wf_wert.wert()
-            if wert is None:
-                return
-            ringe = int(self.wf_ringe.get()[0])
-            tol_farbe = self.wf_tol.wert().split("(")[1].rstrip(")")
-            farben, gerundet = wert_zu_farben(wert, ringe, tol_farbe)
-            self.wf_bild.farben_setzen(farben)
-            zeilen = [" – ".join(farben)]
-            if not math.isclose(gerundet, wert, rel_tol=1e-9):
-                zeilen.append(f"⚠ {_wert_text(wert)} ist so nicht darstellbar → {_wert_text(gerundet)}")
-            reihe = "E24" if ringe == 4 else "E96"
-            if not normreihen.ist_normwert(gerundet, reihe):
-                zeilen.append(f"Hinweis: kein {reihe}-Normwert (nächster: "
-                              f"{_wert_text(normreihen.naechste_werte(gerundet, reihe)[2])})")
-            self.wf_ergebnis.configure(text="\n".join(zeilen), text_color=config.FARBEN["akzent"])
-        except (RechnerFehler, ValueError) as fehler:
-            self.wf_ergebnis.configure(text=f"⚠ {fehler}", text_color=("#B45309", "#F59E0B"))
+def farbcode_zeilen(wert, ringe, toleranz_farbe):
+    """Wert -> (farben, Ergebniszeilen) mit Hinweis auf Rundung und Normwert."""
+    farben, gerundet = wert_zu_farben(wert, ringe, toleranz_farbe)
+    zeilen = [" – ".join(farben)]
+    if not math.isclose(gerundet, wert, rel_tol=1e-9):
+        zeilen.append(f"⚠ {_wert_text(wert)} ist so nicht darstellbar → {_wert_text(gerundet)}")
+    reihe = "E24" if ringe == 4 else "E96"
+    if not normreihen.ist_normwert(gerundet, reihe):
+        zeilen.append(f"Hinweis: kein {reihe}-Normwert (nächster: "
+                      f"{_wert_text(normreihen.naechste_werte(gerundet, reihe)[2])})")
+    return farben, zeilen
 
 
 # =============================================================================
-# 4) SMD-CODE
+# 4) SMD-CODE   (Karte: bauteile/grafiken/farbcode_karten.py)
 # =============================================================================
 EIA96_MULTI = {"Z": 0.001, "Y": 0.01, "R": 0.01, "X": 0.1, "S": 0.1, "A": 1, "B": 10, "H": 10,
                "C": 100, "D": 1e3, "E": 1e4, "F": 1e5}
@@ -282,30 +172,10 @@ def smd_entschluesseln(code):
     raise RechnerFehler(f"„{code}“ ist kein bekanntes SMD-Format")
 
 
-class SmdCode(Karte):
-    def __init__(self, master):
-        super().__init__(master, titel="SMD-Code entschlüsseln", untertitel="Aufdruck auf dem Bauteil eingeben")
-        b = self.body
-        self.sc_feld = ctk.CTkEntry(b, placeholder_text="z.B. 103, 4R7, 4701, 01C", width=220)
-        self.sc_feld.grid(row=0, column=0, sticky="w")
-        self.sc_feld.bind("<Return>", lambda e: self._sc_rechnen())
-        self.sc_feld.bind("<KeyRelease>", lambda e: self._sc_rechnen(still=True))
-        ctk.CTkButton(b, text="Entschlüsseln", width=120, command=self._sc_rechnen).grid(
-            row=1, column=0, sticky="w", pady=(10, 6))
-        self.sc_ergebnis = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"),
-                                     text_color=config.FARBEN["akzent"])
-        self.sc_ergebnis.grid(row=2, column=0, sticky="ew")
-
-    def _sc_rechnen(self, still=False):
-        try:
-            wert, erklaerung = smd_entschluesseln(self.sc_feld.get())
-            self.sc_ergebnis.configure(text=f"R = {_wert_text(wert)}\n{erklaerung}",
-                                       text_color=config.FARBEN["akzent"])
-        except RechnerFehler as fehler:
-            if not still:
-                self.sc_ergebnis.configure(text=f"⚠ {fehler}", text_color=("#B45309", "#F59E0B"))
-            else:
-                self.sc_ergebnis.configure(text="")
+def smd_zeilen(code):
+    """'103' -> ['R = 10 kΩ', 'Erklärung']"""
+    wert, erklaerung = smd_entschluesseln(code)
+    return [f"R = {_wert_text(wert)}", erklaerung]
 
 
 # =============================================================================
@@ -324,13 +194,12 @@ def _e_reihe(w):
     return zeilen
 
 
-def e_reihe(master):
-    return FormelRechner(
-        master, "Nächster Normwert (E-Reihe)", "Gerechneten Wert eingeben → käuflichen Wert finden",
-        felder=[("R", "Wert", "widerstand", {"einheit": "kΩ"}),
-                ("reihe", "Reihe", "auswahl", {"werte": ["E6 (±20 %)", "E12 (±10 %)", "E24 (±5 %)",
-                                                          "E48 (±2 %)", "E96 (±1 %)"], "standard": "E24 (±5 %)"})],
-        berechnen=_e_reihe, formel="Normwerte sind logarithmisch verteilt: gleicher Abstand in %")
+e_reihe = FormelDaten(
+    "Nächster Normwert (E-Reihe)", "Gerechneten Wert eingeben → käuflichen Wert finden",
+    felder=[("R", "Wert", "widerstand", {"einheit": "kΩ"}),
+            ("reihe", "Reihe", "auswahl", {"werte": ["E6 (±20 %)", "E12 (±10 %)", "E24 (±5 %)",
+                                                      "E48 (±2 %)", "E96 (±1 %)"], "standard": "E24 (±5 %)"})],
+    berechnen=_e_reihe, formel="Normwerte sind logarithmisch verteilt: gleicher Abstand in %")
 
 
 # =============================================================================
@@ -362,12 +231,11 @@ def _reihe_parallel(w):
     return zeilen
 
 
-def reihe_parallel(master):
-    return FormelRechner(
-        master, "Reihen- & Parallelschaltung", "Beliebig viele Werte mit Leerzeichen trennen: 1k 2k2 470",
-        felder=[("liste", "Widerstände", "widerstand", {"liste": True, "platzhalter": "1k 2k2 470"}),
-                ("ziel", "Zielwert (optional)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
-        berechnen=_reihe_parallel, formel="Reihe: R = R1 + R2 + …     Parallel: 1/R = 1/R1 + 1/R2 + …")
+reihe_parallel = FormelDaten(
+    "Reihen- & Parallelschaltung", "Beliebig viele Werte mit Leerzeichen trennen: 1k 2k2 470",
+    felder=[("liste", "Widerstände", "widerstand", {"liste": True, "platzhalter": "1k 2k2 470"}),
+            ("ziel", "Zielwert (optional)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
+    berechnen=_reihe_parallel, formel="Reihe: R = R1 + R2 + …     Parallel: 1/R = 1/R1 + 1/R2 + …")
 
 
 # =============================================================================
@@ -417,13 +285,12 @@ def _spannungsteiler(w):
     return zeilen
 
 
-def spannungsteiler(master):
-    return FormelRechner(
-        master, "Spannungsteiler", "Drei Werte eingeben, einer wird berechnet. Last optional.",
-        felder=[("Ue", "Eingang Ue", "spannung"), ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ"}),
-                ("R2", "R2 (unten)", "widerstand", {"einheit": "kΩ"}), ("Ua", "Ausgang Ua", "spannung"),
-                ("RL", "Last RL (optional)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
-        berechnen=_spannungsteiler, formel="Ua = Ue · R2 / (R1 + R2)")
+spannungsteiler = FormelDaten(
+    "Spannungsteiler", "Drei Werte eingeben, einer wird berechnet. Last optional.",
+    felder=[("Ue", "Eingang Ue", "spannung"), ("R1", "R1 (oben)", "widerstand", {"einheit": "kΩ"}),
+            ("R2", "R2 (unten)", "widerstand", {"einheit": "kΩ"}), ("Ua", "Ausgang Ua", "spannung"),
+            ("RL", "Last RL (optional)", "widerstand", {"einheit": "kΩ", "platzhalter": "optional"})],
+    berechnen=_spannungsteiler, formel="Ua = Ue · R2 / (R1 + R2)")
 
 
 # =============================================================================
@@ -455,13 +322,12 @@ def _led(w):
     return zeilen
 
 
-def led_vorwiderstand(master):
-    return FormelRechner(
-        master, "LED-Vorwiderstand", "Uf typisch: rot/gelb ≈ 2 V, grün ≈ 2–3 V, blau/weiss ≈ 3 V (Datenblatt!)",
-        felder=[("Ub", "Versorgung Ub", "spannung"), ("Uf", "LED-Spannung Uf", "spannung", {"platzhalter": "z.B. 2"}),
-                ("If", "LED-Strom If", "strom", {"einheit": "mA", "platzhalter": "z.B. 10"}),
-                ("n", "LEDs in Reihe", "zahl", {"platzhalter": "1"})],
-        berechnen=_led, formel="R = (Ub − n · Uf) / If")
+led_vorwiderstand = FormelDaten(
+    "LED-Vorwiderstand", "Uf typisch: rot/gelb ≈ 2 V, grün ≈ 2–3 V, blau/weiss ≈ 3 V (Datenblatt!)",
+    felder=[("Ub", "Versorgung Ub", "spannung"), ("Uf", "LED-Spannung Uf", "spannung", {"platzhalter": "z.B. 2"}),
+            ("If", "LED-Strom If", "strom", {"einheit": "mA", "platzhalter": "z.B. 10"}),
+            ("n", "LEDs in Reihe", "zahl", {"platzhalter": "1"})],
+    berechnen=_led, formel="R = (Ub − n · Uf) / If")
 
 
 # =============================================================================
@@ -490,15 +356,14 @@ def _leitung(w):
     return zeilen
 
 
-def leitung(master):
-    return FormelRechner(
-        master, "Leitungswiderstand & Spannungsfall", "Werte bei 20 °C. Hin- und Rückleiter nicht vergessen!",
-        felder=[("l", "Länge (einfach)", "laenge"), ("A", "Querschnitt", "flaeche", {"platzhalter": "z.B. 1.5"}),
-                ("mat", "Material", "auswahl", {"werte": list(MATERIAL_RHO)}),
-                ("weg", "Leiter", "auswahl", {"werte": ["Hin- und Rückleiter (× 2)", "nur einfache Länge"]}),
-                ("I", "Strom (optional)", "strom", {"platzhalter": "optional"}),
-                ("U", "Nennspannung (optional)", "spannung", {"platzhalter": "optional"})],
-        berechnen=_leitung, formel="R = ρ · l / A     ΔU = R · I")
+leitung = FormelDaten(
+    "Leitungswiderstand & Spannungsfall", "Werte bei 20 °C. Hin- und Rückleiter nicht vergessen!",
+    felder=[("l", "Länge (einfach)", "laenge"), ("A", "Querschnitt", "flaeche", {"platzhalter": "z.B. 1.5"}),
+            ("mat", "Material", "auswahl", {"werte": list(MATERIAL_RHO)}),
+            ("weg", "Leiter", "auswahl", {"werte": ["Hin- und Rückleiter (× 2)", "nur einfache Länge"]}),
+            ("I", "Strom (optional)", "strom", {"platzhalter": "optional"}),
+            ("U", "Nennspannung (optional)", "spannung", {"platzhalter": "optional"})],
+    berechnen=_leitung, formel="R = ρ · l / A     ΔU = R · I")
 
 
 # =============================================================================
@@ -519,12 +384,11 @@ def _temperatur(w):
             f"Änderung: {(R_T / w['R'] - 1) * 100:+.2f} %  (ΔT = {w['T'] - t_ref:+g} K)"]
 
 
-def temperatur(master):
-    return FormelRechner(
-        master, "Widerstand bei anderer Temperatur", "Linear genähert – gut für ca. −50 … +150 °C. Pt100: Bezug 0 °C!",
-        felder=[("R", "R bei Bezugstemp.", "widerstand"), ("Tref", "Bezugstemperatur", "temperatur", {"platzhalter": "20"}),
-                ("T", "Neue Temperatur", "temperatur"), ("mat", "Material", "auswahl", {"werte": list(MATERIAL_ALPHA)})],
-        berechnen=_temperatur, formel="R(T) = R_ref · (1 + α · (T − T_ref))")
+temperatur = FormelDaten(
+    "Widerstand bei anderer Temperatur", "Linear genähert – gut für ca. −50 … +150 °C. Pt100: Bezug 0 °C!",
+    felder=[("R", "R bei Bezugstemp.", "widerstand"), ("Tref", "Bezugstemperatur", "temperatur", {"platzhalter": "20"}),
+            ("T", "Neue Temperatur", "temperatur"), ("mat", "Material", "auswahl", {"werte": list(MATERIAL_ALPHA)})],
+    berechnen=_temperatur, formel="R(T) = R_ref · (1 + α · (T − T_ref))")
 
 
 # =============================================================================
@@ -532,9 +396,9 @@ def temperatur(master):
 # =============================================================================
 RECHNER = {
     "ohm_leistung": ohm_leistung,
-    "farbcode_wert": FarbcodeZuWert,
-    "wert_farbcode": WertZuFarbcode,
-    "smd_code": SmdCode,
+    "farbcode_wert": GrafikVerweis("bauteile.grafiken.farbcode_karten", "FarbcodeZuWert"),
+    "wert_farbcode": GrafikVerweis("bauteile.grafiken.farbcode_karten", "WertZuFarbcode"),
+    "smd_code": GrafikVerweis("bauteile.grafiken.farbcode_karten", "SmdCode"),
     "e_reihe": e_reihe,
     "reihe_parallel": reihe_parallel,
     "spannungsteiler": spannungsteiler,

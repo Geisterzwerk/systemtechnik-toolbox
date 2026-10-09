@@ -1,7 +1,8 @@
 # =============================================================================
 # bauteile/rechner/basis.py
 # -----------------------------------------------------------------------------
-# BAUSTEINE für alle Rechner.
+# BAUSTEINE für alle Rechner - FENSTER-Teil (customtkinter).
+# Rechnen ohne Fenster (RechnerFehler, formel_auswerten, FormelDaten ...) -> kern.py
 #
 #   EinheitenEingabe   Eingabefeld + Einheiten-Dropdown dahinter  [ 4.7 ][kΩ ▾]
 #                      versteht auch "4k7", "2.2M", "470m", "4R7" direkt im Feld
@@ -9,23 +10,11 @@
 #   FormelRechner      Kompletter Rechner als Karte: Felder + Berechnen + Ergebnis.
 #                      Man beschreibt nur die Felder und schreibt eine Funktion,
 #                      die rechnet - die Oberfläche entsteht automatisch.
-#   RechnerFehler      Für verständliche Fehlermeldungen: raise RechnerFehler("...")
-#   formel_auswerten() Rechnet wie der Knopf "Berechnen", aber ohne Fenster
-#                      -> benutzt von FormelRechner UND vom Prüfskript pruefen_rechner.py
 #   WertRegler         Slider + Zahlenfeld + Einheit, immer synchron (für interaktive Grafiken)
 #                      [U1      ═══════●═══════  [ 230 ][V ▾]]
 #
-# BEISPIEL (so entsteht ein neuer Rechner):
-#
-#   def _rechnen(w):                       # w = {"U": 12.0, "R": None, ...} in Basiseinheiten
-#       if w["U"] is None or w["R"] is None:
-#           raise RechnerFehler("U und R eingeben")
-#       return [f"I = {fmt(w['U'] / w['R'], 'strom')}"]      # Liste von Ergebniszeilen
-#
-#   FormelRechner(master, "Strom", "aus U und R",
-#                 felder=[("U", "Spannung U", "spannung"),
-#                         ("R", "Widerstand R", "widerstand", {"einheit": "kΩ"})],
-#                 berechnen=_rechnen, formel="I = U / R")
+# NEUER RECHNER? Nicht FormelRechner direkt aufrufen, sondern FormelDaten benutzen
+#   (Beispiel in kern.py). FormelDaten baut beim Öffnen diese FormelRechner-Karte.
 #
 # NAMEN: Alle eigenen Attribute beginnen mit ee_ / fr_ / aw_, damit sie nie mit
 #        internen Namen von tkinter/CustomTkinter kollidieren (siehe _configure-Fehler!).
@@ -39,57 +28,10 @@ import config                                            # -> config.py
 from bauteile import einheiten                           # -> bauteile/einheiten.py
 from core.layout import Karte, WrapLabel                 # -> core/layout.py
 
-fmt = einheiten.formatieren                              # Kurzname für Ergebnisse
-
-
-class RechnerFehler(Exception):
-    """Verständliche Meldung an den Benutzer (wird im Ergebnisfeld angezeigt)."""
-
-
-# Grössen, die physikalisch nie negativ sein können. Eine negative Eingabe wird
-# schon VOR dem Rechnen abgefangen - so muss nicht jeder Rechner das selbst prüfen.
-# (Spannung, Strom, Leistung, Temperatur und "zahl" dürfen negativ sein.)
-NIE_NEGATIV = {"widerstand", "kapazitaet", "induktivitaet", "zeit", "frequenz", "laenge",
-               "flaeche", "ladung", "energie", "flussdichte", "prozent"}
-
-
-def eingaben_pruefen(felder, werte):
-    """Prüft alle Eingaben, die für JEDEN Rechner gelten (siehe NIE_NEGATIV)."""
-    for eintrag in felder:
-        schluessel, beschriftung, typ = eintrag[:3]
-        wert = werte.get(schluessel)
-        if typ not in NIE_NEGATIV or wert is None:
-            continue
-        liste = wert if isinstance(wert, list) else [wert]
-        if any(w < 0 for w in liste):
-            raise RechnerFehler(f"{beschriftung}: darf nicht negativ sein")
-
-
-def formel_auswerten(felder, berechnen, werte):
-    """
-    Rechnet genau so wie der Knopf "Berechnen" - nur ohne Fenster.
-      felder     Felddefinitionen wie bei FormelRechner
-      berechnen  Rechenfunktion des Rechners
-      werte      {"U": 12.0, "R": None, ...} in Basiseinheiten
-    Rückgabe: (text, ok)   ok = False -> text ist eine Fehlermeldung
-    """
-    try:
-        eingaben_pruefen(felder, werte)
-        zeilen = berechnen(werte)
-    except RechnerFehler as fehler:
-        return str(fehler), False
-    except ZeroDivisionError:
-        # Welche Felder sind 0? -> konkret nennen statt nur "Division durch 0"
-        nullen = [e[1] for e in felder if werte.get(e[0]) == 0
-                  or (isinstance(werte.get(e[0]), list) and 0 in werte[e[0]])]
-        if nullen:
-            return f"Division durch 0 – darf nicht 0 sein: {', '.join(nullen)}", False
-        return "Division durch 0 – die Eingaben passen so nicht zusammen", False
-    except OverflowError:
-        return "Ergebnis ist zu gross – Eingaben prüfen (Einheit richtig?)", False
-    except ValueError as fehler:
-        return f"Ungültige Eingabe: {fehler}", False
-    return "\n".join(zeilen), True
+# Der Kern ohne Oberfläche liegt in kern.py (auch fürs Web nutzbar). Hier nur weitergereicht,
+# damit alte Imports wie "from bauteile.rechner.basis import RechnerFehler, fmt" weiter gehen.
+from bauteile.rechner.kern import (NIE_NEGATIV, RechnerFehler, anzahl_gegeben,   # -> rechner/kern.py
+                                   eingaben_pruefen, fmt, formel_auswerten)
 
 
 # =============================================================================
@@ -263,11 +205,6 @@ class FormelRechner(Karte):
         for feld in self.fr_felder.values():
             feld.leeren()
         self.fr_ergebnis.configure(text="")
-
-
-def anzahl_gegeben(werte, *schluessel):
-    """Wie viele der genannten Felder sind ausgefüllt?"""
-    return sum(werte[s] is not None for s in schluessel)
 
 
 # =============================================================================

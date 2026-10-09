@@ -21,9 +21,12 @@
 #                        Schaltungs- und Digitaltechnik-Seiten mit allen Pflichtabschnitten,
 #                        jeder Rechner hat mindestens einen Beispielfall.
 #
-# Die Rechner werden OHNE Fenster geprüft: FormelRechner wird beim Laden durch
-# einen "Rekorder" ersetzt, der sich nur Felder und Rechenfunktion merkt.
-# Gerechnet wird mit basis.formel_auswerten() - genau wie beim Knopf "Berechnen".
+#   0) OHNE FENSTER      Alle Rechner-Module lassen sich laden, ohne dass tkinter/customtkinter
+#                        importiert wird (Voraussetzung für die Webversion).
+#
+# Die Rechner werden OHNE Fenster geprüft: Jeder Formel-Rechner ist ein FormelDaten-Objekt
+# (bauteile/rechner/kern.py) mit Feldern und Rechenfunktion.
+# Gerechnet wird mit kern.formel_auswerten() - genau wie beim Knopf "Berechnen".
 #
 # Ergebnis: Exit-Code 0 = alles ok, 1 = mindestens ein Fehler
 # =============================================================================
@@ -41,8 +44,8 @@ sys.stdout.reconfigure(encoding="utf-8")                 # Windows-Konsole: Ω, 
 
 from bauteile import einheiten                           # -> bauteile/einheiten.py
 from bauteile import rechner as rechner_paket            # -> bauteile/rechner/__init__.py
-from bauteile.rechner import basis                       # -> bauteile/rechner/basis.py
-from bauteile.rechner.basis import RechnerFehler
+from bauteile.rechner import kern                        # -> bauteile/rechner/kern.py (ohne tkinter)
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler
 from pruefung.rechner_faelle import FAELLE, FUNKTIONEN   # -> pruefung/rechner_faelle.py
 
 AUSFUEHRLICH = "-v" in sys.argv
@@ -50,34 +53,50 @@ MIT_GUI = "--gui" in sys.argv
 
 
 # =============================================================================
-# REKORDER: merkt sich, was ein Rechner an FormelRechner übergeben würde
+# 0) OHNE FENSTER LADBAR?
 # =============================================================================
-class Rekorder:
-    def __init__(self, master, titel, untertitel, felder, berechnen, formel=None):
-        self.titel, self.felder, self.berechnen = titel, felder, berechnen
+SPERR_TEST = """
+import builtins, sys
+_import = builtins.__import__
+def sperre(name, *a, **k):
+    if name.split('.')[0] in ('tkinter', '_tkinter', 'customtkinter', 'PIL'):
+        raise ImportError('Fenster-Paket im Kern geladen: ' + name)
+    return _import(name, *a, **k)
+builtins.__import__ = sperre
+import bauteile.rechner as r
+print(len(r.registry()))
+"""
 
 
+def ohne_fenster_pruefen(z):
+    """Startet ein eigenes Python, in dem tkinter verboten ist, und lädt dort alle Rechner."""
+    abschnitt("0) Alle Rechner ohne tkinter ladbar (für die Webversion)")
+    import subprocess
+    lauf = subprocess.run([sys.executable, "-c", SPERR_TEST], cwd=basis_ordner, capture_output=True,
+                          text=True, encoding="utf-8")
+    if lauf.returncode == 0:
+        z.gut(f"{lauf.stdout.strip()} Rechner geladen, kein tkinter")
+    else:
+        z.schlecht("Ein Rechner-Modul braucht tkinter – Fenster-Teil in eine Grafik-Datei verschieben "
+                   "und in RECHNER als GrafikVerweis eintragen",
+                   lauf.stderr.strip().splitlines()[-3:])
+
+
+# =============================================================================
+# RECHNER SAMMELN - ohne Fenster: FormelDaten enthalten Titel, Felder und Rechenfunktion
+# =============================================================================
 def formel_rechner_sammeln():
-    """Lädt alle Rechner-Module und gibt {id: Rekorder} und {id: "Klassenname"} zurück."""
+    """Lädt alle Rechner-Module und gibt {id: FormelDaten} und {id: "Klassenname"} zurück."""
     formel, andere = {}, {}
     for modulname in rechner_paket._MODULE:
         modul = importlib.import_module(modulname)
-        original = getattr(modul, "FormelRechner", None)
-        if original is not None:
-            modul.FormelRechner = Rekorder               # nur für diesen Aufruf austauschen ...
-        try:
-            for rechner_id, fabrik in modul.RECHNER.items():
-                if isinstance(fabrik, type):             # Klasse (interaktive Grafik) -> braucht ein Fenster
-                    andere[rechner_id] = fabrik.__name__
-                    continue
-                ergebnis = fabrik(None)
-                if isinstance(ergebnis, Rekorder):
-                    formel[rechner_id] = ergebnis
-                else:
-                    andere[rechner_id] = type(ergebnis).__name__
-        finally:
-            if original is not None:
-                modul.FormelRechner = original           # ... und wieder zurücksetzen
+        for rechner_id, eintrag in modul.RECHNER.items():
+            if isinstance(eintrag, FormelDaten):
+                formel[rechner_id] = eintrag
+            elif isinstance(eintrag, GrafikVerweis):     # interaktive Grafik -> braucht ein Fenster
+                andere[rechner_id] = eintrag.klassen_name
+            else:
+                andere[rechner_id] = getattr(eintrag, "__name__", type(eintrag).__name__)
     return formel, andere
 
 
@@ -153,7 +172,7 @@ def bekannte_werte_pruefen(formel, z):
         except (KeyError, ValueError) as e:
             z.schlecht(f"{name}: Eingabe nicht lesbar – {e}")
             continue
-        text, ok = basis.formel_auswerten(r.felder, r.berechnen, werte)
+        text, ok = kern.formel_auswerten(r.felder, r.berechnen, werte)
         if isinstance(erwartet, dict):                   # Meldung erwartet
             if not ok and erwartet["fehler"] in text:
                 z.gut(f"{name} -> Meldung „{text}“")
@@ -242,7 +261,7 @@ def standard_werte(felder):
 def bewerten(felder, berechnen, werte):
     """None = in Ordnung, sonst Beschreibung des Problems."""
     try:
-        basis.eingaben_pruefen(felder, werte)
+        kern.eingaben_pruefen(felder, werte)
         zeilen = berechnen(werte)
     except RechnerFehler:
         return None
@@ -400,6 +419,7 @@ def main():
     formel, andere = formel_rechner_sammeln()
     print(f"{len(formel)} Formel-Rechner, {len(andere)} interaktive Grafiken/Karten "
           f"({', '.join(sorted(andere))})")
+    ohne_fenster_pruefen(z)
     bekannte_werte_pruefen(formel, z)
     funktionen_pruefen(z)
     grenzfaelle_pruefen(formel, z)

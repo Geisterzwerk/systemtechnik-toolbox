@@ -15,9 +15,8 @@
 
 import math
 
-from bauteile.grafiken.kurven import KurvenKarte                    # -> grafiken/kurven.py
 from bauteile.rechner import normreihen                             # -> rechner/normreihen.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, anzahl_gegeben, fmt   # -> rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, anzahl_gegeben, fmt   # -> bauteile/rechner/kern.py
 
 ZWEI_PI = 2 * math.pi
 
@@ -48,15 +47,14 @@ def _rc_zeit(w):
     return zeilen
 
 
-def rc_zeit(master):
-    return FormelRechner(
-        master, "RC-Zeiten", "Wie lange dauert das Laden/Entladen bis zu einem Zielwert?",
-        felder=[("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
-                ("C", "Kapazität C", "kapazitaet"),
-                ("U0", "Endspannung U0", "spannung", {"platzhalter": "optional"}),
-                ("Uz", "Zielspannung", "spannung", {"platzhalter": "optional"}),
-                ("p", "… oder Ziel in %", "prozent", {"platzhalter": "optional"})],
-        berechnen=_rc_zeit, formel="Laden: t = −τ · ln(1 − u/U0)     Entladen: t = −τ · ln(u/U0)")
+rc_zeit = FormelDaten(
+    "RC-Zeiten", "Wie lange dauert das Laden/Entladen bis zu einem Zielwert?",
+    felder=[("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
+            ("C", "Kapazität C", "kapazitaet"),
+            ("U0", "Endspannung U0", "spannung", {"platzhalter": "optional"}),
+            ("Uz", "Zielspannung", "spannung", {"platzhalter": "optional"}),
+            ("p", "… oder Ziel in %", "prozent", {"platzhalter": "optional"})],
+    berechnen=_rc_zeit, formel="Laden: t = −τ · ln(1 − u/U0)     Entladen: t = −τ · ln(u/U0)")
 
 
 # =============================================================================
@@ -81,13 +79,12 @@ def _rc_filter(w):
     return zeilen
 
 
-def rc_filter(master):
-    return FormelRechner(
-        master, "RC-Filter (Tief-/Hochpass)", "Zwei Werte eingeben, der dritte wird berechnet",
-        felder=[("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
-                ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}),
-                ("fg", "Grenzfrequenz fg", "frequenz")],
-        berechnen=_rc_filter, formel="fg = 1 / (2π · R · C)")
+rc_filter = FormelDaten(
+    "RC-Filter (Tief-/Hochpass)", "Zwei Werte eingeben, der dritte wird berechnet",
+    felder=[("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}),
+            ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}),
+            ("fg", "Grenzfrequenz fg", "frequenz")],
+    berechnen=_rc_filter, formel="fg = 1 / (2π · R · C)")
 
 
 # =============================================================================
@@ -107,12 +104,11 @@ def _xc(w):
     return zeilen
 
 
-def blindwiderstand_c(master):
-    return FormelRechner(
-        master, "Blindwiderstand Xc", "Je höher die Frequenz, desto kleiner Xc",
-        felder=[("C", "Kapazität C", "kapazitaet"), ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 50"}),
-                ("U", "Spannung (optional)", "spannung", {"platzhalter": "optional"})],
-        berechnen=_xc, formel="Xc = 1 / (2π · f · C)")
+blindwiderstand_c = FormelDaten(
+    "Blindwiderstand Xc", "Je höher die Frequenz, desto kleiner Xc",
+    felder=[("C", "Kapazität C", "kapazitaet"), ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 50"}),
+            ("U", "Spannung (optional)", "spannung", {"platzhalter": "optional"})],
+    berechnen=_xc, formel="Xc = 1 / (2π · f · C)")
 
 
 # =============================================================================
@@ -131,12 +127,11 @@ def _energie_c(w):
     return zeilen
 
 
-def energie_c(master):
-    return FormelRechner(
-        master, "Ladung & Energie", "Wie viel Energie steckt im Kondensator?",
-        felder=[("C", "Kapazität C", "kapazitaet"), ("U", "Spannung U", "spannung"),
-                ("t", "Entladezeit (optional)", "zeit", {"platzhalter": "optional"})],
-        berechnen=_energie_c, formel="Q = C · U     W = ½ · C · U²")
+energie_c = FormelDaten(
+    "Ladung & Energie", "Wie viel Energie steckt im Kondensator?",
+    felder=[("C", "Kapazität C", "kapazitaet"), ("U", "Spannung U", "spannung"),
+            ("t", "Entladezeit (optional)", "zeit", {"platzhalter": "optional"})],
+    berechnen=_energie_c, formel="Q = C · U     W = ½ · C · U²")
 
 
 # =============================================================================
@@ -156,11 +151,10 @@ def _reihe_parallel_c(w):
     return zeilen
 
 
-def reihe_parallel_c(master):
-    return FormelRechner(
-        master, "Reihen- & Parallelschaltung", "Achtung: genau umgekehrt wie beim Widerstand!",
-        felder=[("liste", "Kapazitäten", "kapazitaet", {"liste": True, "einheit": "nF", "platzhalter": "100 220 47"})],
-        berechnen=_reihe_parallel_c, formel="Parallel: C = C1 + C2 + …     Reihe: 1/C = 1/C1 + 1/C2 + …")
+reihe_parallel_c = FormelDaten(
+    "Reihen- & Parallelschaltung", "Achtung: genau umgekehrt wie beim Widerstand!",
+    felder=[("liste", "Kapazitäten", "kapazitaet", {"liste": True, "einheit": "nF", "platzhalter": "100 220 47"})],
+    berechnen=_reihe_parallel_c, formel="Parallel: C = C1 + C2 + …     Reihe: 1/C = 1/C1 + 1/C2 + …")
 
 
 # =============================================================================
@@ -202,19 +196,18 @@ def _kondensator_code(w):
     return [f"C = {fmt(wert, 'kapazitaet', 5)}"] + info
 
 
-def kondensator_code(master):
-    return FormelRechner(
-        master, "Aufdruck entschlüsseln", "Keramik-/Folienkondensatoren: 104, 4n7, 1u0, 104K",
-        felder=[("code", "Aufdruck", "text", {"platzhalter": "z.B. 104K"})],
-        berechnen=_kondensator_code,
-        formel="3 Ziffern: 2 Ziffern + Anzahl Nullen in pF   ·   104 = 10 · 10⁴ pF = 100 nF")
+kondensator_code = FormelDaten(
+    "Aufdruck entschlüsseln", "Keramik-/Folienkondensatoren: 104, 4n7, 1u0, 104K",
+    felder=[("code", "Aufdruck", "text", {"platzhalter": "z.B. 104K"})],
+    berechnen=_kondensator_code,
+    formel="3 Ziffern: 2 Ziffern + Anzahl Nullen in pF   ·   104 = 10 · 10⁴ pF = 100 nF")
 
 
 # =============================================================================
 # REGISTRIERUNG
 # =============================================================================
 RECHNER = {
-    "rc_ladekurve": lambda master: KurvenKarte(master, modus="RC"),
+    "rc_ladekurve": GrafikVerweis("bauteile.grafiken.kurven", "KurvenKarte", modus="RC"),
     "rc_zeit": rc_zeit,
     "rc_filter": rc_filter,
     "blindwiderstand_c": blindwiderstand_c,

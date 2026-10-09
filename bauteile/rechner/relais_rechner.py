@@ -19,7 +19,7 @@
 
 from bauteile.rechner import relais_mathe as rm                        # -> rechner/relais_mathe.py
 from bauteile.rechner import transistor_mathe as tm                    # -> rechner/transistor_mathe.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, fmt   # -> rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, RechnerFehler, fmt   # -> bauteile/rechner/kern.py
 
 
 def _fehler_umwandeln(funktion, *args, **kwargs):
@@ -55,15 +55,14 @@ def _ansteuerung(w):
     return zeilen
 
 
-def relais_ansteuerung(master):
-    return FormelRechner(
-        master, "Relais mit Transistor ansteuern", "NPN als Low-Side-Schalter, Freilaufdiode nicht vergessen",
-        felder=[("Ub", "Spulenspannung U_B", "spannung", {"platzhalter": "z.B. 5, 12, 24"}),
-                ("Rsp", "Spulenwiderstand", "widerstand", {"platzhalter": "Datenblatt, z.B. 70"}),
-                ("Us", "Steuerspannung (µC)", "spannung", {"platzhalter": "z.B. 3.3"}),
-                ("B", "B min Transistor", "zahl", {"platzhalter": "z.B. 100"}),
-                ("ue", "Übersteuerung ü", "zahl", {"platzhalter": "2 … 5 (leer = 3)"})],
-        berechnen=_ansteuerung, formel="I = (U_B − 0.2 V) / R_Spule     R_B = (U_St − 0.7 V) / (ü · I / B_min)")
+relais_ansteuerung = FormelDaten(
+    "Relais mit Transistor ansteuern", "NPN als Low-Side-Schalter, Freilaufdiode nicht vergessen",
+    felder=[("Ub", "Spulenspannung U_B", "spannung", {"platzhalter": "z.B. 5, 12, 24"}),
+            ("Rsp", "Spulenwiderstand", "widerstand", {"platzhalter": "Datenblatt, z.B. 70"}),
+            ("Us", "Steuerspannung (µC)", "spannung", {"platzhalter": "z.B. 3.3"}),
+            ("B", "B min Transistor", "zahl", {"platzhalter": "z.B. 100"}),
+            ("ue", "Übersteuerung ü", "zahl", {"platzhalter": "2 … 5 (leer = 3)"})],
+    berechnen=_ansteuerung, formel="I = (U_B − 0.2 V) / R_Spule     R_B = (U_St − 0.7 V) / (ü · I / B_min)")
 
 
 # =============================================================================
@@ -86,15 +85,14 @@ def _temperatur(w):
     return zeilen
 
 
-def relais_temperatur(master):
-    return FormelRechner(
-        master, "Heisse Spule: zieht es noch an?", "Kupfer: +0.39 % Widerstand pro Kelvin",
-        felder=[("Un", "Nennspannung U_N", "spannung", {"platzhalter": "z.B. 24"}),
-                ("R20", "Spulenwiderstand 20 °C", "widerstand", {"platzhalter": "Datenblatt"}),
-                ("T", "Spulentemperatur", "temperatur", {"platzhalter": "z.B. 85 (Schaltschrank)"}),
-                ("an", "Ansprechspannung", "prozent", {"platzhalter": "leer = 75 % von U_N"}),
-                ("U", "Spannung an Spule", "spannung", {"platzhalter": "leer = U_N (z.B. U_N − 10 %)"})],
-        berechnen=_temperatur, formel="R_T = R_20 · (1 + 0.00393 · (T − 20 °C))     U_an,T = U_an,20 · R_T / R_20")
+relais_temperatur = FormelDaten(
+    "Heisse Spule: zieht es noch an?", "Kupfer: +0.39 % Widerstand pro Kelvin",
+    felder=[("Un", "Nennspannung U_N", "spannung", {"platzhalter": "z.B. 24"}),
+            ("R20", "Spulenwiderstand 20 °C", "widerstand", {"platzhalter": "Datenblatt"}),
+            ("T", "Spulentemperatur", "temperatur", {"platzhalter": "z.B. 85 (Schaltschrank)"}),
+            ("an", "Ansprechspannung", "prozent", {"platzhalter": "leer = 75 % von U_N"}),
+            ("U", "Spannung an Spule", "spannung", {"platzhalter": "leer = U_N (z.B. U_N − 10 %)"})],
+    berechnen=_temperatur, formel="R_T = R_20 · (1 + 0.00393 · (T − 20 °C))     U_an,T = U_an,20 · R_T / R_20")
 
 
 # =============================================================================
@@ -128,15 +126,14 @@ def _freilauf(w):
     return zeilen
 
 
-def freilauf(master):
-    return FormelRechner(
-        master, "Freilaufdiode & Abschalten", "Nur Diode oder Diode + Z-Diode? Spannung vs. Abfallzeit",
-        felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 24"}),
-                ("Rsp", "Spulenwiderstand", "widerstand", {"platzhalter": "z.B. 1k"}),
-                ("L", "Induktivität (opt.)", "induktivitaet", {"platzhalter": "z.B. 2 H (messen)", "einheit": "H"}),
-                ("Uz", "Z-Diode U_Z (opt.)", "spannung", {"platzhalter": "z.B. 24"}),
-                ("Uce0", "U_CE0 Transistor (opt.)", "spannung", {"platzhalter": "z.B. 45"})],
-        berechnen=_freilauf, formel="U_CE,max ≈ U_B + U_Z + 0.7 V     t_0 = τ · ln(1 + I · R / U_Gegen)     τ = L / R")
+freilauf = FormelDaten(
+    "Freilaufdiode & Abschalten", "Nur Diode oder Diode + Z-Diode? Spannung vs. Abfallzeit",
+    felder=[("Ub", "Versorgung U_B", "spannung", {"platzhalter": "z.B. 24"}),
+            ("Rsp", "Spulenwiderstand", "widerstand", {"platzhalter": "z.B. 1k"}),
+            ("L", "Induktivität (opt.)", "induktivitaet", {"platzhalter": "z.B. 2 H (messen)", "einheit": "H"}),
+            ("Uz", "Z-Diode U_Z (opt.)", "spannung", {"platzhalter": "z.B. 24"}),
+            ("Uce0", "U_CE0 Transistor (opt.)", "spannung", {"platzhalter": "z.B. 45"})],
+    berechnen=_freilauf, formel="U_CE,max ≈ U_B + U_Z + 0.7 V     t_0 = τ · ln(1 + I · R / U_Gegen)     τ = L / R")
 
 
 # =============================================================================
@@ -164,15 +161,14 @@ def _kontakt(w):
     return zeilen
 
 
-def kontakt_last(master):
-    return FormelRechner(
-        master, "Kontaktbelastung", "Nicht der Nennstrom killt Kontakte, sondern Einschaltstrom und DC-Lichtbogen",
-        felder=[("art", "Lastart", "auswahl", {"werte": list(rm.LASTARTEN)}),
-                ("netz", "Spannungsart", "auswahl", {"werte": ["AC", "DC"]}),
-                ("U", "Lastspannung", "spannung", {"platzhalter": "z.B. 230"}),
-                ("I", "Nennstrom Last", "strom", {"platzhalter": "z.B. 0.5"}),
-                ("Irel", "Relais-Nennstrom (opt.)", "strom", {"platzhalter": "z.B. 10"})],
-        berechnen=_kontakt, formel="I_Ein ≈ Faktor · I_Nenn   (Glühlampe ≈ 12, Motor ≈ 6, Netzteil ≈ 30)")
+kontakt_last = FormelDaten(
+    "Kontaktbelastung", "Nicht der Nennstrom killt Kontakte, sondern Einschaltstrom und DC-Lichtbogen",
+    felder=[("art", "Lastart", "auswahl", {"werte": list(rm.LASTARTEN)}),
+            ("netz", "Spannungsart", "auswahl", {"werte": ["AC", "DC"]}),
+            ("U", "Lastspannung", "spannung", {"platzhalter": "z.B. 230"}),
+            ("I", "Nennstrom Last", "strom", {"platzhalter": "z.B. 0.5"}),
+            ("Irel", "Relais-Nennstrom (opt.)", "strom", {"platzhalter": "z.B. 10"})],
+    berechnen=_kontakt, formel="I_Ein ≈ Faktor · I_Nenn   (Glühlampe ≈ 12, Motor ≈ 6, Netzteil ≈ 30)")
 
 
 RECHNER = {

@@ -24,7 +24,8 @@
 
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
-from bauteile.rechner.widerstand_rechner import smd_entschluesseln, wert_zu_farben
+from bauteile.rechner.widerstand_rechner import (farbcode_zeilen, farben_zu_wert, smd_entschluesseln,
+                                                 smd_zeilen, wert_zu_farben)
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
 from schaltungen import netzteil_mathe as ntm, filter_mathe as fim, mess_mathe as msm
 from schaltungen import schnittstellen_mathe as snt, oszillator_mathe as osz, endstufen_mathe as esz
@@ -669,6 +670,15 @@ FUNKTIONEN = [
     ("SMD EIA-96 01C = 10 kΩ", lambda: smd_entschluesseln("01C")[0], 10e3),
     ("SMD 000 = Drahtbrücke", lambda: smd_entschluesseln("000")[0], 0.0),
     ("SMD EIA-96 Code 97 gibt es nicht", lambda: smd_entschluesseln("97C"), wirft(RechnerFehler)),
+    ("Farbringe Braun-Schwarz-Rot-Gold = 1 kΩ ±5 %",
+     lambda: farben_zu_wert(["Braun", "Schwarz", "Rot", "Gold"])[0], "R = 1 kΩ  ±5 %"),
+    ("Farbringe 6 Ringe mit TK", lambda: farben_zu_wert(["Gelb", "Violett", "Schwarz", "Braun", "Braun", "Rot"])[2],
+     "TK = 50 ppm/K"),
+    ("Farbringe: ein Ring fehlt", lambda: farben_zu_wert(["Braun", None, "Rot", "Gold"]), wirft(RechnerFehler)),
+    ("Farbringe: Gold ist keine Ziffer", lambda: farben_zu_wert(["Gold", "Schwarz", "Rot", "Gold"]), wirft(RechnerFehler)),
+    ("Wert -> Farbcode 4.6 kΩ: Ringe als Text", lambda: farbcode_zeilen(4600, 4, "Gold")[1][0], "Gelb – Blau – Rot – Gold"),
+    ("Wert -> Farbcode 4.6 kΩ: kein E24-Normwert", lambda: "kein E24-Normwert" in farbcode_zeilen(4600, 4, "Gold")[1][-1], True),
+    ("SMD-Text 103", lambda: smd_zeilen("103")[0], "R = 10 kΩ"),
 
     # ---- Normreihen ----
     ("E24 um 4.6 kΩ", lambda: normreihen.naechste_werte(4600, "E24"), [4300, 4700, 4700]),

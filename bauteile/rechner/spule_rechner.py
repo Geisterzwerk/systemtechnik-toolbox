@@ -14,8 +14,7 @@
 
 import math
 
-from bauteile.grafiken.kurven import KurvenKarte                    # -> grafiken/kurven.py
-from bauteile.rechner.basis import FormelRechner, RechnerFehler, anzahl_gegeben, fmt   # -> rechner/basis.py
+from bauteile.rechner.kern import FormelDaten, GrafikVerweis, RechnerFehler, anzahl_gegeben, fmt   # -> bauteile/rechner/kern.py
 
 ZWEI_PI = 2 * math.pi
 
@@ -38,13 +37,12 @@ def _xl(w):
     return zeilen
 
 
-def blindwiderstand_l(master):
-    return FormelRechner(
-        master, "Blindwiderstand XL", "Je höher die Frequenz, desto grösser XL",
-        felder=[("L", "Induktivität L", "induktivitaet"), ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 50"}),
-                ("R", "Drahtwiderstand (opt.)", "widerstand", {"platzhalter": "optional"}),
-                ("U", "Spannung (optional)", "spannung", {"platzhalter": "optional"})],
-        berechnen=_xl, formel="XL = 2π · f · L     Z = √(R² + XL²)")
+blindwiderstand_l = FormelDaten(
+    "Blindwiderstand XL", "Je höher die Frequenz, desto grösser XL",
+    felder=[("L", "Induktivität L", "induktivitaet"), ("f", "Frequenz f", "frequenz", {"platzhalter": "z.B. 50"}),
+            ("R", "Drahtwiderstand (opt.)", "widerstand", {"platzhalter": "optional"}),
+            ("U", "Spannung (optional)", "spannung", {"platzhalter": "optional"})],
+    berechnen=_xl, formel="XL = 2π · f · L     Z = √(R² + XL²)")
 
 
 def _rl_zeit(w):
@@ -62,13 +60,12 @@ def _rl_zeit(w):
     return zeilen
 
 
-def rl_zeit(master):
-    return FormelRechner(
-        master, "RL-Zeiten", "Wie schnell steigt der Strom in der Spule?",
-        felder=[("L", "Induktivität L", "induktivitaet"), ("R", "Widerstand R", "widerstand"),
-                ("U", "Spannung U (opt.)", "spannung", {"platzhalter": "optional"}),
-                ("t", "Zeit t (opt.)", "zeit", {"platzhalter": "optional"})],
-        berechnen=_rl_zeit, formel="τ = L / R     i(t) = U/R · (1 − e^(−t/τ))")
+rl_zeit = FormelDaten(
+    "RL-Zeiten", "Wie schnell steigt der Strom in der Spule?",
+    felder=[("L", "Induktivität L", "induktivitaet"), ("R", "Widerstand R", "widerstand"),
+            ("U", "Spannung U (opt.)", "spannung", {"platzhalter": "optional"}),
+            ("t", "Zeit t (opt.)", "zeit", {"platzhalter": "optional"})],
+    berechnen=_rl_zeit, formel="τ = L / R     i(t) = U/R · (1 − e^(−t/τ))")
 
 
 def _abschaltspitze(w):
@@ -84,12 +81,11 @@ def _abschaltspitze(w):
     return zeilen
 
 
-def abschaltspitze(master):
-    return FormelRechner(
-        master, "Abschalt-Spannungsspitze", "Was passiert, wenn der Strom schlagartig unterbrochen wird?",
-        felder=[("L", "Induktivität L", "induktivitaet"), ("I", "Strom vorher", "strom", {"einheit": "mA"}),
-                ("dt", "Abschaltzeit Δt", "zeit", {"einheit": "µs", "platzhalter": "z.B. 1"})],
-        berechnen=_abschaltspitze, formel="u = L · di / dt")
+abschaltspitze = FormelDaten(
+    "Abschalt-Spannungsspitze", "Was passiert, wenn der Strom schlagartig unterbrochen wird?",
+    felder=[("L", "Induktivität L", "induktivitaet"), ("I", "Strom vorher", "strom", {"einheit": "mA"}),
+            ("dt", "Abschaltzeit Δt", "zeit", {"einheit": "µs", "platzhalter": "z.B. 1"})],
+    berechnen=_abschaltspitze, formel="u = L · di / dt")
 
 
 def _energie_l(w):
@@ -98,11 +94,10 @@ def _energie_l(w):
     return [f"Energie W = ½ · L · I² = {fmt(0.5 * w['L'] * w['I'] ** 2, 'energie')}"]
 
 
-def energie_l(master):
-    return FormelRechner(
-        master, "Energie im Magnetfeld", "Die Energie steckt im Magnetfeld (beim Kondensator im elektrischen Feld)",
-        felder=[("L", "Induktivität L", "induktivitaet"), ("I", "Strom I", "strom")],
-        berechnen=_energie_l, formel="W = ½ · L · I²")
+energie_l = FormelDaten(
+    "Energie im Magnetfeld", "Die Energie steckt im Magnetfeld (beim Kondensator im elektrischen Feld)",
+    felder=[("L", "Induktivität L", "induktivitaet"), ("I", "Strom I", "strom")],
+    berechnen=_energie_l, formel="W = ½ · L · I²")
 
 
 def _lc(w):
@@ -124,12 +119,11 @@ def _lc(w):
     return zeilen
 
 
-def lc_resonanz(master):
-    return FormelRechner(
-        master, "LC-Schwingkreis", "Zwei Werte eingeben, der dritte wird berechnet",
-        felder=[("L", "Induktivität L", "induktivitaet", {"einheit": "µH"}),
-                ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}), ("f", "Resonanz f0", "frequenz", {"einheit": "kHz"})],
-        berechnen=_lc, formel="f0 = 1 / (2π · √(L · C))")
+lc_resonanz = FormelDaten(
+    "LC-Schwingkreis", "Zwei Werte eingeben, der dritte wird berechnet",
+    felder=[("L", "Induktivität L", "induktivitaet", {"einheit": "µH"}),
+            ("C", "Kapazität C", "kapazitaet", {"einheit": "nF"}), ("f", "Resonanz f0", "frequenz", {"einheit": "kHz"})],
+    berechnen=_lc, formel="f0 = 1 / (2π · √(L · C))")
 
 
 def _reihe_parallel_l(w):
@@ -142,15 +136,14 @@ def _reihe_parallel_l(w):
             "Wie beim Widerstand. Gekoppelte Spulen (gemeinsamer Kern) verhalten sich anders!"]
 
 
-def reihe_parallel_l(master):
-    return FormelRechner(
-        master, "Reihen- & Parallelschaltung", "Gleich wie beim Widerstand – solange die Spulen sich nicht beeinflussen",
-        felder=[("liste", "Induktivitäten", "induktivitaet", {"liste": True, "platzhalter": "10 22 4.7"})],
-        berechnen=_reihe_parallel_l, formel="Reihe: L = L1 + L2 + …     Parallel: 1/L = 1/L1 + 1/L2 + …")
+reihe_parallel_l = FormelDaten(
+    "Reihen- & Parallelschaltung", "Gleich wie beim Widerstand – solange die Spulen sich nicht beeinflussen",
+    felder=[("liste", "Induktivitäten", "induktivitaet", {"liste": True, "platzhalter": "10 22 4.7"})],
+    berechnen=_reihe_parallel_l, formel="Reihe: L = L1 + L2 + …     Parallel: 1/L = 1/L1 + 1/L2 + …")
 
 
 RECHNER = {
-    "rl_kurve": lambda master: KurvenKarte(master, modus="RL"),
+    "rl_kurve": GrafikVerweis("bauteile.grafiken.kurven", "KurvenKarte", modus="RL"),
     "blindwiderstand_l": blindwiderstand_l,
     "rl_zeit": rl_zeit,
     "abschaltspitze": abschaltspitze,
