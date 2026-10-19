@@ -103,6 +103,10 @@ a.listen-eintrag:hover { border-color: var(--akzent); }
 .karte-titel { margin: 0 0 10px; font-size: 1.15rem; }
 .text h2 { font-size: 1.25rem; margin: 1.1em 0 0.3em; }
 .text h2:first-child { margin-top: 0; }
+.kasten { border-radius: 12px; padding: 4px 16px 10px; margin: 18px 0; border-left: 5px solid; }
+.kasten h2 { margin-top: 10px; }
+.kasten-vertiefung { background: var(--tabelle-zeile); border-left-color: var(--akzent); }
+.kasten-wusstest { background: var(--tipp); border-left-color: #F59E0B; }
 .text ul, .text ol, .box ul { padding-left: 1.3em; }
 .text li, .box li { margin: 3px 0; }
 .zwei-spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }

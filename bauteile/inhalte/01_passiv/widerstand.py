@@ -30,26 +30,52 @@ THEMA = {
     },
 
     "erklaerung": """
-## Was macht ein Widerstand?
-Ein Widerstand **bremst den Stromfluss**. Je grösser der Widerstand, desto kleiner der Strom bei gleicher Spannung. Die elektrische Energie, die dabei „verloren“ geht, wird in **Wärme** umgewandelt – deshalb hat jeder Widerstand eine maximale **Belastbarkeit in Watt**.
+## Stell dir vor …
+Strom in einem Draht kann man sich wie Wasser in einem Rohr vorstellen: Die **Spannung** ist der Druck, der das Wasser antreibt, der **Strom** ist die Menge, die pro Sekunde durchfliesst. Ein **Widerstand** ist eine Engstelle im Rohr – bei gleichem Druck fliesst weniger durch. Ganz genau stimmt der Vergleich nicht, für den Einstieg hilft er aber sehr.
+## So funktioniert es
+In einem Leiter bewegen sich Elektronen. Auf ihrem Weg stossen sie ständig mit den Atomen des Materials zusammen und geben dabei Energie ab – das Material wird **warm**. Ein Widerstand ist ein Bauteil, bei dem dieser Effekt gewollt und genau bekannt ist:
+- Er **begrenzt den Strom**: grösserer Widerstand → kleinerer Strom (bei gleicher Spannung).
+- An ihm **fällt eine Spannung ab**: Die Spannung der Quelle teilt sich auf die Bauteile im Stromkreis auf.
+- Er **wandelt elektrische Energie in Wärme** um. Darum hat jeder Widerstand eine maximale **Belastbarkeit in Watt**.
+Ein Widerstand hat **keine Polung** – man kann ihn beliebig herum einbauen.
 ## Wofür braucht man ihn?
 - **Strom begrenzen:** z.B. Vorwiderstand einer LED
 - **Spannung teilen:** Spannungsteiler, z.B. um 24 V für einen 3.3-V-Messeingang herunterzuteilen
 - **Definierte Pegel:** Pull-up / Pull-down an digitalen Eingängen (sonst „schwebt“ der Eingang)
 - **Strom messen:** niederohmiger Shunt (z.B. 10 mΩ) – die Spannung daran ist proportional zum Strom
 - **Zeitglieder:** zusammen mit einem Kondensator (RC-Glied, `τ = R · C`)
-## Wovon hängt der Widerstandswert ab?
-`R = ρ · l / A` – er steigt mit der **Länge** l, sinkt mit dem **Querschnitt** A und hängt vom **Material** ρ ab. Zusätzlich ändert er sich mit der **Temperatur** (Temperaturkoeffizient α bzw. TK in ppm/K). Bei Metallen steigt er mit der Temperatur (Kupfer ca. **+0.4 % pro Kelvin**).
+## Rechnen mit dem Ohm'schen Gesetz
+Spannung, Strom und Widerstand hängen fest zusammen: `U = R · I`. Umgestellt: `R = U / I` und `I = U / R`. Die Einheiten passen dabei immer zusammen: 1 V / 1 A = 1 Ω.
+**Beispiel LED-Vorwiderstand:** Eine rote LED soll an 5 V mit 20 mA leuchten. An der LED selbst fallen etwa 2 V ab (Wert aus dem Datenblatt). Für den Widerstand bleiben also 5 V − 2 V = 3 V.
+- `R = U / I = 3 V / 0.02 A = 150 Ω` – 150 Ω gibt es als Normwert (E12).
+- `P = U · I = 3 V · 0.02 A = 60 mW` – ein 1/4-W-Widerstand (250 mW) hat genug Reserve.
+**Die Leistung nie vergessen:** `P = U · I = I² · R = U² / R`. Ein 1-kΩ-Widerstand an 12 V führt 12 mA und setzt **144 mW** in Wärme um. Ein 1/4-W-Typ wäre damit zu knapp 60 % ausgelastet und wird spürbar warm – ein 0.5-W-Typ ist hier die sichere Wahl.
 ## Reihen- und Parallelschaltung
-- **Reihe:** `R = R1 + R2 + …` – der Gesamtwiderstand ist immer **grösser** als der grösste Einzelwiderstand. Durch alle fliesst derselbe Strom.
-- **Parallel:** `1/R = 1/R1 + 1/R2 + …` – der Gesamtwiderstand ist immer **kleiner** als der kleinste. Zwei gleiche parallel = **halber Wert**. Für zwei Widerstände: `R = R1 · R2 / (R1 + R2)`
+- **Reihe:** `R = R1 + R2 + …` – durch alle fliesst **derselbe Strom**, der Gesamtwiderstand ist immer **grösser** als der grösste Einzelwiderstand. Beispiel: 1 kΩ + 1 kΩ = 2 kΩ.
+- **Parallel:** `1/R = 1/R1 + 1/R2 + …` – an allen liegt **dieselbe Spannung**, der Gesamtwiderstand ist immer **kleiner** als der kleinste. Für zwei Widerstände: `R = R1 · R2 / (R1 + R2)`.
+- Zwei gleiche parallel ergeben den **halben Wert**: 1 kΩ ∥ 1 kΩ = 500 Ω. Und 100 Ω ∥ 1 kΩ = 90.9 Ω – tatsächlich kleiner als 100 Ω.
 ## Spannungsteiler
-`Ua = Ue · R2 / (R1 + R2)` – gilt nur **unbelastet**! Hängt am Ausgang eine Last, liegt sie parallel zu R2 und die Spannung sinkt. Faustregel: Querstrom durch den Teiler mindestens **10× grösser** als der Laststrom.
-## Wichtige Kennwerte
-- **Nennwert** und **Toleranz** (z.B. 4.7 kΩ ±1 %)
-- **Belastbarkeit** in W – gilt meist nur bis ca. **70 °C Umgebungstemperatur**, darüber weniger (Derating-Kurve im Datenblatt)
-- **Grenzspannung** – maximale Spannung am Bauteil, auch wenn die Leistung noch passt (wichtig bei kleinen SMD-Bauformen!)
-- **Temperaturkoeffizient (TK)** in ppm/K – wie stark sich der Wert mit der Temperatur ändert (100 ppm/K = 0.01 %/K)
+Zwei Widerstände in Reihe teilen eine Spannung im Verhältnis ihrer Werte: `Ua = Ue · R2 / (R1 + R2)`.
+**Beispiel:** 10 V mit R1 = 30 kΩ und R2 = 10 kΩ ergibt Ua = 10 V · 10 / 40 = **2.5 V**.
+Das gilt aber nur **unbelastet**! Hängt am Ausgang eine Last, liegt sie parallel zu R2. Eine Last von 10 kΩ macht aus R2 zusammen 5 kΩ – die Spannung fällt auf **1.43 V**, also fast 43 % weniger. Faustregel: Der Querstrom durch den Teiler soll mindestens **10× grösser** sein als der Laststrom.
+## Wovon hängt der Widerstandswert ab?
+`R = ρ · l / A` – der Widerstand steigt mit der **Länge** l, sinkt mit dem **Querschnitt** A und hängt vom **Material** ab (spezifischer Widerstand ρ). Darum haben auch Kabel einen Widerstand:
+**Beispiel:** Ein Verbraucher hängt an 10 m Kupferkabel mit 1.5 mm². Der Strom fliesst hin und zurück, also durch 20 m Leitung: R ≈ **0.24 Ω**. Bei 10 A fallen dort 2.4 V ab, und die Leitung erzeugt rund 24 W Wärme.
+Ausserdem ändert sich der Widerstand mit der **Temperatur**. Bei Metallen steigt er, bei Kupfer um etwa **0.4 % pro Kelvin**. Eine Kupferwicklung mit 10 Ω bei 20 °C hat bei 80 °C rund **12.3 Ω** (+23 %).
+## 🔬 Genauer hingeschaut
+- **Toleranz und Normreihen:** Kein Widerstand hat exakt seinen Nennwert. Die E-Reihen (E12, E24, E96 …) sind so gestuft, dass die Toleranzbereiche benachbarter Werte ungefähr aneinander anschliessen – mehr Werte pro Dekade lohnen sich nur bei kleinerer Toleranz.
+- **Belastbarkeit und Derating:** Die Nennleistung gilt meist nur bis etwa **70 °C Umgebungstemperatur**. Darüber muss die Leistung reduziert werden – wie stark, zeigt die Derating-Kurve im Datenblatt.
+- **Grenzspannung:** Auch wenn die Leistung passt, darf die Spannung am Bauteil einen Höchstwert nicht überschreiten. Das betrifft vor allem kleine SMD-Bauformen.
+- **Temperaturkoeffizient (TK):** Angabe in ppm/K. 100 ppm/K = 0.01 % pro Kelvin – bei 50 K Erwärmung ändert sich der Wert also um 0.5 %. Für Messschaltungen gibt es Typen mit wenigen ppm/K.
+- **Rauschen:** Jeder Widerstand erzeugt eine winzige Rauschspannung (thermisches Rauschen): `U = √(4 · k · T · R · B)` mit k = 1.38 · 10⁻²³ J/K, Temperatur T in Kelvin und Bandbreite B. Bei 1 MΩ, 10 kHz und 27 °C sind das rund **13 µV**, bei 1 kΩ nur 0.4 µV. Deshalb arbeitet man in empfindlichen Messschaltungen möglichst niederohmig.
+- **Kein Bauteil ist ideal:** Ein echter Widerstand hat zusätzlich etwas Induktivität (Anschlussdrähte, bei Drahtwiderständen die ganze Wicklung) und Kapazität. Bei Gleichstrom spielt das keine Rolle, bei hohen Frequenzen und schnellen Schaltflanken schon.
+## In der Praxis
+- **Wert erkennen:** Bedrahtete Widerstände (THT) tragen Farbringe, SMD-Widerstände einen Zahlencode – beides entschlüsseln die Rechner unten.
+- **Messen:** Mit dem Multimeter im Ω-Bereich, immer **spannungsfrei**. In der Schaltung verfälschen parallele Bauteile das Ergebnis – im Zweifel ein Bein auslöten.
+- **Auswählen:** Wert aus der E-Reihe, Toleranz (heute meist 1 %), Leistung mit Reserve (höchstens 50–60 % der Nennleistung nutzen), Grenzspannung und Bauform.
+## 💡 Wusstest du?
+- Das Ohm'sche Gesetz ist nach **Georg Simon Ohm** benannt, der den Zusammenhang 1827 veröffentlichte.
+- Der Farbcode auf bedrahteten Widerständen ist international genormt (**IEC 60062**) – derselbe Code gilt auf der ganzen Welt.
 """,
 
     "bilder": [

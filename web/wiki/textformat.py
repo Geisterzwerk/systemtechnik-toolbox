@@ -7,7 +7,9 @@
 #   - Punkt                 -> Aufzählung  (2 Leerzeichen davor = eine Stufe tiefer)
 #   1. Schritt              -> nummerierte Liste
 #   **fett**  `code`        -> <strong>  <code>
-#   leere Zeile             -> neuer Absatz
+#   jede Textzeile          -> eigener Absatz (wie in der Desktop-App)
+#   ## 🔬 Überschrift       -> Abschnitt als Kasten "Vertiefung" (bis zur nächsten ##-Überschrift)
+#   ## 💡 Überschrift       -> Abschnitt als Kasten "Wusstest du?"
 #
 # SICHERHEIT: Zuerst wird ALLES escaped (< > & werden harmlos), erst dann setzen wir
 # eigene Tags. So kann kein Text aus einer Inhaltsdatei HTML oder JavaScript einschleusen.
@@ -19,6 +21,8 @@ import html
 import re
 
 _INLINE = re.compile(r"(\*\*.+?\*\*|`.+?`)")
+# Überschriften, deren Abschnitt als Kasten erscheint (Zeichen am Anfang -> CSS-Klasse)
+KASTEN = {"🔬": "kasten-vertiefung", "💡": "kasten-wusstest"}
 _NUMMER = re.compile(r"^(\d+)\.\s+(.*)$")
 
 
@@ -42,6 +46,7 @@ def als_html(text):
     ausgabe = []
     offen = []                   # offene Listen: [("ul", tiefe), ...]
     absatz = []                  # Zeilen des aktuellen Absatzes
+    kasten = []                  # [True], solange ein Kasten (🔬 / 💡) offen ist
 
     def absatz_schliessen():
         if absatz:
@@ -64,7 +69,16 @@ def als_html(text):
             absatz_schliessen()
             listen_schliessen()
             stufe = "h3" if zeile.startswith("### ") else "h2"
-            ausgabe.append(f"<{stufe}>{inline(zeile.split(' ', 1)[1])}</{stufe}>")
+            titel = zeile.split(" ", 1)[1]
+            if stufe == "h2":
+                if kasten:                                   # neuer Abschnitt -> offenen Kasten schliessen
+                    ausgabe.append("</div>")
+                    kasten.clear()
+                klasse = next((k for zeichen, k in KASTEN.items() if titel.startswith(zeichen)), None)
+                if klasse:
+                    ausgabe.append(f'<div class="kasten {klasse}">')
+                    kasten.append(True)
+            ausgabe.append(f"<{stufe}>{inline(titel)}</{stufe}>")
             continue
         nummer = _NUMMER.match(zeile)
         if zeile.startswith("- ") or nummer:
@@ -87,6 +101,9 @@ def als_html(text):
             continue
         listen_schliessen()
         absatz.append(inline(zeile))
+        absatz_schliessen()                  # jede Textzeile = eigener Absatz (wie FormatText in der Desktop-App)
     absatz_schliessen()
     listen_schliessen()
+    if kasten:
+        ausgabe.append("</div>")
     return "".join(ausgabe)
