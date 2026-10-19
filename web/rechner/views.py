@@ -18,7 +18,8 @@ from wiki import inhalt                                                # -> web/
 
 
 def liste(request):
-    return render(request, "rechner/liste.html", {"rechner": formular.web_rechner()})
+    return render(request, "rechner/liste.html", {"kategorien": formular.nach_kategorien(),
+                                                  "anzahl": len(formular.web_rechner_ids())})
 
 
 def _wissensseite(info):

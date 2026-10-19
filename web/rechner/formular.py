@@ -5,9 +5,10 @@
 #   FormelDaten (bauteile/rechner/kern.py): Felder + Rechenfunktion
 #   texte_lesen() "4k7" -> 4700.0 (wie die Eingabefelder im Fenster)
 #
-#   web_rechner_ids()              IDs aus settings.WEB_RECHNER
+#   web_rechner_ids()              alle freigeschalteten IDs (alle Formel-Rechner + Sonderseiten, settings.py)
 #   web_id(id)                     Projekt-ID -> Web-ID (farbcode_wert -> farbcode) oder None
-#   web_rechner()                  freigeschaltete Rechner (settings.WEB_RECHNER) mit Titel/Beschreibung
+#   web_rechner(ids)               Rechner mit Titel/Beschreibung/Kategorie (alle oder nur die genannten)
+#   nach_kategorien()              für die Rechner-Übersicht: Kategorie -> Unterkategorie -> Rechner
 #   formel_rechnen(daten, eingaben) Felder für das Formular + Ergebnis (oder Meldung)
 #   farbcode(eingaben)             Farbringe <-> Wert, mit Zeichnung als SVG
 #
@@ -31,14 +32,23 @@ FARBCODE_IDS = ("farbcode_wert", "wert_farbcode")
 
 
 def web_rechner_ids():
-    return list(settings.WEB_RECHNER)
+    """
+    Alle im Web freigeschalteten Rechner-IDs, sortiert wie in rechner_info.py:
+    alle Formel-Rechner (settings.WEB_ALLE_FORMEL_RECHNER) + Sonderseiten (settings.WEB_RECHNER_EXTRA).
+    """
+    registry = rechner_registry.registry()
+    ids = []
+    if settings.WEB_ALLE_FORMEL_RECHNER:
+        ids = [rid for rid in RECHNER_INFO if isinstance(registry.get(rid), FormelDaten)]
+    ids += [rid for rid in settings.WEB_RECHNER_EXTRA if rid not in ids]
+    return ids
 
 
 def web_id(rechner_id):
     """Rechner-ID des Projekts -> ID im Web (oder None, wenn im Web noch nicht freigeschaltet)."""
     if rechner_id in FARBCODE_IDS:
         rechner_id = "farbcode"
-    return rechner_id if rechner_id in settings.WEB_RECHNER else None
+    return rechner_id if rechner_id in web_rechner_ids() else None
 
 
 def info(web_rechner_id):
@@ -51,16 +61,34 @@ def info(web_rechner_id):
     return RECHNER_INFO.get(web_rechner_id)
 
 
-def web_rechner():
-    """[{"id", "titel", "beschreibung", "icon", "kategorie"}] in der Reihenfolge von settings.WEB_RECHNER"""
-    liste = []
-    for rid in settings.WEB_RECHNER:
-        i = info(rid)
-        if i is None:
-            continue
-        liste.append({"id": rid, "titel": i["titel"], "beschreibung": i["beschreibung"],
-                      "kategorie": i["kategorie"], "icon": KATEGORIEN.get(i["kategorie"], ("🧮",))[0]})
-    return liste
+def _eintrag(rid):
+    i = info(rid)
+    return i and {"id": rid, "titel": i["titel"], "beschreibung": i["beschreibung"], "kategorie": i["kategorie"],
+                  "unterkategorie": i["unterkategorie"], "stichworte": " ".join(i.get("stichworte", [])),
+                  "icon": KATEGORIEN.get(i["kategorie"], ("🧮",))[0]}
+
+
+def web_rechner(ids=None):
+    """[{"id", "titel", "beschreibung", "icon", "kategorie", "unterkategorie", "stichworte"}]
+    ids = None -> alle freigeschalteten, sonst genau diese (z.B. settings.WEB_RECHNER_EMPFOHLEN)"""
+    erlaubt = web_rechner_ids()
+    return [e for e in (_eintrag(rid) for rid in (ids if ids is not None else erlaubt) if rid in erlaubt) if e]
+
+
+def nach_kategorien():
+    """Für /rechner/: [{"name", "icon", "text", "gruppen": [{"name": Unterkategorie, "rechner": [...]}]}]
+    Reihenfolge der Kategorien wie im Rechner-Tab der Desktop-App (KATEGORIEN)."""
+    alle = web_rechner()
+    ergebnis = []
+    for name, (icon, text) in KATEGORIEN.items():
+        gruppen = {}
+        for r in alle:
+            if r["kategorie"] == name:
+                gruppen.setdefault(r["unterkategorie"], []).append(r)
+        if gruppen:
+            ergebnis.append({"name": name, "icon": icon, "text": text,
+                             "gruppen": [{"name": g, "rechner": liste} for g, liste in gruppen.items()]})
+    return ergebnis
 
 
 def formel_daten(web_rechner_id):

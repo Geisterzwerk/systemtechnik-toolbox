@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",         # Schutz für Formulare, die etwas speichern (POST)
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -68,6 +69,14 @@ STATICFILES_DIRS = [WEB_ORDNER / "static",
                     ("bilder", PROJEKT_ORDNER / "images")]      # Bilder der Wissensseiten: /static/bilder/...
 STATIC_ROOT = WEB_ORDNER / "staticfiles"                        # nur für online (collectstatic), nicht im Repo
 
-# Welche Rechner sind im Web schon freigeschaltet? (IDs aus bauteile/rechner/rechner_info.py)
-# Formel-Rechner funktionieren automatisch - einfach eine ID ergänzen.
-WEB_RECHNER = ["ohm_leistung", "spannungsteiler", "farbcode", "rc_zeit", "dmm_genauigkeit"]
+# ---- Rechner im Web (IDs aus bauteile/rechner/rechner_info.py) -> web/rechner/formular.py ----
+# Alle Formel-Rechner (FormelDaten) laufen im Web automatisch - auch jeder neue.
+WEB_ALLE_FORMEL_RECHNER = True
+# Rechner mit eigener Webseite (keine FormelDaten): "farbcode" = Farbcode -> Wert und Wert -> Farbcode
+WEB_RECHNER_EXTRA = ["farbcode"]
+# Auf der Startseite hervorgehoben (die übrigen stehen unter /rechner/)
+WEB_RECHNER_EMPFOHLEN = ["ohm_leistung", "spannungsteiler", "farbcode", "rc_zeit", "dmm_genauigkeit"]
+
+# ---- Rückmeldungen ("Fehler melden") -> web/wiki/rueckmeldung.py ----
+# Stufe 1 (lokal): eine Datei, nicht im Repo (.gitignore). Ansehen: python manage.py rueckmeldungen
+RUECKMELDUNGEN_DATEI = WEB_ORDNER / "daten" / "rueckmeldungen.jsonl"

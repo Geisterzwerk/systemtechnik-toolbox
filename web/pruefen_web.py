@@ -8,9 +8,11 @@
 #
 #   1) Startseite, Suche, alle Bereiche und ALLE Wissensseiten -> Status 200, keine Template-Reste
 #   2) Jede interaktive Schaltung mit jeder Variante (auch über /schaltung/<id>/), falsche Eingaben
-#   3) Jeder Web-Rechner leer, mit Beispielwerten und mit Unsinn ("abc", unbekannte Einheit)
+#   3) Jeder Web-Rechner leer und mit Unsinn ("abc", unbekannte Einheit); alle von Hand gerechneten
+#      Fälle aus pruefung/rechner_faelle.py -> Web rechnet genau wie die Desktop-App
 #   4) Unbekannte Adressen -> 404 statt Absturz
 #   5) Sicherheit: Text aus der Adresse erscheint nie als HTML (kein <script> einschleusen)
+#   6) "Fehler melden": Speichern, CSRF-Schutz, Bot-Falle, Längen, Sperre bei vielen Meldungen, fremde Adressen
 #
 # Ergebnis: Exit-Code 0 = alles ok, 1 = mindestens ein Fehler
 # WER RUFT DAS AUF?  du (nach jeder Änderung an web/ oder an den Inhalten)
@@ -32,6 +34,7 @@ import django                                                          # noqa: E
 
 django.setup()
 logging.getLogger("django.request").setLevel(logging.ERROR)     # 404-Tests sind Absicht, nicht melden
+logging.getLogger("django.security.csrf").setLevel(logging.ERROR)   # der Test ohne CSRF-Token (403) auch
 from django.test import Client                                         # noqa: E402
 from django.utils.html import escape                                   # noqa: E402
 
@@ -101,22 +104,28 @@ for rid in schaltungen:
         abrufen(f"/schaltung/{rid}/?{rid}-{schluessel}=1", muss_enthalten=["checked"])
 
 # ---- 3) Rechner ----------------------------------------------------------------
-BEISPIELE = {
-    "ohm_leistung": ("?U=12&I=20&I-e=mA&rechnen=1", "R = 600 Ω"),
-    "spannungsteiler": ("?rechnen=1", None),
-    "rc_zeit": ("?R=10&R-e=kΩ&C=100&C-e=µF&rechnen=1", "τ = R · C = 1 s"),
-    "dmm_genauigkeit": ("?rechnen=1", None),
-}
-for rid in formular.web_rechner_ids():
+# Jeder Rechner leer + mit Unsinn; dazu ALLE von Hand gerechneten Fälle aus pruefung/rechner_faelle.py:
+# Das Web muss genau dasselbe Ergebnis liefern wie die Desktop-App.
+from urllib.parse import urlencode                                     # noqa: E402
+
+from pruefung.rechner_faelle import FAELLE                             # noqa: E402  -> pruefung/rechner_faelle.py
+
+web_ids = formular.web_rechner_ids()
+for rid in web_ids:
     abrufen(f"/rechner/{rid}/")
-    if rid in BEISPIELE:
-        param, erwartet = BEISPIELE[rid]
-        abrufen(f"/rechner/{rid}/{param}", muss_enthalten=[erwartet] if erwartet else [])
     daten = formular.formel_daten(rid)
-    if daten:
-        feld = daten.felder[0][0]
+    zahlenfelder = [e[0] for e in daten.felder if e[2] not in ("auswahl", "text")] if daten else []
+    if zahlenfelder:
+        feld = zahlenfelder[0]
         abrufen(f"/rechner/{rid}/?{feld}=abc&rechnen=1", muss_enthalten=["Ungültige Eingabe"])
         abrufen(f"/rechner/{rid}/?{feld}=1&{feld}-e=Parsec&rechnen=1")       # unbekannte Einheit -> Starteinheit
+faelle = 0
+for rid, texte, erwartet, _rechnung in FAELLE:
+    if rid not in web_ids:
+        continue
+    erwartet_html = [escape(erwartet["fehler"])] if isinstance(erwartet, dict) else [escape(e) for e in erwartet]
+    abrufen(f"/rechner/{rid}/?" + urlencode({**texte, "rechnen": "1"}), muss_enthalten=erwartet_html)
+    faelle += 1
 abrufen("/rechner/farbcode/?n=4&r1=Braun&r2=Schwarz&r3=Rot&r4=Gold", muss_enthalten=["R = 1 kΩ"])
 abrufen("/rechner/farbcode/?n=6&r1=Gelb&r2=Violett&r3=Schwarz&r4=Braun&r5=Braun&r6=Rot", muss_enthalten=["50 ppm/K"])
 abrufen("/rechner/farbcode/?wert=4k7&ringe=4&tol=Gold", muss_enthalten=["Gelb – Violett – Rot – Gold"])
@@ -135,8 +144,57 @@ for adresse in ("/suche/?q=<script>alert(1)</script>", "/rechner/ohm_leistung/?U
     if "<script>alert" in text or "<script>x" in text or "<b>x</b>" in text:
         fehler.append(f"{adresse}: Eingabe erscheint als HTML (nicht escaped)!")
 
-print(f"{seiten} Wissensseiten, {len(schaltungen)} Schaltungen, {len(formular.web_rechner_ids())} Rechner "
-      f"geprüft in {time.time() - t0:.1f} s")
+# ---- 6) Rückmeldungen ("Fehler melden") -------------------------------------
+# In eine Test-Datei schreiben - die echten Rückmeldungen bleiben unberührt.
+import tempfile                                                        # noqa: E402
+from pathlib import Path                                               # noqa: E402
+
+from django.test import override_settings                             # noqa: E402
+
+from wiki import rueckmeldung                                          # noqa: E402  -> web/wiki/rueckmeldung.py
+
+
+def pruefe(bedingung, text):
+    global ok
+    if bedingung:
+        ok += 1
+    else:
+        fehler.append("Rückmeldung: " + text)
+
+
+with tempfile.TemporaryDirectory() as ordner, override_settings(RUECKMELDUNGEN_DATEI=Path(ordner) / "r.jsonl"):
+    rueckmeldung._zeiten.clear()
+    browser = Client(enforce_csrf_checks=True)                         # wie ein echter Browser: CSRF wird geprüft
+    seite = browser.get("/rueckmeldung/?seite=/rechner/rc_zeit/")
+    pruefe(seite.status_code == 200 and b"csrfmiddlewaretoken" in seite.content, "Formular ohne CSRF-Feld")
+    token = browser.cookies["csrftoken"].value
+    gut = {"csrfmiddlewaretoken": token, "art": rueckmeldung.ARTEN[1], "seite": "/rechner/rc_zeit/",
+           "text": "Bei 10 kΩ und 100 µF kommt <script>alert(1)</script> heraus"}
+    antwort = browser.post("/rueckmeldung/", gut)
+    pruefe(antwort.status_code == 302 and antwort["Location"].endswith("/rueckmeldung/danke/"), "Senden klappt nicht")
+    gespeichert = rueckmeldung.alle()
+    pruefe(len(gespeichert) == 1 and gespeichert[0]["seite"] == "/rechner/rc_zeit/", "nicht gespeichert")
+    pruefe(not any(k in gespeichert[0] for k in ("ip", "REMOTE_ADDR")), "IP-Adresse gespeichert")
+    pruefe(Client(enforce_csrf_checks=True).post("/rueckmeldung/", {k: v for k, v in gut.items()
+                                                                     if k != "csrfmiddlewaretoken"}).status_code == 403,
+           "ohne CSRF-Token angenommen")
+    pruefe(browser.post("/rueckmeldung/", {**gut, "webseite": "http://spam"}).status_code == 302
+           and len(rueckmeldung.alle()) == 1, "Bot (Honigtopf) wurde gespeichert")
+    pruefe(browser.post("/rueckmeldung/", {**gut, "text": "kurz"}).status_code == 400, "zu kurzer Text angenommen")
+    pruefe(browser.post("/rueckmeldung/", {**gut, "text": "x" * 5000}).status_code == 400, "zu langer Text angenommen")
+    pruefe(browser.post("/rueckmeldung/", {**gut, "art": "Hack"}).status_code == 400, "unbekannte Art angenommen")
+    browser.post("/rueckmeldung/", {**gut, "seite": "//fremde-seite.ch/x"})
+    pruefe(rueckmeldung.alle()[0]["seite"] == "", "fremde Adresse als Seite gespeichert")
+    pruefe(b"fremde-seite" not in browser.get("/rueckmeldung/?seite=//fremde-seite.ch").content,
+           "fremde Adresse im Formular verlinkt")
+    for _ in range(rueckmeldung.MAX_PRO_STUNDE):
+        letzte = browser.post("/rueckmeldung/", gut)
+    pruefe(letzte.status_code == 400 and "Zu viele" in letzte.content.decode(), "keine Sperre bei vielen Meldungen")
+    pruefe(len(rueckmeldung.alle()) == rueckmeldung.MAX_PRO_STUNDE, "Sperre zählt falsch")
+    rueckmeldung._zeiten.clear()
+
+print(f"{seiten} Wissensseiten, {len(schaltungen)} Schaltungen, {len(web_ids)} Rechner "
+      f"({faelle} Fälle aus rechner_faelle.py) geprüft in {time.time() - t0:.1f} s")
 print(f"{ok} Aufrufe ok, {len(fehler)} Fehler")
 for f in fehler:
     print("  FEHLER", f)

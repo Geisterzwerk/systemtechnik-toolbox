@@ -1,19 +1,39 @@
 {% extends "basis.html" %}
-{# web/rechner/templates/rechner/liste.html - alle Rechner, die im Web schon freigeschaltet sind #}
+{# =========================================================================== #}
+{# web/rechner/templates/rechner/liste.html - alle Rechner im Web,             #}
+{# nach Kategorie und Unterkategorie wie im Rechner-Tab der Desktop-App.        #}
+{# Filterfeld: systemlab.js blendet beim Tippen nicht passende Rechner aus      #}
+{# (ohne JavaScript ist einfach alles sichtbar).                                #}
+{# =========================================================================== #}
 {% block titel %}Rechner{% endblock %}
+{% block beschreibung %}{{ anzahl }} Rechner für Elektrotechnik, Elektronik, Messtechnik und Digitaltechnik – mit Einheiten wie im Datenblatt.{% endblock %}
 {% block inhalt %}
 <nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Rechner</nav>
 <h1>🧮 Rechner</h1>
-<p class="leise">Eingaben wie im Datenblatt: <code>4k7</code>, <code>2.2M</code>, <code>470n</code>, <code>4R7</code> – die Einheit daneben wählen.
-  Weitere Rechner gibt es bisher in der Desktop-App.</p>
-<div class="kacheln">
-  {% for r in rechner %}
-  <a class="kachel" href="/rechner/{{ r.id }}/">
-    <span class="kachel-icon">{{ r.icon }}</span>
-    <span class="kachel-titel">{{ r.titel }}</span>
-    <span class="kachel-text">{{ r.beschreibung }}</span>
-    <span class="kachel-zahlen">{{ r.kategorie }}</span>
-  </a>
+<p class="leise">{{ anzahl }} Rechner. Eingaben wie im Datenblatt: <code>4k7</code>, <code>2.2M</code>, <code>470n</code>, <code>4R7</code> – die Einheit daneben wählen.</p>
+
+<input type="search" class="filter-feld" placeholder="Rechner filtern … z.B. LED, Filter, Pt100, Baudrate" aria-label="Rechner filtern" data-filter="#rechner-liste">
+<p class="leise" data-filter-leer hidden>Kein Rechner passt. Tipp: die <a href="/suche/">Suche</a> findet auch Wissensseiten.</p>
+
+<div id="rechner-liste">
+{% for k in kategorien %}
+<section class="kategorie" data-filter-gruppe>
+  <h2>{{ k.icon }} {{ k.name }}</h2>
+  <p class="leise">{{ k.text }}</p>
+  {% for g in k.gruppen %}
+  <div data-filter-gruppe>
+    <h3 class="unterkategorie">{{ g.name }}</h3>
+    <div class="liste">
+      {% for r in g.rechner %}
+      <a class="listen-eintrag" href="/rechner/{{ r.id }}/" data-filter-text="{{ r.titel }} {{ r.beschreibung }} {{ r.stichworte }} {{ g.name }}">
+        <span class="listen-titel">{{ r.titel }}</span>
+        <span class="listen-text">{{ r.beschreibung }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
   {% endfor %}
+</section>
+{% endfor %}
 </div>
 {% endblock %}

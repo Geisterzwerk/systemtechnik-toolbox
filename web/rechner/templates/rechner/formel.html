@@ -33,5 +33,6 @@
   {% endif %}
   {% if daten.formel %}<p class="formel">Formel: <code>{{ daten.formel }}</code></p>{% endif %}
 </section>
+<p class="melden-zeile"><a href="/rueckmeldung/?seite={{ request.get_full_path|urlencode }}">⚠ Rechnet etwas falsch? Fehler melden (deine Eingaben werden mitgeschickt)</a></p>
 {% if wissen %}<p><a class="chip" href="/{{ wissen.slug }}/{{ wissen.id }}/">📖 Zur Wissensseite: {{ wissen.titel }}</a></p>{% endif %}
 {% endblock %}

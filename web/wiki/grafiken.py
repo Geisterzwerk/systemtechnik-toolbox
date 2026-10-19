@@ -5,6 +5,7 @@
 #
 #   symbole(schluessel)             Schaltzeichen eines Steckbriefs (bauteile/grafiken/symbole.py)
 #   ist_schaltung(rechner_id)       interaktive Schaltung, die das Web zeichnen kann?
+#   alle_schaltungen()              IDs aller solchen Schaltungen
 #   schaltung(rechner_id, eingaben) alles für einen interaktiven Schaltplan: Varianten, Schalter,
 #                                   Regler (Text + Einheit + Slider), SVG hell/dunkel, Ergebnis
 #
@@ -68,6 +69,11 @@ def _modell_klasse(rechner_id):
 
 def ist_schaltung(rechner_id):
     return _modell_klasse(rechner_id) is not None
+
+
+def alle_schaltungen():
+    """IDs aller Schaltpläne, die das Web zeichnen kann."""
+    return [rid for rid in rechner_registry.registry() if ist_schaltung(rid)]
 
 
 def _html_zahl(zahl):

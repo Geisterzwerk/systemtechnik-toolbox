@@ -1,0 +1,47 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/wiki/templates/wiki/rueckmeldung.html - "Fehler melden / Idee"          #}
+{# POST mit CSRF-Schutz; das Feld "webseite" ist eine Falle für Bots (versteckt). #}
+{# Prüfen + Speichern: web/wiki/rueckmeldung.py                                 #}
+{# =========================================================================== #}
+{% block titel %}Fehler melden{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Fehler melden</nav>
+<h1>Fehler melden oder Idee teilen</h1>
+<p class="kurz">Stimmt eine Formel nicht, rechnet ein Rechner falsch oder fehlt dir etwas? Jede Rückmeldung hilft, SystemLab besser zu machen.</p>
+
+<section class="karte rechner">
+  {% if fehler %}<div class="ergebnis warn" role="alert">{% for f in fehler %}⚠ {{ f }}<br>{% endfor %}</div>{% endif %}
+  <form method="post" action="/rueckmeldung/" class="rechner-form rueckmeldung-form">
+    {% csrf_token %}
+    {% if m.seite %}
+      <p class="leise">Seite: <a href="{{ m.seite }}">{{ m.seite }}</a></p>
+      <input type="hidden" name="seite" value="{{ m.seite }}">
+    {% endif %}
+    <div class="feld">
+      <label for="art">Art</label>
+      <select id="art" name="art" required>
+        <option value="">bitte wählen …</option>
+        {% for a in arten %}<option {% if a == m.art %}selected{% endif %}>{{ a }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="feld feld-gross">
+      <label for="text">Was stimmt nicht? Was wünschst du dir?</label>
+      <textarea id="text" name="text" rows="6" maxlength="{{ max_text }}" required
+                placeholder="z.B. Beim Spannungsteiler mit 12 V, 10 kΩ, 4.7 kΩ kommt … heraus, richtig wäre …">{{ m.text }}</textarea>
+    </div>
+    <div class="feld">
+      <label for="kontakt">Kontakt (freiwillig)</label>
+      <input id="kontakt" type="text" name="kontakt" value="{{ m.kontakt }}" maxlength="200" autocomplete="email"
+             placeholder="E-Mail, falls du eine Antwort möchtest">
+    </div>
+    {# Falle für Bots: Menschen sehen dieses Feld nicht und lassen es leer #}
+    <div class="honigtopf" aria-hidden="true">
+      <label for="webseite">Webseite</label>
+      <input id="webseite" type="text" name="webseite" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="knoepfe"><button type="submit" class="knopf">Senden</button></div>
+    <p class="leise klein">Gespeichert werden nur Art, Text, Seite und – falls angegeben – dein Kontakt. Keine IP-Adresse.</p>
+  </form>
+</section>
+{% endblock %}

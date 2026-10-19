@@ -36,14 +36,24 @@ Windows fragt beim ersten Mal nach der Firewall: nur **private Netzwerke** erlau
 `runserver` ist ein Entwicklungsserver – für das eigene Netz in Ordnung, aber **nicht** fürs Internet
 (dafür Stufe 2, siehe unten).
 
+## Rückmeldungen der Testpersonen lesen
+
+Auf jeder Seite gibt es unten „Fehler melden · Idee teilen“ (bei Rechnern mit den eingegebenen Werten).
+Die Meldungen landen in `web/daten/rueckmeldungen.jsonl` – nur auf deinem PC, nie im Repo. Anzeigen:
+
+```bash
+python manage.py rueckmeldungen
+```
+
 ## Prüfen nach Änderungen
 
 ```bash
 python pruefen_web.py
 ```
 
-Ruft jede Seite einmal auf (alle Wissensseiten, jede Schaltung mit jeder Variante, alle Rechner, falsche
-Eingaben, Sicherheit) – ohne Browser. Ergebnis `0 Fehler` = alles gut.
+Ruft jede Seite einmal auf – ohne Browser: alle Wissensseiten, jede Schaltung mit jeder Variante, alle Rechner
+mit den 298 von Hand gerechneten Fällen aus `pruefung/rechner_faelle.py`, falsche Eingaben, Sicherheit
+(Escaping, CSRF, Bot-Falle, Sperre bei vielen Meldungen). Ergebnis `0 Fehler` = alles gut.
 
 ## Aufbau
 
@@ -63,16 +73,17 @@ web/
   static/                 systemlab.css, systemlab.js (Farben kommen aus config.py)
 ```
 
-**Neuer Rechner im Web?** In `systemlab_web/settings.py` die ID in `WEB_RECHNER` eintragen. Formel-Rechner
-funktionieren dann sofort, für alle anderen braucht es eine eigene Seite (Beispiel: Farbcode).
+**Neuer Rechner?** Formel-Rechner (`FormelDaten`) erscheinen im Web automatisch (`WEB_ALLE_FORMEL_RECHNER`).
+Rechner mit eigener Webseite stehen in `WEB_RECHNER_EXTRA` (Beispiel: Farbcode), die Startseite zeigt
+`WEB_RECHNER_EMPFOHLEN`.
 
 ## Wie es weitergeht
 
 | Stufe | Inhalt | Status |
 |---|---|---|
-| 1 | Lokal: Wiki, Suche, 5 Rechner, interaktive Schaltpläne, hell/dunkel, Handy | ✅ |
-| 2 | Online: Hosting + Domain, Benutzerkonten (Favoriten, Zuletzt, Notizen), Feedback-Formular, Impressum/Datenschutz | offen |
-| 3 | Abo: Prüfungsmodus, Lernkarten, Fortschritt – Bezahlung über Stripe, AGB | offen |
+| 1 | Lokal: Wiki, Suche, alle 121 Rechner, interaktive Schaltpläne, hell/dunkel, Handy, „Fehler melden“ | ✅ (Testphase) |
+| 2 | Online: Hosting + Domain, Sicherheits-Checkliste, Benutzerkonten (Favoriten, Zuletzt, Notizen), Impressum/Datenschutz | offen |
+| 3 | Abo: Übungsgenerator, Prüfungsmodus, Lernkarten, Fortschritt – Bezahlung über einen Merchant of Record, AGB | offen |
 
 Einstellungen für online (nie im Code, nur als Umgebungsvariable): `SYSTEMLAB_DEBUG=0`,
 `SYSTEMLAB_SECRET_KEY=<langer zufälliger Text>`, `SYSTEMLAB_HOSTS=meine-domain.ch`.

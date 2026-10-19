@@ -4,13 +4,13 @@
 {% block inhalt %}
 <section class="held">
   <h1>SystemLab</h1>
-  <p class="held-text">Technisches Wiki, Formeln und Rechner für <strong>Systemtechnik HF</strong>, Elektronik,
-    Automation und Programmierung – verständlich erklärt, mit Werten zum Nachrechnen.</p>
+  <p class="held-text">Technisches Wiki, Rechner und interaktive Schaltpläne für <strong>Lernende und Fachleute</strong>
+    in Elektronik, Automation und Systemtechnik – verständlich erklärt, mit Werten zum Nachrechnen.</p>
   <form class="suche-gross" action="/suche/" method="get" role="search">
     <input type="search" name="q" placeholder="z.B. Tiefpass, Pt100, NE555, chmod, while-Schleife" aria-label="In allen Bereichen suchen" autofocus>
     <button type="submit">Suchen</button>
   </form>
-  <p class="held-zahlen">{{ anzahl_seiten }} Wissensseiten · {{ web_rechner|length }} Rechner im Web · {{ anzahl_rechner }} in der Desktop-App</p>
+  <p class="held-zahlen">{{ anzahl_seiten }} Wissensseiten · {{ anzahl_web_rechner }} Rechner · {{ anzahl_schaltungen }} interaktive Schaltpläne</p>
 </section>
 
 <h2 class="abschnitt">Bereiche</h2>
@@ -25,7 +25,7 @@
   {% endfor %}
 </div>
 
-<h2 class="abschnitt">Rechner</h2>
+<h2 class="abschnitt">Beliebte Rechner</h2>
 <div class="kacheln">
   {% for r in web_rechner %}
   <a class="kachel" href="/rechner/{{ r.id }}/">
@@ -34,5 +34,10 @@
     <span class="kachel-text">{{ r.beschreibung }}</span>
   </a>
   {% endfor %}
+  <a class="kachel kachel-mehr" href="/rechner/">
+    <span class="kachel-icon">🧮</span>
+    <span class="kachel-titel">Alle {{ anzahl_web_rechner }} Rechner</span>
+    <span class="kachel-text">Nach Thema sortiert, mit Filter</span>
+  </a>
 </div>
 {% endblock %}

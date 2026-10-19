@@ -112,6 +112,8 @@
 </section>
 {% endif %}
 
+<p class="melden-zeile"><a href="/rueckmeldung/?seite={{ request.path|urlencode }}">⚠ Stimmt etwas nicht? Fehler auf dieser Seite melden</a></p>
+
 {% if siehe_auch %}
 <section class="siehe-auch"><h2>Siehe auch</h2>
   {% for v in siehe_auch %}<a class="chip" href="/{{ v.slug }}/{{ v.id }}/">{{ v.icon }} {{ v.titel }}</a>{% endfor %}

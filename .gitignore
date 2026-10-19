@@ -22,3 +22,6 @@ desktop.ini
 
 # Webversion: von "collectstatic" erzeugt (nur online gebraucht)
 web/staticfiles/
+
+# Webversion: Rückmeldungen der Testpersonen (lokal, nie ins Repo)
+web/daten/

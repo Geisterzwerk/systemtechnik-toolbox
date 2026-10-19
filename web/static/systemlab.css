@@ -73,6 +73,20 @@ h2 { color: var(--ueberschrift); }
 .kachel-zahlen { color: var(--akzent); font-size: 0.82rem; margin-top: auto; }
 
 .kategorie { margin-top: 26px; }
+.unterkategorie { font-size: 1rem; color: var(--text-leise); margin: 16px 0 8px; }
+.filter-feld { width: 100%; max-width: 520px; padding: 10px 14px; border-radius: 999px; border: 2px solid var(--akzent);
+  background: var(--flaeche); color: var(--text); font: inherit; margin: 6px 0 4px; }
+.kachel-mehr { border-style: dashed; justify-content: center; }
+.melden { color: var(--text-leise); }
+.melden-zeile { font-size: 0.9rem; margin: 18px 0 6px; }
+.melden-zeile a { color: var(--text-leise); }
+.honigtopf { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+textarea { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--rahmen);
+  background: var(--hintergrund); color: var(--text); font: inherit; resize: vertical; }
+.rueckmeldung-form .feld { grid-template-columns: minmax(130px, 220px) minmax(0, 1fr); }
+.rueckmeldung-form .feld-gross { grid-template-columns: 1fr; }
+.klein { font-size: 0.82rem; }
+[hidden] { display: none !important; }
 .liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; }
 .listen-eintrag { display: flex; flex-direction: column; padding: 12px 14px; background: var(--flaeche);
   border: 1px solid var(--rahmen); border-radius: 12px; color: var(--text); text-decoration: none; }

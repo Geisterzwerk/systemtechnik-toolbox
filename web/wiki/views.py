@@ -7,30 +7,32 @@
 #   suche(request)                      /suche/?q=tiefpass
 #   bereich(request, slug)              /schaltungen/
 #   thema(request, slug, thema_id)      /schaltungen/spannungsteiler/
+#   melden(request)                     /rueckmeldung/?seite=/rechner/rc_zeit/   "Fehler melden" (Formular)
 #   schaltung(request, rechner_id)      /schaltung/schaltung_ne555/   nur der Schaltplan-Block
 #                                       (das JavaScript holt ihn nach jeder Regler-Änderung neu)
 #
 # WER RUFT DAS AUF?  web/wiki/urls.py
 # =============================================================================
 
+from django.conf import settings
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from bauteile.rechner.rechner_info import RECHNER_INFO                 # -> bauteile/rechner/rechner_info.py
 from core.inhalte_index import gesamtindex                             # -> core/inhalte_index.py
 from programmieren.engine import syntax                                # -> programmieren/engine/syntax.py
 from rechner import formular                                           # -> web/rechner/formular.py
-from wiki import grafiken, inhalt                                      # -> web/wiki/grafiken.py, inhalt.py
+from wiki import grafiken, inhalt, rueckmeldung                        # -> web/wiki/grafiken.py, inhalt.py, rueckmeldung.py
 
 MAX_TREFFER = 30
 
 
 def startseite(request):
-    index = gesamtindex()
     return render(request, "wiki/startseite.html", {
-        "web_rechner": formular.web_rechner(),
+        "web_rechner": formular.web_rechner(settings.WEB_RECHNER_EMPFOHLEN),
+        "anzahl_web_rechner": len(formular.web_rechner_ids()),
+        "anzahl_schaltungen": len(grafiken.alle_schaltungen()),
         "anzahl_seiten": sum(b["seiten"] for b in inhalt.bereich_infos()),
-        "anzahl_rechner": index["anzahl_rechner"],
     })
 
 
@@ -114,3 +116,26 @@ def schaltung(request, rechner_id):
     if not grafiken.ist_schaltung(rechner_id):
         raise Http404("Diese Schaltung gibt es nicht")
     return render(request, "wiki/schaltung.html", {"s": grafiken.schaltung(rechner_id, request.GET)})
+
+
+def melden(request):
+    """GET: Formular zeigen.  POST: prüfen, speichern, weiter zur Danke-Seite (kein doppeltes Absenden bei F5)."""
+    if request.method == "POST":
+        if rueckmeldung.ist_bot(request.POST):
+            return redirect("rueckmeldung_danke")                # Bots merken nichts - gespeichert wird nichts
+        meldung, fehler = rueckmeldung.pruefen(request.POST)
+        if not fehler and rueckmeldung.zu_viele(request.META.get("REMOTE_ADDR", "")):
+            fehler = ["Zu viele Meldungen in kurzer Zeit – bitte später nochmals versuchen."]
+        if not fehler:
+            rueckmeldung.speichern(meldung)
+            return redirect("rueckmeldung_danke")
+        return render(request, "wiki/rueckmeldung.html", {"arten": rueckmeldung.ARTEN, "m": meldung,
+                                                           "fehler": fehler, "max_text": rueckmeldung.MAX_TEXT},
+                      status=400)
+    meldung = {"art": "", "text": "", "kontakt": "", "seite": rueckmeldung.eigene_seite(request.GET.get("seite", ""))}
+    return render(request, "wiki/rueckmeldung.html", {"arten": rueckmeldung.ARTEN, "m": meldung, "fehler": [],
+                                                       "max_text": rueckmeldung.MAX_TEXT})
+
+
+def melden_danke(request):
+    return render(request, "wiki/rueckmeldung_danke.html")

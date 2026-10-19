@@ -7,6 +7,7 @@
    4) Interaktive Schaltpläne    Slider <-> Zahlenfeld, nach jeder Änderung nur den Plan neu holen
                                  (/schaltung/<id>/?...  -> web/wiki/views.py schaltung)
    5) Formulare mit data-sofort  schicken sich bei jeder Auswahl selbst ab (Farbcode-Rechner)
+   6) Filterfeld                 blendet in der Rechner-Übersicht nicht passende Rechner aus
    ============================================================================= */
 (function () {
   "use strict";
@@ -129,6 +130,29 @@
     });
   }
   document.querySelectorAll("[data-schaltung]").forEach(schaltungVorbereiten);
+
+  // ---- 6) Filterfeld (Rechner-Übersicht) --------------------------------------
+  //   <input data-filter="#liste">  Einträge mit data-filter-text; Gruppen mit data-filter-gruppe
+  //   verschwinden, wenn nichts darin passt. Alle Wörter müssen vorkommen (Gross/klein egal).
+  document.querySelectorAll("[data-filter]").forEach(function (feld) {
+    var liste = document.querySelector(feld.dataset.filter);
+    var leer = document.querySelector("[data-filter-leer]");
+    if (!liste) return;
+    feld.addEventListener("input", function () {
+      var woerter = feld.value.toLowerCase().split(/\s+/).filter(Boolean);
+      var treffer = 0;
+      liste.querySelectorAll("[data-filter-text]").forEach(function (e) {
+        var text = e.dataset.filterText.toLowerCase();
+        var passt = woerter.every(function (w) { return text.indexOf(w) >= 0; });
+        e.hidden = !passt;
+        if (passt) treffer++;
+      });
+      liste.querySelectorAll("[data-filter-gruppe]").forEach(function (g) {
+        g.hidden = !g.querySelector("[data-filter-text]:not([hidden])");
+      });
+      if (leer) leer.hidden = treffer > 0;
+    });
+  });
 
   // ---- 5) Formulare, die sich selbst abschicken -------------------------------
   document.querySelectorAll("form[data-sofort]").forEach(function (form) {
