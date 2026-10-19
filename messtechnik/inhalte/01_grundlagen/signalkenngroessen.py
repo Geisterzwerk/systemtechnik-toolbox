@@ -1,7 +1,7 @@
 # Thema: Effektivwert, Mittelwert & Co.  (Messtechnik / Grundlagen)
 THEMA = {
     "titel": "Effektivwert, Mittelwert & Co.",
-    "reihenfolge": 2,
+    "reihenfolge": 6,
     "kurz": "Was ein Multimeter bei Wechselgrössen eigentlich anzeigt – und warum „True RMS“ wichtig ist.",
     "stichworte": ["effektivwert", "rms", "true rms", "trms", "mittelwert", "gleichrichtwert", "scheitelwert",
                    "spitzenwert", "spitze-spitze", "crestfaktor", "scheitelfaktor", "formfaktor", "sinus",
@@ -61,7 +61,7 @@ Schrüfer, *Elektrische Messtechnik*: Kapitel 2.1.3 (Messung von Wechselstrom un
         "Mischspannung im AC-Bereich gemessen – der Gleichanteil fehlt.",
         "Scheitelwert und Effektivwert verwechselt (Faktor 1.41 beim Sinus).",
     ],
-    "siehe_auch": ["multimeter", "oszilloskop", "messunsicherheit"],
+    "siehe_auch": ["signalformen", "multimeter", "oszilloskop", "messunsicherheit"],
 
     "rechner": ["signalform"],
 }

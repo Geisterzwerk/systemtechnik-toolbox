@@ -1042,6 +1042,26 @@ RECHNER_INFO = {
         "beschreibung": "LSB, Quantisierungsfehler, Signal-Rausch-Abstand und digitaler Code.",
         "stichworte": ["ADC", "AD-Wandler", "LSB", "Auflösung", "Quantisierung", "Bit"],
         "wissensseite": "ad_wandler"},
+    "fourier_synthese": {
+        "titel": "Signalformen aus Sinus (interaktiv)", "kategorie": "Messtechnik", "unterkategorie": "Signale",
+        "beschreibung": "Rechteck, Dreieck und Sägezahn aus Grund- und Oberschwingungen aufbauen, mit Spektrum.",
+        "stichworte": ["Fourier", "Fourier-Synthese", "Oberschwingung", "Harmonische", "Spektrum", "Rechteck",
+                       "Dreieck", "Sägezahn", "Gibbs"],
+        "wissensseite": "signalformen"},
+    "messkette_pt100": {
+        "titel": "Messkette Temperatur → 4…20 mA (interaktiv)", "kategorie": "Messtechnik",
+        "unterkategorie": "Messgeräte",
+        "beschreibung": "Aufnehmer, Messumformer, Ausgeber: die Werte an jedem Glied einer Pt100-Messkette.",
+        "stichworte": ["Messkette", "Messeinrichtung", "Aufnehmer", "Messumformer", "Ausgeber", "4-20 mA",
+                       "Einheitssignal", "Linearisierung"],
+        "wissensseite": "messkette"},
+    "messreihe": {
+        "titel": "Messreihe: systematisch und zufällig (interaktiv)", "kategorie": "Messtechnik",
+        "unterkategorie": "Messunsicherheit",
+        "beschreibung": "Wie systematische und zufällige Abweichungen eine Messreihe verändern – mit Histogramm.",
+        "stichworte": ["Messabweichung", "Messfehler", "systematisch", "zufällig", "grober Fehler", "Ausreisser",
+                       "Normalverteilung", "Histogramm"],
+        "wissensseite": "messabweichungen"},
     "abtastung": {
         "titel": "Abtasttheorem & Aliasing (interaktiv)", "kategorie": "Digitaltechnik", "unterkategorie": "AD-Wandler",
         "beschreibung": "Was passiert, wenn zu langsam abgetastet wird?",

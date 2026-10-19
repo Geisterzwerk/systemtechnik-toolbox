@@ -70,7 +70,7 @@ from bauteile.rechner.kern import GrafikVerweis
 from bauteile.grafiken.svg_canvas import schaltung_svg
 svgs = 0
 for rid, eintrag in r.registry().items():          # jede Schaltung (Modell ohne Fenster) als SVG zeichnen
-    if isinstance(eintrag, GrafikVerweis) and eintrag.modul.startswith("schaltungen."):
+    if isinstance(eintrag, GrafikVerweis) and eintrag.modul.startswith(r.MODULE_OHNE_FENSTER):
         klasse = eintrag.klasse()
         for v in klasse.VARIANTEN or [None]:
             for dunkel in (False, True):

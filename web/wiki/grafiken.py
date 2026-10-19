@@ -65,8 +65,8 @@ def symbole(schluessel):
 # =============================================================================
 def _modell_klasse(rechner_id):
     eintrag = rechner_registry.registry().get(rechner_id)
-    # nur schaltungen/grafiken*.py: diese Dateien laden kein tkinter (Webserver hat keins)
-    if not isinstance(eintrag, GrafikVerweis) or not eintrag.modul.startswith("schaltungen."):
+    # nur Module ohne tkinter (Webserver hat keins) -> bauteile/rechner/__init__.py MODULE_OHNE_FENSTER
+    if not isinstance(eintrag, GrafikVerweis) or not eintrag.modul.startswith(rechner_registry.MODULE_OHNE_FENSTER):
         return None
     klasse = eintrag.klasse()
     return klasse if isinstance(klasse, type) and issubclass(klasse, SchaltungsModell) else None

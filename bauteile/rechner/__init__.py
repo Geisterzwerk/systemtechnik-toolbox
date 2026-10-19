@@ -52,6 +52,10 @@ _MODULE = [
     "digitaltechnik.rechner",                  # -> digitaltechnik/rechner.py
 ]
 
+# Grafik-Module OHNE tkinter (SchaltungsModell): Diese zeichnet auch die Webversion als SVG.
+# Neues Modul mit SchaltungsModell-Klassen? Hier eintragen (nie ein Modul, das customtkinter lädt!).
+MODULE_OHNE_FENSTER = ("schaltungen.", "messtechnik.grafiken_signale")
+
 _REGISTRY = {}
 _SPERRE = threading.Lock()                    # nur ein Thread baut die Liste auf (Webversion)
 

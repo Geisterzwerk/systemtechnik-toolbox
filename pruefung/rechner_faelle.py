@@ -22,6 +22,8 @@
 # WER RUFT DAS AUF?  pruefen_rechner.py (im Projektordner)
 # =============================================================================
 
+import math
+
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile.rechner.widerstand_rechner import (farbcode_zeilen, farben_zu_wert, smd_entschluesseln,
@@ -32,6 +34,7 @@ from schaltungen import schnittstellen_mathe as snt, oszillator_mathe as osz, en
 from digitaltechnik import logik_mathe as lm, pegel_mathe as pm, zahlen_mathe as zm
 from digitaltechnik import schaltnetze_mathe as snm, schaltwerke_mathe as swm, busse_mathe as bm
 from schaltungen import verstaerker_mathe as vm
+from messtechnik import grundlagen_mathe as gmm, signal_mathe as sgm                # Messtechnik-Grundlagen
 
 
 def fehler(text):
@@ -656,6 +659,35 @@ FAELLE = [
 # REINE FUNKTIONEN
 # =============================================================================
 FUNKTIONEN = [
+    # ---- Messtechnik: Fourier-Synthese (Formeln: Wikipedia „Fourierreihe“) ----
+    ("Fourier Rechteck: Grundschwingung 4/π", lambda: sgm.glieder("Rechteck", 3)[0][1], 4 / math.pi),
+    ("Fourier Rechteck: nur ungerade, Amplitude 1/k", lambda: [k for k, _a in sgm.glieder("Rechteck", 3)], [1, 3, 5]),
+    ("Fourier Rechteck: 3. Harmonische = 4/(3π)", lambda: sgm.glieder("Rechteck", 2)[1][1], 4 / (3 * math.pi)),
+    ("Fourier Dreieck: 8/π², 3. Harmonische −8/(9π²)", lambda: [a for _k, a in sgm.glieder("Dreieck", 2)],
+     [8 / math.pi ** 2, -8 / (9 * math.pi ** 2)]),
+    ("Fourier Sägezahn: alle k, wechselndes Vorzeichen", lambda: [a for _k, a in sgm.glieder("Sägezahn", 3)],
+     [2 / math.pi, -1 / math.pi, 2 / (3 * math.pi)]),
+    ("Fourier Rechteck 200 Glieder bei ωt = π/2 ≈ 1", lambda: round(sgm.summe("Rechteck", 200, math.pi / 2), 2), 1.0),
+    ("Fourier Dreieck 200 Glieder bei ωt = π/2 ≈ 1", lambda: round(sgm.summe("Dreieck", 200, math.pi / 2), 2), 1.0),
+    ("Fourier Sägezahn 200 Glieder bei ωt = π/2 = 0.5", lambda: round(sgm.summe("Sägezahn", 200, math.pi / 2), 2), 0.5),
+    ("Gibbs: Spitze ≈ 1.179 (≈ 9 % der Sprunghöhe)", lambda: round(sgm.ueberschwinger(100), 3), 1.179),
+    ("Fourier: unbekannte Form", lambda: sgm.glieder("Kreis", 3), wirft(ValueError)),
+    # ---- Messtechnik: Messkette Pt100 -> 4…20 mA (Beispiel DIN 1319, Wikipedia „Messeinrichtung“) ----
+    ("Messkette 250 °C: Pt100 194.1 Ω", lambda: round(gmm.kette(250)["r"], 1), 194.1),
+    ("Messkette 250 °C: 60 mV, 20 mA", lambda: (round(gmm.kette(250)["u"], 6), round(gmm.kette(250)["i"], 6)), (0.06, 0.02)),
+    ("Messkette 0 °C: 4 mA (Live Zero)", lambda: gmm.kette(0)["i"], 0.004),
+    ("Messkette 100 °C: Pt100 138.51 Ω (IEC 60751)", lambda: round(gmm.kette(100)["r"], 2), 138.51),
+    ("Messkette 125 °C ohne Linearisierung: Anzeige 127.4 °C", lambda: round(gmm.kette(125)["anzeige"], 1), 127.4),
+    ("Messkette 125 °C linearisiert: Anzeige 125 °C", lambda: round(gmm.kette(125, True)["anzeige"], 6), 125.0),
+    ("Messkette ausserhalb 0…250 °C", lambda: gmm.kette(300), wirft(ValueError)),
+    # ---- Messtechnik: Messreihe ----
+    ("Messreihe ohne Streuung: Mittel = wahr + syst", lambda: gmm.auswerten(gmm.messreihe(5.0, 0.03, 0.0, 10))["mittel"], 5.03),
+    ("Messreihe ohne Streuung: s = 0", lambda: gmm.auswerten(gmm.messreihe(5.0, 0.03, 0.0, 10))["s"], 0.0),
+    ("Messreihe: immer dieselben Werte (feste Saat)", lambda: gmm.messreihe(5.0, 0.0, 0.02, 5) == gmm.messreihe(5.0, 0.0, 0.02, 5), True),
+    ("Messreihe Ausreisser ohne Streuung: 2 % daneben", lambda: max(gmm.messreihe(5.0, 0.0, 0.0, 9, True)), 5.1),
+    ("Messreihe Ausreisser: 8·s daneben", lambda: max(gmm.messreihe(5.0, 0.0, 0.05, 9, True)) - 5.0, 0.4),
+    ("Auswerten: s/√n", lambda: gmm.auswerten([1.0, 2.0, 3.0, 4.0])["s_mittel"], math.sqrt(5 / 3) / 2),
+
     # ---- Farbcode / SMD (Widerstand) ----
     ("Farbcode 4.7 kΩ, 4 Ringe", lambda: wert_zu_farben(4700, 4, "Gold")[0], ["Gelb", "Violett", "Rot", "Gold"]),
     ("Farbcode 4.65 kΩ rundet kaufmännisch auf 4.7 kΩ", lambda: wert_zu_farben(4650, 4, "Gold")[1], 4700),

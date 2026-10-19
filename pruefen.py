@@ -42,7 +42,8 @@ for pfad in ["bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rech
              "schaltungen/grafiken_oszillator.py", "schaltungen/endstufen_mathe.py", "schaltungen/grafiken_endstufen.py",
              "core/benutzerdaten.py", "gui/gesamtsuche.py", "bauteile/rechner/kern.py", "bauteile/grafiken/farbcode_karten.py",
              "bauteile/grafiken/schaltung_karte.py", "bauteile/grafiken/svg_canvas.py",
-             "core/inhalte_index.py", "bauteile/grafiken/widerstand_bild.py", "bauteile/grafiken/trafo_modell.py", "web/manage.py", "web/pruefen_web.py", "gui/startseite_banner.py"]:
+             "core/inhalte_index.py", "bauteile/grafiken/widerstand_bild.py", "bauteile/grafiken/trafo_modell.py", "messtechnik/signal_mathe.py",
+             "messtechnik/grundlagen_mathe.py", "messtechnik/grafiken_signale.py", "web/manage.py", "web/pruefen_web.py", "gui/startseite_banner.py"]:
     alles &= check(pfad, os.path.exists(os.path.join(basis, pfad)))
 doppelt = os.path.join(basis, "SystemtechnikToolbox")
 if os.path.isdir(doppelt):

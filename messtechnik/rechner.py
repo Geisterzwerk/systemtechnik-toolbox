@@ -561,4 +561,8 @@ RECHNER = {
     "signalform": signalform, "messbereich": messbereich, "belastung_u": belastung_u, "buerde_i": buerde_i,
     "oszi": oszi, "pt100": pt100, "ntc": ntc, "thermoelement": thermoelement, "bruecke": bruecke,
     "dms": dms, "adc": adc, "mid": mid, "abtastung": GrafikVerweis("messtechnik.grafiken", "AbtastGrafik"),
+    # interaktive Grafiken der Grundlagen (ohne Fenster -> auch im Web) -> messtechnik/grafiken_signale.py
+    "fourier_synthese": GrafikVerweis("messtechnik.grafiken_signale", "FourierSynthese"),
+    "messkette_pt100": GrafikVerweis("messtechnik.grafiken_signale", "MesskettePt100"),
+    "messreihe": GrafikVerweis("messtechnik.grafiken_signale", "Messreihe"),
 }

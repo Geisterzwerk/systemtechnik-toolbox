@@ -1,7 +1,8 @@
-# Thema: Messfehler & Messunsicherheit  (Messtechnik / Grundlagen)
+# Thema: Messunsicherheit & Auswertung  (Messtechnik / Grundlagen)
+# Die Arten von Messabweichungen ausführlich: messabweichungen.py
 THEMA = {
-    "titel": "Messfehler & Messunsicherheit",
-    "reihenfolge": 1,
+    "titel": "Messunsicherheit & Auswertung",
+    "reihenfolge": 4,
     "kurz": "Kein Messwert ist exakt. Wie gross der Fehler ist, und wie man ihn angibt, rechnet und klein hält.",
     "stichworte": ["messfehler", "messunsicherheit", "fehler", "systematisch", "zufällig", "mittelwert",
                    "standardabweichung", "streuung", "student", "t-verteilung", "vertrauensbereich",
@@ -23,6 +24,7 @@ THEMA = {
 ## Warum ist kein Messwert exakt?
 Jede Messung beeinflusst das Messobjekt und hat ein unvollkommenes Messgerät. Der „wahre Wert“ ist deshalb nie genau bekannt – man gibt an, **in welchem Bereich** er mit welcher Wahrscheinlichkeit liegt: das ist die **Messunsicherheit**.
 ## Die zwei Arten von Fehlern
+Ausführlich mit allen Arten, Ursachen und einer interaktiven Messreihe: Seite **Messabweichungen (Messfehler)**.
 - **Systematische Fehler** haben immer dieselbe Richtung und Grösse: falsch kalibriertes Gerät, Belastung durch den Innenwiderstand, Leitungswiderstand, Temperatureinfluss. Sind sie **bekannt**, rechnet man sie heraus (Korrektur). Sind sie **unbekannt**, gehen sie als Grenzwert in die Unsicherheit ein (z.B. Genauigkeitsangabe des Multimeters).
 - **Zufällige Fehler** streuen: Rauschen, Ablesen, kleine Schwankungen. Misst man mehrmals, verteilen sich die Werte meist wie eine **Glockenkurve** (Normalverteilung) um den Mittelwert.
 ## Mehrere Messungen auswerten
@@ -72,7 +74,7 @@ Schrüfer, *Elektrische Messtechnik*: Kapitel 1.4 (Messfehler und Messunsicherhe
         "Bei wenigen Messungen mit 1.96 statt mit dem Student-Faktor gerechnet.",
         "Relative Fehler bei einer Summe addiert (dort addieren sich die absoluten).",
     ],
-    "siehe_auch": ["multimeter", "signalkenngroessen"],
+    "siehe_auch": ["messabweichungen", "begriffe", "multimeter", "signalkenngroessen"],
 
     "rechner": ["statistik", "dmm_genauigkeit", "fehlerfortpflanzung"],
 }
