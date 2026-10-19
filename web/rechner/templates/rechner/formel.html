@@ -1,0 +1,37 @@
+{% extends "basis.html" %}
+{# web/rechner/templates/rechner/formel.html - Formel-Rechner: Felder + Einheit, Berechnen, Ergebnis, Formel #}
+{% load systemlab %}
+{% block titel %}{{ info.titel }}{% endblock %}
+{% block beschreibung %}{{ info.beschreibung }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/rechner/">Rechner</a> › {{ info.titel }}</nav>
+<h1>{{ info.titel }}</h1>
+<p class="kurz">{{ daten.untertitel|default:info.beschreibung }}</p>
+
+<section class="karte rechner">
+  <form method="get" class="rechner-form">
+    {% for f in r.felder %}
+    <div class="feld">
+      <label for="f-{{ f.name }}">{{ f.text }}</label>
+      {% if f.optionen %}
+        <select id="f-{{ f.name }}" name="{{ f.name }}">{% for o in f.optionen %}<option {% if o == f.wert %}selected{% endif %}>{{ o }}</option>{% endfor %}</select>
+      {% else %}
+        <input id="f-{{ f.name }}" type="text" name="{{ f.name }}" value="{{ f.wert }}" placeholder="{{ f.platzhalter }}" inputmode="decimal" autocomplete="off">
+        {% if f.einheiten|length > 1 %}
+          <select name="{{ f.name }}-e" aria-label="Einheit {{ f.text }}">{% for ein in f.einheiten %}<option {% if ein == f.einheit %}selected{% endif %}>{{ ein }}</option>{% endfor %}</select>
+        {% elif f.einheiten %}<span class="einheit">{{ f.einheit }}</span>{% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+    <div class="knoepfe">
+      <button type="submit" name="rechnen" value="1" class="knopf">Berechnen</button>
+      <a class="knopf leer" href="/rechner/{{ id }}/">Leeren</a>
+    </div>
+  </form>
+  {% if r.ergebnis %}
+    {% if r.ok %}<pre class="ergebnis">{{ r.ergebnis }}</pre>{% else %}<p class="ergebnis warn">⚠ {{ r.ergebnis }}</p>{% endif %}
+  {% endif %}
+  {% if daten.formel %}<p class="formel">Formel: <code>{{ daten.formel }}</code></p>{% endif %}
+</section>
+{% if wissen %}<p><a class="chip" href="/{{ wissen.slug }}/{{ wissen.id }}/">📖 Zur Wissensseite: {{ wissen.titel }}</a></p>{% endif %}
+{% endblock %}

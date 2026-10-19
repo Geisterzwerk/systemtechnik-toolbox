@@ -1,0 +1,19 @@
+{% extends "basis.html" %}
+{# web/rechner/templates/rechner/liste.html - alle Rechner, die im Web schon freigeschaltet sind #}
+{% block titel %}Rechner{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Rechner</nav>
+<h1>🧮 Rechner</h1>
+<p class="leise">Eingaben wie im Datenblatt: <code>4k7</code>, <code>2.2M</code>, <code>470n</code>, <code>4R7</code> – die Einheit daneben wählen.
+  Weitere Rechner gibt es bisher in der Desktop-App.</p>
+<div class="kacheln">
+  {% for r in rechner %}
+  <a class="kachel" href="/rechner/{{ r.id }}/">
+    <span class="kachel-icon">{{ r.icon }}</span>
+    <span class="kachel-titel">{{ r.titel }}</span>
+    <span class="kachel-text">{{ r.beschreibung }}</span>
+    <span class="kachel-zahlen">{{ r.kategorie }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

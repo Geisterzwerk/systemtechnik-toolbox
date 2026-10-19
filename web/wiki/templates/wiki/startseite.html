@@ -1,0 +1,38 @@
+{% extends "basis.html" %}
+{# web/wiki/templates/wiki/startseite.html - Startseite: Erklärung, grosse Suche, Bereiche, Rechner #}
+{% block titel %}Start{% endblock %}
+{% block inhalt %}
+<section class="held">
+  <h1>SystemLab</h1>
+  <p class="held-text">Technisches Wiki, Formeln und Rechner für <strong>Systemtechnik HF</strong>, Elektronik,
+    Automation und Programmierung – verständlich erklärt, mit Werten zum Nachrechnen.</p>
+  <form class="suche-gross" action="/suche/" method="get" role="search">
+    <input type="search" name="q" placeholder="z.B. Tiefpass, Pt100, NE555, chmod, while-Schleife" aria-label="In allen Bereichen suchen" autofocus>
+    <button type="submit">Suchen</button>
+  </form>
+  <p class="held-zahlen">{{ anzahl_seiten }} Wissensseiten · {{ web_rechner|length }} Rechner im Web · {{ anzahl_rechner }} in der Desktop-App</p>
+</section>
+
+<h2 class="abschnitt">Bereiche</h2>
+<div class="kacheln">
+  {% for b in bereiche_nav %}
+  <a class="kachel" href="/{{ b.slug }}/">
+    <span class="kachel-icon">{{ b.icon }}</span>
+    <span class="kachel-titel">{{ b.name }}</span>
+    <span class="kachel-text">{{ b.text }}</span>
+    <span class="kachel-zahlen">{{ b.seiten }} Seiten{% if b.simulationen %} · {{ b.simulationen }} interaktiv{% endif %}{% if b.befehle %} · {{ b.befehle }} Befehle{% endif %}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<h2 class="abschnitt">Rechner</h2>
+<div class="kacheln">
+  {% for r in web_rechner %}
+  <a class="kachel" href="/rechner/{{ r.id }}/">
+    <span class="kachel-icon">{{ r.icon }}</span>
+    <span class="kachel-titel">{{ r.titel }}</span>
+    <span class="kachel-text">{{ r.beschreibung }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

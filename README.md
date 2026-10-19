@@ -815,6 +815,8 @@ schaltungen/netzwerk_mathe.py  Rechnung Teiler, Pull-up, Poti, Brücke (ohne GUI
 pruefen.py                  prüft, ob alle wichtigen Dateien vorhanden sind
 pruefen_rechner.py          prüft alle Rechner: bekannte Werte, Grenzfälle, Verweise (-v, --gui)
 pruefung/rechner_faelle.py  Beispielwerte (von Hand gerechnet) für pruefen_rechner.py
+web/                        Webversion (Django) - Start und Aufbau: web/README.md
+core/inhalte_index.py       Index + Suche über alle Inhalte, ohne Fenster (Desktop-Startseite UND Web)
 ```
 
 ---
@@ -966,8 +968,9 @@ Gemeinsame Bausteine zuerst, weil jede Seite davon profitiert. Jeder Schritt wir
 | 12 | Priorität 3 abgeschlossen: Busabschluss RS-485/CAN (Reflexionen auf der Leitung als Bounce-Rechnung, Split-Abschluss, Fail-safe-Vorspannung) und VCO-Grundprinzip (Integrator + Schmitt-Trigger, Kennlinie f über U_st); 2 Seiten, 2 interaktive Pläne, 2 Rechner | ✅ erledigt |
 | W1 | Webversion vorbereiten: Rechner-Kern ohne Oberfläche (`bauteile/rechner/kern.py`): 120 Formel-Rechner als `FormelDaten`, 78 interaktive Grafiken als `GrafikVerweis` (Klasse erst beim Öffnen geladen); Farbcode-/SMD-Karten nach `bauteile/grafiken/farbcode_karten.py`; `pruefen_rechner.py` Teil 0 lädt alle Rechner in einem Python ohne tkinter | ✅ erledigt |
 | W2 | Schaltungen ohne Fenster zeichnen: `SchaltungsModell` (rechnen + zeichnen, kein tkinter) in `schaltplan.py`, Fenster-Karte in `schaltung_karte.py`, `SvgCanvas` + `schaltung_svg()` in `bauteile/grafiken/svg_canvas.py` – derselbe Zeichencode erzeugt SVG für den Browser; Teil 0 der Prüfung zeichnet alle 210 Varianten als SVG | ✅ erledigt |
-| W3 | Django-Grundgerüst in `web/`: Startseite, Wiki, Suche, 5 Rechner | offen |
-| W4 | Mobile Ansicht, Feedback, Hosting | offen |
+| W3 | Webversion Stufe 1 in `web/` (Django, Anleitung: `web/README.md`): Startseite, alle Wissensseiten aller Bereiche (Steckbrief mit Schaltzeichen als SVG, Tabellen, Code mit Syntaxfarben und Reitern, Befehle mit Gefahr-Hinweis), Suche über alles (`core/inhalte_index.py`, gleiche Suchmaschine wie die Desktop-App), 5 Rechner (Ohm, Spannungsteiler, Farbcode ↔ Wert, RC-Zeiten, Multimeter-Genauigkeit), 49 interaktive Schaltpläne mit Slider/Zahlenfeld/Einheit, hell/dunkel, Handy-Ansicht; Farben aus `config.py`; Prüfskript `web/pruefen_web.py` | ✅ erledigt |
+| W4 | Stufe 2: Hosting + Domain, Benutzerkonten (Favoriten, Zuletzt, Notizen), Feedback-Formular, Impressum/Datenschutz | offen |
+| W5 | Stufe 3: Abo (Prüfungsmodus, Lernkarten, Fortschritt), Stripe, AGB | offen |
 
 ### Schritt 5: Was das Prüfskript gefunden hat (behoben)
 

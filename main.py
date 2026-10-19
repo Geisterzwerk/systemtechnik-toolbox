@@ -36,6 +36,7 @@ import customtkinter as ctk
 
 import config                                   # -> config.py
 from core import benutzerdaten                  # -> core/benutzerdaten.py (Zuletzt geöffnet, Favoriten)
+from core.inhalte_index import BEREICH_ICON, BEREICH_TEXT    # -> core/inhalte_index.py
 from gui import (bauteile_gui, digitaltechnik_gui, messtechnik_gui,               # -> Ordner gui/
                  programmieren_gui, rechner_gui, schaltungen_gui, server_gui, startseite_gui)
 
@@ -43,15 +44,16 @@ ctk.set_appearance_mode("Dark")        # "Dark", "Light" oder "System"
 ctk.set_default_color_theme("blue")
 
 # (Name, Datei mit create(), Icon, Beschreibung) -> neue Zeile = neuer Bereich
-BEREICHE = [
-    ("Bauteile",      bauteile_gui,      "🔧", "Widerstand, Kondensator, Diode, Spule, ..."),
-    ("Schaltungen",   schaltungen_gui,   "🔌", "Von Spannungsteiler bis Endstufe – mit interaktiven Schaltplänen"),
-    ("Digitaltechnik", digitaltechnik_gui, "💾", "Zahlen, Logik, Schaltnetze, Schaltwerke, Busse und Speicher"),
-    ("Rechner",       rechner_gui,       "🧮", "Alle Rechner an einem Ort – Suche, nach Thema oder A–Z"),
-    ("Programmieren", programmieren_gui, "💻", "Python, C++ und C# nachschlagen - mit Suche"),
-    ("Messtechnik",   messtechnik_gui,   "📏", "Messgeräte, Messfehler, Sensoren, AD-Wandler"),
-    ("Server / Linux", server_gui,       "🐧", "Ubuntu Server per Konsole: Befehle, sudo, Dienste, Netzwerk, Sicherheit"),
-]
+# Icon und Beschreibung stehen in core/inhalte_index.py (die Webversion braucht sie auch)
+BEREICHE = [(name, modul, BEREICH_ICON[name], BEREICH_TEXT[name]) for name, modul in [
+    ("Bauteile", bauteile_gui),
+    ("Schaltungen", schaltungen_gui),
+    ("Digitaltechnik", digitaltechnik_gui),
+    ("Rechner", rechner_gui),
+    ("Programmieren", programmieren_gui),
+    ("Messtechnik", messtechnik_gui),
+    ("Server / Linux", server_gui),
+]]
 
 
 class App(ctk.CTk):

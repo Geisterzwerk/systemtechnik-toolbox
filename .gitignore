@@ -19,3 +19,6 @@ benutzerdaten.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Webversion: von "collectstatic" erzeugt (nur online gebraucht)
+web/staticfiles/

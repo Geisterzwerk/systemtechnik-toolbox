@@ -1,0 +1,63 @@
+{% load static %}<!doctype html>
+{# =========================================================================== #}
+{# web/templates/basis.html - Grundgerüst JEDER Seite: Kopf mit Navigation,     #}
+{# Suche und Hell/Dunkel-Knopf, darunter {% block inhalt %} der einzelnen Seite #}
+{# Farben kommen aus config.py (web/wiki/kontext.py) - nie doppelt im CSS.       #}
+{# =========================================================================== #}
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titel %}SystemLab{% endblock %} · SystemLab</title>
+<meta name="description" content="{% block beschreibung %}Technisches Wiki, Formeln und Rechner für Systemtechnik, Elektronik und Programmierung.{% endblock %}">
+<style>
+:root {
+{% for f in farben %}  --{{ f.name }}: {{ f.hell }};
+{% endfor %}{% for f in syntax %}  --c-{{ f.name }}: {{ f.hell }};
+{% endfor %}  --code-bg: {{ code_farben.Light.code_bg }};
+  --ueberschrift: {{ code_farben.Light.ueberschrift }};
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-modus="hell"]) {
+{% for f in farben %}    --{{ f.name }}: {{ f.dunkel }};
+{% endfor %}{% for f in syntax %}    --c-{{ f.name }}: {{ f.dunkel }};
+{% endfor %}    --code-bg: {{ code_farben.Dark.code_bg }};
+    --ueberschrift: {{ code_farben.Dark.ueberschrift }};
+  }
+}
+:root[data-modus="dunkel"] {
+{% for f in farben %}  --{{ f.name }}: {{ f.dunkel }};
+{% endfor %}{% for f in syntax %}  --c-{{ f.name }}: {{ f.dunkel }};
+{% endfor %}  --code-bg: {{ code_farben.Dark.code_bg }};
+  --ueberschrift: {{ code_farben.Dark.ueberschrift }};
+}
+</style>
+<link rel="stylesheet" href="{% static 'systemlab.css' %}">
+<script>
+  /* gewählten Modus VOR dem Zeichnen setzen (kein Aufblitzen). Ohne gespeicherte Wahl: wie das System. */
+  try { var m = localStorage.getItem("systemlab-modus"); if (m) document.documentElement.dataset.modus = m; } catch (e) {}
+</script>
+</head>
+<body>
+<header class="kopf">
+  <div class="kopf-innen">
+    <a class="logo" href="/">⚡ SystemLab</a>
+    <form class="suche-kopf" action="/suche/" method="get" role="search">
+      <input type="search" name="q" placeholder="Suchen … (Ctrl+K)" value="{{ anfrage|default:'' }}" aria-label="Suchen" id="suchfeld">
+    </form>
+    <button class="modus-knopf" type="button" id="modus-knopf" aria-label="Hell oder dunkel">◐</button>
+  </div>
+  <nav class="navi" aria-label="Bereiche">
+    {% for b in bereiche_nav %}<a href="/{{ b.slug }}/" {% if bereich.slug == b.slug %}aria-current="page"{% endif %}>{{ b.icon }} {{ b.name }}</a>{% endfor %}
+    <a href="/rechner/" {% if request.path|slice:":9" == "/rechner/" %}aria-current="page"{% endif %}>🧮 Rechner</a>
+  </nav>
+</header>
+<main class="haupt">
+{% block inhalt %}{% endblock %}
+</main>
+<footer class="fuss">
+  SystemLab · Lern- und Werkzeugplattform für technische Ausbildungen · Angaben ohne Gewähr – im Zweifel Datenblatt und Norm prüfen.
+</footer>
+<script src="{% static 'systemlab.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{% extends "basis.html" %}
+{# web/rechner/templates/rechner/farbcode.html - Farbringe -> Wert und Wert -> Farbringe, mit Zeichnung #}
+{% load systemlab %}
+{% block titel %}{{ info.titel }}{% endblock %}
+{% block beschreibung %}{{ info.beschreibung }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/rechner/">Rechner</a> › {{ info.titel }}</nav>
+<h1>{{ info.titel }}</h1>
+<p class="kurz">{{ info.beschreibung }}</p>
+
+<div class="zwei-spalten">
+<section class="karte rechner">
+  <h2 class="karte-titel">Farbringe → Wert</h2>
+  <form method="get" class="rechner-form" data-sofort>
+    {# zuerst das versteckte Feld: ein gedrückter Knopf kommt danach und gewinnt (Django nimmt den letzten Wert) #}
+    <input type="hidden" name="n" value="{{ f.n }}">
+    <div class="umschalter" role="group" aria-label="Anzahl Ringe">
+      {% for k in "456" %}<button type="submit" name="n" value="{{ k }}" {% if k|add:0 == f.n %}aria-pressed="true"{% endif %}>{{ k }} Ringe</button>{% endfor %}
+    </div>
+    <div class="widerstand-bild">{{ f.svg_wert|safe }}</div>
+    {% for ring in f.ringe %}
+    <div class="feld">
+      <label for="{{ ring.name }}">{{ ring.text }}</label>
+      <select id="{{ ring.name }}" name="{{ ring.name }}">
+        <option value="">wählen …</option>
+        {% for o in ring.optionen %}<option value="{{ o.farbe }}" {% if o.farbe == ring.gewaehlt %}selected{% endif %}>■ {{ o.farbe }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+    <noscript><button type="submit" class="knopf">Wert anzeigen</button></noscript>
+  </form>
+  <pre class="ergebnis{% if not f.ok_wert %} leise{% endif %}">{{ f.zeilen_wert|zeilen }}</pre>
+</section>
+
+<section class="karte rechner">
+  <h2 class="karte-titel">Wert → Farbringe</h2>
+  <form method="get" class="rechner-form">
+    <div class="feld">
+      <label for="wert">Widerstand</label>
+      <input id="wert" type="text" name="wert" value="{{ f.wert }}" placeholder="z.B. 4k7" inputmode="decimal" autocomplete="off">
+      <select name="wert-e" aria-label="Einheit">{% for ein in f.einheiten %}<option {% if ein == f.wert_einheit %}selected{% endif %}>{{ ein }}</option>{% endfor %}</select>
+    </div>
+    <div class="feld">
+      <label for="ringe">Ringe</label>
+      <select id="ringe" name="ringe"><option value="4" {% if f.anzahl == 4 %}selected{% endif %}>4 Ringe (E24)</option><option value="5" {% if f.anzahl == 5 %}selected{% endif %}>5 Ringe (E96)</option></select>
+    </div>
+    <div class="feld">
+      <label for="tol">Toleranz</label>
+      <select id="tol" name="tol">{% for t in f.toleranzen %}<option value="{{ t.farbe }}" {% if t.farbe == f.tol %}selected{% endif %}>{{ t.text }}</option>{% endfor %}</select>
+    </div>
+    <div class="knoepfe"><button type="submit" class="knopf">Farben anzeigen</button></div>
+  </form>
+  <div class="widerstand-bild">{{ f.svg_farbe|safe }}</div>
+  {% if f.zeilen_farbe %}<pre class="ergebnis{% if not f.ok_farbe %} warn{% endif %}">{{ f.zeilen_farbe|zeilen }}</pre>{% endif %}
+</section>
+</div>
+{% if wissen %}<p><a class="chip" href="/{{ wissen.slug }}/{{ wissen.id }}/">📖 Zur Wissensseite: {{ wissen.titel }}</a></p>{% endif %}
+{% endblock %}

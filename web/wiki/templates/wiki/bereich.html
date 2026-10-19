@@ -1,0 +1,24 @@
+{% extends "basis.html" %}
+{# web/wiki/templates/wiki/bereich.html - Übersicht eines Bereichs: Kategorien mit ihren Seiten #}
+{% load systemlab %}
+{% block titel %}{{ bereich.name }}{% endblock %}
+{% block beschreibung %}{{ bereich.text }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › {{ bereich.name }}</nav>
+<h1>{{ bereich.icon }} {{ bereich.name }}</h1>
+<p class="leise">{{ bereich.text }}</p>
+{% for k in kategorien %}
+<section class="kategorie">
+  <h2>{{ k.icon }} {{ k.name }}</h2>
+  {% if k.beschreibung %}<p class="leise">{{ k.beschreibung|inline }}</p>{% endif %}
+  <div class="liste">
+    {% for t in k.themen %}
+    <a class="listen-eintrag" href="/{{ bereich.slug }}/{{ t.id }}/">
+      <span class="listen-titel">{{ t.titel }}</span>
+      <span class="listen-text">{{ t.kurz|inline }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

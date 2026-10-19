@@ -1,0 +1,120 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/wiki/templates/wiki/thema.html - EINE Wissensseite, für alle Bereiche:   #}
+{# Steckbrief, Bilder, Schaltpläne, Erklärung, Tabellen, Beispiele (Code),      #}
+{# Befehle (Server), Sicherheit, Tipps, Fehler, Rechner, Siehe auch.            #}
+{# Welche Teile erscheinen, hängt nur davon ab, was im THEMA = {...} steht.     #}
+{# =========================================================================== #}
+{% load systemlab %}
+{% block titel %}{{ e.titel }}{% endblock %}
+{% block beschreibung %}{{ e.kurz }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/{{ bereich.slug }}/">{{ bereich.name }}</a> › {{ kategorie }}</nav>
+<h1>{{ e.titel }}</h1>
+{% if e.kurz %}<p class="kurz">{{ e.kurz|inline }}</p>{% endif %}
+
+{% if steckbrief %}
+<div class="zwei-spalten">
+  {% if symbole %}
+  <section class="karte">
+    <h2 class="karte-titel">Schaltzeichen</h2>
+    <div class="symbole">
+      {% for s in symbole %}
+      <figure class="symbol">
+        <div class="nur-hell">{{ s.hell|safe }}</div><div class="nur-dunkel">{{ s.dunkel|safe }}</div>
+        <figcaption>{{ s.text }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  <section class="karte">
+    <h2 class="karte-titel">Steckbrief</h2>
+    <dl class="steckbrief">
+      {% for k, v in steckbrief.zeilen %}<dt>{{ k }}</dt><dd>{{ v|inline }}</dd>{% endfor %}
+    </dl>
+  </section>
+</div>
+{% endif %}
+
+{% for b in bilder %}
+<figure class="karte bild">
+  {% if b.titel %}<h2 class="karte-titel">{{ b.titel }}</h2>{% endif %}
+  <img src="{{ b.url }}" alt="{{ b.text|default:b.titel }}" loading="lazy" {% if b.max_breite %}style="max-width:{{ b.max_breite }}px"{% endif %}>
+  {% if b.text %}<figcaption>{{ b.text|inline }}</figcaption>{% endif %}
+</figure>
+{% endfor %}
+
+{% for s in schaltungen %}{% include "wiki/schaltung.html" %}{% endfor %}
+
+{% if d.erklaerung %}<section class="karte text">{{ d.erklaerung|format }}</section>{% endif %}
+
+{% if d.unterschiede %}
+<section class="karte text"><h2>Unterschiede der Sprachen</h2>{{ d.unterschiede|format }}</section>
+{% endif %}
+
+{% for t in tabellen %}
+<section class="karte">
+  {% if t.titel %}<h2 class="karte-titel">{{ t.titel }}</h2>{% endif %}
+  <div class="tabelle-rahmen"><table>
+    <thead><tr>{% for k in t.kopf %}<th>{{ k|inline }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for z in t.zeilen %}<tr>{% for zelle in z %}<td>{{ zelle|inline }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+  {% if t.hinweis %}<p class="hinweis">{{ t.hinweis|inline }}</p>{% endif %}
+</section>
+{% endfor %}
+
+{% for b in befehle %}
+<section class="karte">
+  {% if b.titel %}<h2 class="karte-titel">{{ b.titel }}</h2>{% endif %}
+  <div class="tabelle-rahmen"><table class="befehle">
+    <tbody>{% for z in b.zeilen %}<tr{% if z.gefahr %} class="gefahr"{% endif %}><td><code>{{ z.befehl }}</code>{% if z.gefahr %} <span class="marke gefahr-marke" title="Kann Daten löschen oder das System verändern">⚠ Vorsicht</span>{% endif %}</td><td>{{ z.text|inline }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endfor %}
+
+{% for b in beispiele %}
+<section class="karte beispiel">
+  {% if b.titel %}<h2 class="karte-titel">{{ b.titel }}</h2>{% endif %}
+  {% if b.text %}<div class="text">{{ b.text|format }}</div>{% endif %}
+  <div class="code-reiter" data-reiter>
+    {% for c in b.code_teile %}
+    <div class="code-block" data-sprache="{{ c.sprache }}">
+      <div class="code-kopf"><span>{{ c.sprache }}</span><button type="button" class="kopieren" data-kopieren>Kopieren</button></div>
+      <pre><code>{% for t in c.teile %}{% if t.klasse %}<span class="s-{{ t.klasse }}">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{% endfor %}</code></pre>
+    </div>
+    {% endfor %}
+  </div>
+  {% if b.ausgabe %}<div class="ausgabe"><span>Ausgabe</span><pre>{{ b.ausgabe }}</pre></div>{% endif %}
+</section>
+{% endfor %}
+
+{% if d.sicherheit %}
+<section class="karte box gefahr-box"><h2 class="karte-titel">🔒 Sicherheit</h2>
+  <ul>{% for s in d.sicherheit %}<li>{{ s|inline }}</li>{% endfor %}</ul></section>
+{% endif %}
+{% if d.tipps %}
+<section class="karte box tipp-box"><h2 class="karte-titel">💡 Tipps aus der Praxis</h2>
+  <ul>{% for s in d.tipps %}<li>{{ s|inline }}</li>{% endfor %}</ul></section>
+{% endif %}
+{% if d.fehler %}
+<section class="karte box warn-box"><h2 class="karte-titel">⚠ Typische Fehler</h2>
+  <ul>{% for s in d.fehler %}<li>{{ s|inline }}</li>{% endfor %}</ul></section>
+{% endif %}
+
+{% if web_rechner or nur_desktop %}
+<section class="karte">
+  <h2 class="karte-titel">🧮 Rechner zu diesem Thema</h2>
+  <div class="kacheln klein">
+    {% for r in web_rechner %}<a class="kachel" href="/rechner/{{ r.id }}/"><span class="kachel-titel">{{ r.titel }}</span><span class="kachel-text">{{ r.beschreibung }}</span></a>{% endfor %}
+  </div>
+  {% if nur_desktop %}<p class="leise">Noch nur in der Desktop-App: {{ nur_desktop|join:" · " }}</p>{% endif %}
+</section>
+{% endif %}
+
+{% if siehe_auch %}
+<section class="siehe-auch"><h2>Siehe auch</h2>
+  {% for v in siehe_auch %}<a class="chip" href="/{{ v.slug }}/{{ v.id }}/">{{ v.icon }} {{ v.titel }}</a>{% endfor %}
+</section>
+{% endif %}
+{% endblock %}

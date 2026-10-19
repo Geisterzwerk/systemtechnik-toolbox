@@ -1,0 +1,25 @@
+{% extends "basis.html" %}
+{# web/wiki/templates/wiki/suche.html - Suchergebnisse über alle Bereiche und Rechner #}
+{% load systemlab %}
+{% block titel %}Suche{% endblock %}
+{% block inhalt %}
+<h1>Suche</h1>
+<form class="suche-gross" action="/suche/" method="get" role="search">
+  <input type="search" name="q" value="{{ anfrage }}" placeholder="Suchbegriff" aria-label="Suchbegriff">
+  <button type="submit">Suchen</button>
+</form>
+{% if anfrage %}
+  <p class="leise">{{ treffer|length }} Treffer für „{{ anfrage }}“</p>
+  <div class="liste">
+  {% for t in treffer %}
+    {% if t.url %}<a class="listen-eintrag" href="{{ t.url }}">{% else %}<div class="listen-eintrag">{% endif %}
+      <span class="listen-titel">{{ t.icon }} {{ t.titel }}{% if t.nur_desktop %} <span class="marke">Desktop-App</span>{% endif %}</span>
+      <span class="listen-ort">{{ t.ort }}</span>
+      <span class="listen-text">{{ t.kurz|inline }}</span>
+    {% if t.url %}</a>{% else %}</div>{% endif %}
+  {% empty %}
+    <p>Nichts gefunden. Tipp: kürzere Begriffe probieren, z.B. „Diode“ statt „Diodenkennlinie Silizium“.</p>
+  {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

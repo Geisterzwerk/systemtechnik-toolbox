@@ -37,6 +37,7 @@
 # =============================================================================
 
 import importlib
+import threading
 
 _MODULE = [
     "bauteile.rechner.widerstand_rechner",     # -> rechner/widerstand_rechner.py
@@ -52,17 +53,25 @@ _MODULE = [
 ]
 
 _REGISTRY = {}
+_SPERRE = threading.Lock()                    # nur ein Thread baut die Liste auf (Webversion)
 
 
 def registry():
-    """ID -> Fabrik-Funktion aller Rechner. Wird beim ersten Aufruf aufgebaut."""
-    if not _REGISTRY:
-        for name in _MODULE:
-            modul = importlib.import_module(name)
-            for rechner_id in modul.RECHNER:
-                if rechner_id in _REGISTRY:            # gleiche ID zweimal -> sofort sichtbar machen
-                    print(f"[rechner] WARNUNG: Rechner-ID '{rechner_id}' ist doppelt vergeben ({name})")
-            _REGISTRY.update(modul.RECHNER)
+    """
+    ID -> Fabrik-Funktion aller Rechner. Wird beim ersten Aufruf aufgebaut.
+    Die Webversion bedient mehrere Anfragen GLEICHZEITIG (Threads): Darum wird die Liste
+    zuerst vollständig in "neu" gebaut und erst dann sichtbar - nie halb gefüllt.
+    """
+    with _SPERRE:
+        if not _REGISTRY:
+            neu = {}
+            for name in _MODULE:
+                modul = importlib.import_module(name)
+                for rechner_id in modul.RECHNER:
+                    if rechner_id in neu:              # gleiche ID zweimal -> sofort sichtbar machen
+                        print(f"[rechner] WARNUNG: Rechner-ID '{rechner_id}' ist doppelt vergeben ({name})")
+                neu.update(modul.RECHNER)
+            _REGISTRY.update(neu)
     return _REGISTRY
 
 

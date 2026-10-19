@@ -1,0 +1,3 @@
+# Pakete NUR für die Webversion (die Desktop-App braucht sie nicht -> ../requirements.txt)
+#   python -m pip install -r web/requirements.txt
+django>=5.2,<7

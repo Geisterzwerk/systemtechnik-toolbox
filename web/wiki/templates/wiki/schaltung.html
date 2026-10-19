@@ -1,0 +1,49 @@
+{% load systemlab %}
+{# =========================================================================== #}
+{# web/wiki/templates/wiki/schaltung.html - EIN interaktiver Schaltplan          #}
+{# (eingebunden in thema.html und allein unter /schaltung/<id>/ für JavaScript)  #}
+{# Ohne JavaScript: "Berechnen" lädt die Seite neu. Mit JavaScript (systemlab.js): #}
+{# jede Änderung holt nur diesen Block neu - die Seite springt nicht.            #}
+{# Daten: web/wiki/grafiken.py schaltung()                                      #}
+{# =========================================================================== #}
+<section class="karte schaltung" id="{{ s.id }}" data-schaltung="{{ s.id }}"
+         style="--ergebnis-hell: {{ s.farbe.hell }}; --ergebnis-dunkel: {{ s.farbe.dunkel }}">
+  <h2 class="karte-titel">{{ s.titel }}</h2>
+  {% if s.untertitel %}<p class="leise">{{ s.untertitel }}</p>{% endif %}
+  <form method="get" action="#{{ s.id }}" class="schaltung-form">
+    {% if s.varianten %}
+    {# aktuelle Variante mitschicken; ein gedrückter Knopf kommt danach und gewinnt (Django nimmt den letzten Wert) #}
+    <input type="hidden" name="{{ s.id }}-alt" value="{{ s.variante }}">
+    <input type="hidden" name="{{ s.id }}-v" value="{{ s.variante }}">
+    <div class="umschalter" role="group" aria-label="Variante">
+      {% for v in s.varianten %}<button type="submit" name="{{ s.id }}-v" value="{{ v }}" {% if v == s.variante %}aria-pressed="true"{% endif %}>{{ v }}</button>{% endfor %}
+    </div>
+    {% endif %}
+    {% for sch in s.schalter %}
+    <label class="schalter"><input type="checkbox" name="{{ sch.name }}" value="1" {% if sch.an %}checked{% endif %}> {{ sch.text }}</label>
+    {% endfor %}
+
+    <div class="plan"><div class="nur-hell">{{ s.svg_hell|safe }}</div><div class="nur-dunkel">{{ s.svg_dunkel|safe }}</div></div>
+
+    <div class="regler-liste">
+      {% for r in s.regler %}
+      <div class="regler{% if r.fehler %} hat-fehler{% endif %}">
+        <label for="{{ r.name }}">{{ r.text }}</label>
+        <input type="range" min="{{ r.min }}" max="{{ r.max }}" step="{% if r.log or not r.ganzzahl %}any{% else %}1{% endif %}" value="{{ r.pos }}"
+               data-regler-slider data-log="{{ r.log|yesno:'1,0' }}" data-ganzzahl="{{ r.ganzzahl|yesno:'1,0' }}" aria-label="{{ r.text }} (Schieberegler)">
+        <input type="text" id="{{ r.name }}" name="{{ r.name }}" value="{{ r.feld }}" inputmode="decimal" data-regler-feld>
+        {% if r.einheiten|length > 1 %}
+        <select name="{{ r.name }}-e" data-regler-einheit data-faktoren='{{ r.faktoren }}' aria-label="Einheit">
+          {% for ein in r.einheiten %}<option {% if ein == r.einheit %}selected{% endif %}>{{ ein }}</option>{% endfor %}
+        </select>
+        {% else %}<span class="einheit" data-regler-einheit data-faktoren='{{ r.faktoren }}'>{{ r.einheit }}</span><input type="hidden" name="{{ r.name }}-e" value="{{ r.einheit }}">{% endif %}
+        {% if r.fehler %}<p class="feld-fehler">⚠ {{ r.fehler }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <noscript><button type="submit" class="knopf">Berechnen</button></noscript>
+  </form>
+  {% if s.fehler %}<p class="ergebnis warn">⚠ {{ s.fehler }}</p>
+  {% elif s.zeilen %}<pre class="ergebnis">{{ s.zeilen|zeilen }}</pre>{% endif %}
+  {% if s.erklaerung %}<p class="leise">{{ s.erklaerung }}</p>{% endif %}
+</section>

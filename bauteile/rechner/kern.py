@@ -98,6 +98,46 @@ def anzahl_gegeben(werte, *schluessel):
     return sum(werte[s] is not None for s in schluessel)
 
 
+def feld_optionen(eintrag):
+    """("R", "Widerstand R", "widerstand", {"einheit": "kΩ"}) -> {"einheit": "kΩ"}  (oder {})"""
+    return eintrag[3] if len(eintrag) > 3 else {}
+
+
+def texte_lesen(felder, texte, einheiten_wahl=None):
+    """
+    Getippte Texte -> Werte in Basiseinheit, genau wie die Eingabefelder im Fenster.
+      texte           {"R": "4k7", "I": "20"}            (fehlende Felder = leer)
+      einheiten_wahl  {"I": "mA"}  gewählte Einheit je Feld (sonst die Starteinheit des Feldes)
+    Rückgabe: {"R": 4700.0, "I": 0.02, ...}
+    Fehler:   KeyError (Feld/Option gibt es nicht), ValueError (Text nicht lesbar, z.B. "abc")
+    """
+    einheiten_wahl = einheiten_wahl or {}
+    unbekannt = set(texte) - {e[0] for e in felder}
+    if unbekannt:
+        raise KeyError(f"Feld gibt es nicht: {', '.join(sorted(unbekannt))}")
+    werte = {}
+    for eintrag in felder:
+        schluessel, _, typ = eintrag[:3]
+        opt = feld_optionen(eintrag)
+        text = texte.get(schluessel, "")
+        if typ == "auswahl":
+            wert = text or opt.get("standard") or opt["werte"][0]
+            if wert not in opt["werte"]:
+                raise KeyError(f"Option „{wert}“ gibt es im Feld {schluessel} nicht")
+            werte[schluessel] = wert
+        elif typ == "text":
+            werte[schluessel] = text.strip() or None              # wie TextEingabe.wert(): leer -> None
+        else:
+            info = einheiten.EINHEITEN[typ]
+            stufen = dict(info["stufen"])
+            einheit = einheiten_wahl.get(schluessel) or opt.get("einheit") or info["standard"]
+            if einheit not in stufen:
+                raise KeyError(f"Einheit „{einheit}“ passt nicht zum Feld {schluessel}")
+            umwandeln = einheiten.text_zu_liste if opt.get("liste") else einheiten.text_zu_zahl
+            werte[schluessel] = umwandeln(text, typ, stufen[einheit])
+    return werte
+
+
 # =============================================================================
 # FORMEL-RECHNER ALS DATEN
 # =============================================================================
