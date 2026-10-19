@@ -37,8 +37,10 @@ ANKER = {"center": ("middle", "central"), "w": ("start", "central"), "e": ("end"
 
 
 def _zahl(x):
-    """Kurze Zahlen im SVG: 12.0 -> '12', 3.14159 -> '3.14'"""
-    return f"{x:.2f}".rstrip("0").rstrip(".")
+    """Kurze Zahlen im SVG: 12.0 -> '12', 3.14159 -> '3.1'. Eine Nachkommastelle = 0.1 Pixel genau -
+    mehr sieht man nicht, aber Animationen mit vielen Bildern werden deutlich kleiner."""
+    text = f"{x:.1f}".rstrip("0").rstrip(".")
+    return "0" if text == "-0" else text
 
 
 class SvgCanvas:

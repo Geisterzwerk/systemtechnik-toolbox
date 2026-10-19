@@ -117,11 +117,17 @@ for rid in grafiken.ANIMATIONEN:
     abrufen(f"/schaltung/{rid}/?{rid}-{klasse.REGLER[0][0]}=1e9", muss_enthalten=["⚠"])
 abrufen("/bauteile/transformator/", muss_enthalten=["data-animation"])
 abrufen("/schaltung/trafo_animation/?trafo_animation-N1=10&trafo_animation-U1=400", muss_enthalten=["Sättigung"])
-gepackt = client.get("/schaltung/trafo_animation/", HTTP_ACCEPT_ENCODING="gzip")
-if gepackt.get("Content-Encoding") == "gzip" and len(gepackt.content) < 200_000:
-    ok += 1
+for v in grafiken.ANIMATIONEN["trafo_animation"].VARIANTEN:              # jede Variante: komprimiert < 200 KB
+    gepackt = client.get("/schaltung/trafo_animation/", {"trafo_animation-v": v}, HTTP_ACCEPT_ENCODING="gzip")
+    if gepackt.get("Content-Encoding") == "gzip" and len(gepackt.content) < 200_000:
+        ok += 1
+    else:
+        fehler.append(f"Animation {v}: zu gross oder nicht komprimiert ({len(gepackt.content) // 1024} KB)")
+dc = client.get("/schaltung/trafo_animation/", {"trafo_animation-v": "═ Gleichspannung (DC)"}).content.decode()
+if 'data-schleife-ab="0"' in dc or "data-animation-nochmal" not in dc:  # DC: Umschalten einmal, dann Ruhe
+    fehler.append("Trafo DC: Umschalten läuft nicht nur einmal (data-schleife-ab fehlt)")
 else:
-    fehler.append(f"Animation nicht komprimiert ({len(gepackt.content) // 1024} KB)")
+    ok += 1
 
 # ---- 3) Rechner ----------------------------------------------------------------
 # Jeder Rechner leer + mit Unsinn; dazu ALLE von Hand gerechneten Fälle aus pruefung/rechner_faelle.py:

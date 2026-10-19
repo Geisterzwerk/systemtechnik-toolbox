@@ -104,8 +104,8 @@ class TrafoModell:
     SEITENVERHAELTNIS = 0.62
     MAX_HOEHE = 560
     PERIODE = 1 / F_ANIM            # eine Schwingung der Animation in s
-    UMSCHALT_VARIANTE = DC          # Web: DC als "Umschalten von AC auf DC" zeigen (Impuls, danach 0)
-    UMSCHALT_DAUER = 4.0            # s: 1 s AC, Umschalten, Impuls, Ruhe - dann von vorne
+    UMSCHALT_VARIANTE = DC          # Web: DC als "Umschalten von AC auf DC" zeigen: einmal_dauer() lang,
+                                    # danach ruhe_periode() als Schleife (bleibt bei U2 = 0 stehen)
 
     def __init__(self):
         self.U1, self.N1, self.N2 = 230.0, 500.0, 50.0
@@ -148,10 +148,13 @@ class TrafoModell:
         w = 2 * math.pi * F_ANIM
         if not dc:
             return u1_dach * math.sin(w * t), -self.fluss() * math.cos(w * t), u2_dach * math.sin(w * t)
-        # DC: Fluss baut sich einmal auf (bis Sättigung), U2 nur als kurzer Impuls
+        # DC: Der Fluss wächst vom Wert beim Umschalten (stetig, kein Sprung) bis in die Sättigung.
+        # Solange er sich ändert, gilt wie beim idealen Trafo u2 = u1 · N2 / N1 - danach U2 = 0.
         dt = t - t_w if t >= t_w else 1e9
         abkling = math.exp(-dt / TAU_DC)
-        return self.U1, SAETTIGUNG * (1.0 - abkling), u2_dach * abkling
+        phi_start = -self.fluss() * math.cos(w * t_w) if t >= t_w and not vorher_dc else SAETTIGUNG
+        phi = phi_start + (SAETTIGUNG - phi_start) * (1.0 - abkling)
+        return self.U1, phi, self.U1 * self.N2 / self.N1 * abkling
 
     def skalen(self):
         """Skalenendwerte der drei Oszilloskope: (U1 in V, Φ relativ, U2 in V)."""
@@ -179,6 +182,19 @@ class TrafoModell:
         elif self.fluss() > 1.5:
             zeilen.append("⚠ Zu wenig Windungen für diese Spannung: Kern geht in Sättigung → hoher Strom, Trafo wird heiss")
         return zeilen, len(zeilen) > 1
+
+    def ruhe_periode(self):
+        """
+        Web: Nach dem Umschalten auf DC bleibt alles ruhig, nur die Strom-Punkte primär laufen weiter
+        (konstant 0.9 · 0.35 pro s). Nach dieser Zeit stehen sie wieder genau gleich -> nahtlose Schleife.
+        Die 10 Punkte haben Abstand 0.1, also reicht eine Verschiebung um 0.2.
+        """
+        return 0.2 / (0.9 * 0.35)
+
+    def einmal_dauer(self):
+        """Web, DC: so lange läuft das Umschalten einmal ab (1 s AC + bis die AC-Kurve aus den
+        Oszilloskopen gewandert und der Impuls abgeklungen ist), danach folgt ruhe_periode() als Schleife."""
+        return 1.0 + 2.5 / F_ANIM + 0.5
 
     def weiter(self, t, dt):
         """Strom-Punkte um dt weiterschieben (Geschwindigkeit ~ Momentanwert der Spannung)."""

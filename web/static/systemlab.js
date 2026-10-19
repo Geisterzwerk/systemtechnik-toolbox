@@ -136,6 +136,8 @@
   // ---- 7) Animationen abspielen (Trafo) ------------------------------------------
   //   <div class="plan" data-animation data-ms="50"> enthält SVGs mit vielen <g class="bild">;
   //   gezeigt wird immer genau eines, alle data-ms Millisekunden das nächste (hell und dunkel im Gleichschritt).
+  //   Nach dem letzten Bild geht es bei data-schleife-ab weiter: Die Bilder davor laufen nur einmal
+  //   (Trafo DC: das Umschalten), danach wiederholt sich nur der Ruhezustand.
   //   Wer "Bewegung reduzieren" eingestellt hat, sieht zuerst ein stehendes Bild (Knopf "Abspielen").
   function animationStarten(block) {
     var plan = block.querySelector("[data-animation]");
@@ -146,7 +148,9 @@
     });
     var anzahl = gruppen.length ? gruppen[0].length : 0;
     var ms = Number(plan.dataset.ms) || 50;
+    var schleifeAb = Number(plan.dataset.schleifeAb) || 0;    // Bilder davor laufen nur EINMAL (z.B. Umschalten)
     var knopf = block.querySelector("[data-animation-knopf]");
+    var nochmal = block.querySelector("[data-animation-nochmal]");
     var nummer = 0, laeuft = !ruhig, letzte = 0;
     function zeigen(neu) {
       gruppen.forEach(function (bilder) {
@@ -164,11 +168,12 @@
       if (!document.body.contains(plan)) return;          // Block wurde ersetzt -> diese Schleife endet
       if (laeuft && !document.hidden && zeit - letzte >= ms) {
         letzte = zeit;
-        zeigen((nummer + 1) % anzahl);
+        zeigen(nummer + 1 < anzahl ? nummer + 1 : schleifeAb);
       }
       requestAnimationFrame(schritt);
     }
     if (knopf) knopf.addEventListener("click", function () { laeuft = !laeuft; knopfText(); });
+    if (nochmal) nochmal.addEventListener("click", function () { zeigen(0); laeuft = true; knopfText(); });
     knopfText();
     if (anzahl > 1) requestAnimationFrame(schritt);
   }

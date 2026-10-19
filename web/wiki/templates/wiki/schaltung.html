@@ -24,8 +24,8 @@
     <label class="schalter"><input type="checkbox" name="{{ sch.name }}" value="1" {% if sch.an %}checked{% endif %}> {{ sch.text }}</label>
     {% endfor %}
 
-    <div class="plan"{% if s.animation %} data-animation data-ms="{{ s.bild_ms }}"{% endif %}><div class="nur-hell">{{ s.svg_hell|safe }}</div><div class="nur-dunkel">{{ s.svg_dunkel|safe }}</div></div>
-    {% if s.animation %}<div class="knoepfe"><button type="button" class="knopf leer" data-animation-knopf aria-pressed="false">⏸ Pause</button></div>{% endif %}
+    <div class="plan"{% if s.animation %} data-animation data-ms="{{ s.bild_ms }}" data-schleife-ab="{{ s.schleife_ab }}"{% endif %}><div class="nur-hell">{{ s.svg_hell|safe }}</div><div class="nur-dunkel">{{ s.svg_dunkel|safe }}</div></div>
+    {% if s.animation %}<div class="knoepfe"><button type="button" class="knopf leer" data-animation-knopf aria-pressed="false">⏸ Pause</button>{% if s.schleife_ab %} <button type="button" class="knopf leer" data-animation-nochmal>↺ Umschalten nochmal zeigen</button>{% endif %}</div>{% endif %}
 
     <div class="regler-liste">
       {% for r in s.regler %}
