@@ -1,0 +1,27 @@
+{% extends "basis.html" %}
+{# web/rechner/templates/rechner/smd.html - SMD-Aufdruck entschlüsseln (Rechnung: widerstand_rechner.smd_zeilen) #}
+{% load systemlab %}
+{% block titel %}{{ info.titel }}{% endblock %}
+{% block beschreibung %}{{ info.beschreibung }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/rechner/">Rechner</a> › {{ info.titel }}</nav>
+<h1>{{ info.titel }}</h1>
+<p class="kurz">{{ info.beschreibung }}</p>
+
+<section class="karte rechner">
+  <form method="get" class="rechner-form">
+    <div class="feld">
+      <label for="code">Aufdruck auf dem Bauteil</label>
+      <input id="code" type="text" name="code" value="{{ f.code }}" placeholder="z.B. 103, 4R7, 4701, 01C"
+             maxlength="20" autocomplete="off" autocapitalize="characters" autofocus>
+    </div>
+    <div class="knoepfe"><button type="submit" class="knopf">Entschlüsseln</button></div>
+  </form>
+  {% if f.zeilen %}<pre class="ergebnis{% if not f.ok %} warn{% endif %}">{{ f.zeilen|zeilen }}</pre>{% endif %}
+  <p class="leise">Beispiele:
+    {% for code, text in f.beispiele %}<a class="chip" href="?code={{ code|urlencode }}"><code>{{ code }}</code> {{ text }}</a>{% endfor %}
+  </p>
+</section>
+<p class="melden-zeile"><a href="/rueckmeldung/?seite={{ request.get_full_path|urlencode }}">⚠ Stimmt etwas nicht? Fehler melden</a></p>
+{% if wissen %}<p><a class="chip" href="/{{ wissen.slug }}/{{ wissen.id }}/">📖 Zur Wissensseite: {{ wissen.titel }}</a></p>{% endif %}
+{% endblock %}

@@ -8,6 +8,7 @@
                                  (/schaltung/<id>/?...  -> web/wiki/views.py schaltung)
    5) Formulare mit data-sofort  schicken sich bei jeder Auswahl selbst ab (Farbcode-Rechner)
    6) Filterfeld                 blendet in der Rechner-Übersicht nicht passende Rechner aus
+   7) Animationen                spielt die vorab gezeichneten Bilder ab (Trafo), Pause-Knopf
    ============================================================================= */
 (function () {
   "use strict";
@@ -101,6 +102,7 @@
   }
 
   function schaltungVorbereiten(block) {
+    animationStarten(block);
     var form = block.querySelector("form");
     if (!form) return;
     form.addEventListener("submit", function (ev) {
@@ -130,6 +132,46 @@
     });
   }
   document.querySelectorAll("[data-schaltung]").forEach(schaltungVorbereiten);
+
+  // ---- 7) Animationen abspielen (Trafo) ------------------------------------------
+  //   <div class="plan" data-animation data-ms="50"> enthält SVGs mit vielen <g class="bild">;
+  //   gezeigt wird immer genau eines, alle data-ms Millisekunden das nächste (hell und dunkel im Gleichschritt).
+  //   Wer "Bewegung reduzieren" eingestellt hat, sieht zuerst ein stehendes Bild (Knopf "Abspielen").
+  function animationStarten(block) {
+    var plan = block.querySelector("[data-animation]");
+    if (!plan) return;
+    var ruhig = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var gruppen = Array.prototype.map.call(plan.querySelectorAll("svg"), function (svg) {
+      return svg.querySelectorAll("g.bild");
+    });
+    var anzahl = gruppen.length ? gruppen[0].length : 0;
+    var ms = Number(plan.dataset.ms) || 50;
+    var knopf = block.querySelector("[data-animation-knopf]");
+    var nummer = 0, laeuft = !ruhig, letzte = 0;
+    function zeigen(neu) {
+      gruppen.forEach(function (bilder) {
+        if (bilder[nummer]) bilder[nummer].style.display = "none";
+        if (bilder[neu]) bilder[neu].style.display = "";
+      });
+      nummer = neu;
+    }
+    function knopfText() {
+      if (!knopf) return;
+      knopf.textContent = laeuft ? "⏸ Pause" : "▶ Abspielen";
+      knopf.setAttribute("aria-pressed", String(!laeuft));
+    }
+    function schritt(zeit) {
+      if (!document.body.contains(plan)) return;          // Block wurde ersetzt -> diese Schleife endet
+      if (laeuft && !document.hidden && zeit - letzte >= ms) {
+        letzte = zeit;
+        zeigen((nummer + 1) % anzahl);
+      }
+      requestAnimationFrame(schritt);
+    }
+    if (knopf) knopf.addEventListener("click", function () { laeuft = !laeuft; knopfText(); });
+    knopfText();
+    if (anzahl > 1) requestAnimationFrame(schritt);
+  }
 
   // ---- 6) Filterfeld (Rechner-Übersicht) --------------------------------------
   //   <input data-filter="#liste">  Einträge mit data-filter-text; Gruppen mit data-filter-gruppe

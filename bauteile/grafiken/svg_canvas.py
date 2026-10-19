@@ -150,11 +150,16 @@ class SvgCanvas:
         self.teile = []
 
     # ---- Ausgabe ----------------------------------------------------------------
-    def svg(self):
+    def inhalt(self):
+        """Nur die gezeichneten Teile, ohne <svg>-Rahmen und Hintergrund (z.B. ein Bild einer Animation)."""
+        return "".join(self.teile)
+
+    def svg(self, zusatz=""):
+        """Ganzes SVG. 'zusatz' = weiterer SVG-Text, der über die Zeichnung gelegt wird (z.B. Animationsbilder)."""
         return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.breite} {self.hoehe}" '
                 f'width="{self.breite}" height="{self.hoehe}" role="img">'
                 f'<rect width="100%" height="100%" fill="{self.hintergrund}"/>'
-                + "".join(self.teile) + "</svg>")
+                + "".join(self.teile) + zusatz + "</svg>")
 
 
 # =============================================================================

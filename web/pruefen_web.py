@@ -7,7 +7,8 @@
 # als ob ein Browser die Adresse aufruft.
 #
 #   1) Startseite, Suche, alle Bereiche und ALLE Wissensseiten -> Status 200, keine Template-Reste
-#   2) Jede interaktive Schaltung mit jeder Variante (auch über /schaltung/<id>/), falsche Eingaben
+#   2) Jede interaktive Schaltung mit jeder Variante (auch über /schaltung/<id>/), falsche Eingaben;
+#      Animationen (Trafo): jede Variante, falsche Werte, komprimiert unter 200 KB
 #   3) Jeder Web-Rechner leer und mit Unsinn ("abc", unbekannte Einheit); alle von Hand gerechneten
 #      Fälle aus pruefung/rechner_faelle.py -> Web rechnet genau wie die Desktop-App
 #   4) Unbekannte Adressen -> 404 statt Absturz
@@ -43,6 +44,7 @@ from rechner import formular                                           # noqa: E
 
 # Django schreibt Zahlen schweizerisch ("3,5") - in Slider-Attributen muss es "3.5" sein
 KOMMA_ZAHL = re.compile(r'\b(min|max|value)="-?\d+,\d')
+DOPPELTE_ID = re.compile(r'data-schaltung="([^"]+)"')        # jede Grafik höchstens einmal pro Seite
 AUSFUEHRLICH = "-v" in sys.argv
 # nicht ausgewertete Template-Teile wie "{{ s.zeilen }}" oder "{% if" (Code-Beispiele mit {{1, 2}} sind ok)
 REST = re.compile(r"\{\{ ?[a-z_]+(\.[a-z_]+)*(\|[a-z_]+(:[^}]*)?)? ?\}\}|\{% ?(if|for|end|block|load|include|else)")
@@ -64,6 +66,8 @@ def abrufen(adresse, erwartet=200, muss_enthalten=()):
         fehler.append(f"{adresse}: Template-Rest im HTML: …{text[REST.search(text).start() - 40:][:90]}…")
     elif KOMMA_ZAHL.search(text):
         fehler.append(f"{adresse}: Zahl mit Komma in einem HTML-Attribut (Slider versteht nur Punkt)")
+    elif DOPPELTE_ID.search(text) and len(set(DOPPELTE_ID.findall(text))) != len(DOPPELTE_ID.findall(text)):
+        fehler.append(f"{adresse}: dieselbe Grafik zweimal auf der Seite (doppelte id)")
     elif any(m not in text for m in muss_enthalten):
         fehler.append(f"{adresse}: fehlt {[m for m in muss_enthalten if m not in text]}")
     else:
@@ -103,6 +107,22 @@ for rid in schaltungen:
     for schluessel, _text in klasse.SCHALTER:
         abrufen(f"/schaltung/{rid}/?{rid}-{schluessel}=1", muss_enthalten=["checked"])
 
+# ---- 2b) Animationen (Trafo) --------------------------------------------------
+for rid in grafiken.ANIMATIONEN:
+    klasse = grafiken.ANIMATIONEN[rid]
+    for v in klasse.VARIANTEN:
+        abrufen(f"/schaltung/{rid}/?{rid}-v={v}", muss_enthalten=["data-animation", 'class="bild"'])
+    abrufen(f"/rechner/{rid}/", muss_enthalten=["data-animation"])
+    abrufen(f"/schaltung/{rid}/?{rid}-{klasse.REGLER[0][0]}=abc", muss_enthalten=["⚠"])
+    abrufen(f"/schaltung/{rid}/?{rid}-{klasse.REGLER[0][0]}=1e9", muss_enthalten=["⚠"])
+abrufen("/bauteile/transformator/", muss_enthalten=["data-animation"])
+abrufen("/schaltung/trafo_animation/?trafo_animation-N1=10&trafo_animation-U1=400", muss_enthalten=["Sättigung"])
+gepackt = client.get("/schaltung/trafo_animation/", HTTP_ACCEPT_ENCODING="gzip")
+if gepackt.get("Content-Encoding") == "gzip" and len(gepackt.content) < 200_000:
+    ok += 1
+else:
+    fehler.append(f"Animation nicht komprimiert ({len(gepackt.content) // 1024} KB)")
+
 # ---- 3) Rechner ----------------------------------------------------------------
 # Jeder Rechner leer + mit Unsinn; dazu ALLE von Hand gerechneten Fälle aus pruefung/rechner_faelle.py:
 # Das Web muss genau dasselbe Ergebnis liefern wie die Desktop-App.
@@ -131,6 +151,12 @@ abrufen("/rechner/farbcode/?n=6&r1=Gelb&r2=Violett&r3=Schwarz&r4=Braun&r5=Braun&
 abrufen("/rechner/farbcode/?wert=4k7&ringe=4&tol=Gold", muss_enthalten=["Gelb – Violett – Rot – Gold"])
 abrufen("/rechner/farbcode/?wert=abc", muss_enthalten=["abc"])
 abrufen("/rechner/farbcode/?n=9&r1=Lila&wert-e=xyz&ringe=7&tol=Pink")
+abrufen("/rechner/smd_code/?code=103", muss_enthalten=["R = 10 kΩ"])
+abrufen("/rechner/smd_code/?code=4R7", muss_enthalten=["R = 4.7 Ω"])
+abrufen("/rechner/smd_code/?code=01C", muss_enthalten=["R = 10 kΩ", "EIA-96"])
+abrufen("/rechner/smd_code/?code=97C", muss_enthalten=["zwischen 01 und 96"])
+abrufen("/rechner/smd_code/?code=" + "9" * 500)                      # sehr lang -> gekürzt, kein Absturz
+abrufen("/rechner/schaltung_ne555/?schaltung_ne555-v=monostabil", muss_enthalten=["<svg", "Impulsdauer"])
 
 # ---- 4) Unbekannte Adressen -------------------------------------------------
 for adresse in ("/gibtsnicht/", "/bauteile/gibtsnicht/", "/rechner/gibtsnicht/", "/schaltung/gibtsnicht/",

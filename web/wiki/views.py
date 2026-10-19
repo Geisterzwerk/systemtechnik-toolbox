@@ -30,8 +30,8 @@ MAX_TREFFER = 30
 def startseite(request):
     return render(request, "wiki/startseite.html", {
         "web_rechner": formular.web_rechner(settings.WEB_RECHNER_EMPFOHLEN),
-        "anzahl_web_rechner": len(formular.web_rechner_ids()),
-        "anzahl_schaltungen": len(grafiken.alle_schaltungen()),
+        "anzahl_web_rechner": formular.anzahl()[0],
+        "anzahl_schaltungen": formular.anzahl()[1],
         "anzahl_seiten": sum(b["seiten"] for b in inhalt.bereich_infos()),
     })
 
@@ -78,12 +78,13 @@ def thema(request, slug, thema_id):
 
     # Rechner und Grafiken der Seite einteilen: im Web als Rechner / als Schaltplan / (noch) nur Desktop
     web_rechner, schaltungen, nur_desktop = [], [], []
-    for rid in list(d.get("grafiken", [])) + list(d.get("rechner", [])):
+    # dict.fromkeys: jede ID nur einmal (manche Seiten nennen dieselbe Grafik unter "grafiken" UND "rechner")
+    for rid in dict.fromkeys(list(d.get("grafiken", [])) + list(d.get("rechner", []))):
         web = formular.web_id(rid)
-        if web and not any(r["id"] == web for r in web_rechner):
+        if grafiken.ist_interaktiv(rid):                        # Schaltplan oder Animation direkt auf der Seite
+            schaltungen.append(grafiken.block(rid, request.GET))
+        elif web and not any(r["id"] == web for r in web_rechner):
             web_rechner.append({"id": web, **formular.info(web)})
-        elif grafiken.ist_schaltung(rid):
-            schaltungen.append(grafiken.schaltung(rid, request.GET))
         elif not web and rid in RECHNER_INFO:
             nur_desktop.append(RECHNER_INFO[rid]["titel"])
 
@@ -113,9 +114,9 @@ def thema(request, slug, thema_id):
 
 
 def schaltung(request, rechner_id):
-    if not grafiken.ist_schaltung(rechner_id):
+    if not grafiken.ist_interaktiv(rechner_id):
         raise Http404("Diese Schaltung gibt es nicht")
-    return render(request, "wiki/schaltung.html", {"s": grafiken.schaltung(rechner_id, request.GET)})
+    return render(request, "wiki/schaltung.html", {"s": grafiken.block(rechner_id, request.GET)})
 
 
 def melden(request):

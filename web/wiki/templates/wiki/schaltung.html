@@ -4,7 +4,8 @@
 {# (eingebunden in thema.html und allein unter /schaltung/<id>/ für JavaScript)  #}
 {# Ohne JavaScript: "Berechnen" lädt die Seite neu. Mit JavaScript (systemlab.js): #}
 {# jede Änderung holt nur diesen Block neu - die Seite springt nicht.            #}
-{# Daten: web/wiki/grafiken.py schaltung()                                      #}
+{# Daten: web/wiki/grafiken.py schaltung() oder animation() (s.animation: Bilder  #}
+{# im SVG, systemlab.js spielt sie ab)                                          #}
 {# =========================================================================== #}
 <section class="karte schaltung" id="{{ s.id }}" data-schaltung="{{ s.id }}"
          style="--ergebnis-hell: {{ s.farbe.hell }}; --ergebnis-dunkel: {{ s.farbe.dunkel }}">
@@ -23,7 +24,8 @@
     <label class="schalter"><input type="checkbox" name="{{ sch.name }}" value="1" {% if sch.an %}checked{% endif %}> {{ sch.text }}</label>
     {% endfor %}
 
-    <div class="plan"><div class="nur-hell">{{ s.svg_hell|safe }}</div><div class="nur-dunkel">{{ s.svg_dunkel|safe }}</div></div>
+    <div class="plan"{% if s.animation %} data-animation data-ms="{{ s.bild_ms }}"{% endif %}><div class="nur-hell">{{ s.svg_hell|safe }}</div><div class="nur-dunkel">{{ s.svg_dunkel|safe }}</div></div>
+    {% if s.animation %}<div class="knoepfe"><button type="button" class="knopf leer" data-animation-knopf aria-pressed="false">⏸ Pause</button></div>{% endif %}
 
     <div class="regler-liste">
       {% for r in s.regler %}

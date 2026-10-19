@@ -9,8 +9,10 @@
 #   web_id(id)                     Projekt-ID -> Web-ID (farbcode_wert -> farbcode) oder None
 #   web_rechner(ids)               Rechner mit Titel/Beschreibung/Kategorie (alle oder nur die genannten)
 #   nach_kategorien()              für die Rechner-Übersicht: Kategorie -> Unterkategorie -> Rechner
+#   anzahl()                       (Rechner, Schaltpläne) im Web
 #   formel_rechnen(daten, eingaben) Felder für das Formular + Ergebnis (oder Meldung)
 #   farbcode(eingaben)             Farbringe <-> Wert, mit Zeichnung als SVG
+#   smd(eingaben)                  SMD-Aufdruck (103, 4R7, 01C) -> Wert
 #
 # EINGABEN (Adresse oder Formular):  <feld>=Text   <feld>-e=Einheit   rechnen=1 (Knopf gedrückt)
 #
@@ -26,6 +28,7 @@ from bauteile.grafiken.widerstand_bild import widerstand_zeichnen      # -> baut
 from bauteile.rechner import widerstand_rechner as wr                  # -> bauteile/rechner/widerstand_rechner.py
 from bauteile.rechner.kern import FormelDaten, RechnerFehler, feld_optionen, texte_lesen   # -> rechner/kern.py
 from bauteile.rechner.rechner_info import KATEGORIEN, RECHNER_INFO     # -> bauteile/rechner/rechner_info.py
+from wiki import grafiken                                              # -> web/wiki/grafiken.py (Schaltpläne)
 
 # Die Web-ID "farbcode" fasst die zwei Fenster-Karten "Farbcode → Wert" und "Wert → Farbcode" zusammen
 FARBCODE_IDS = ("farbcode_wert", "wert_farbcode")
@@ -40,6 +43,9 @@ def web_rechner_ids():
     ids = []
     if settings.WEB_ALLE_FORMEL_RECHNER:
         ids = [rid for rid in RECHNER_INFO if isinstance(registry.get(rid), FormelDaten)]
+    if settings.WEB_ALLE_SCHALTUNGEN:
+        schaltungen = set(grafiken.interaktive_ids())
+        ids += [rid for rid in RECHNER_INFO if rid in schaltungen]
     ids += [rid for rid in settings.WEB_RECHNER_EXTRA if rid not in ids]
     return ids
 
@@ -55,15 +61,25 @@ def info(web_rechner_id):
     """Titel, Beschreibung, Kategorie, Wissensseite ... aus rechner_info.py"""
     if web_rechner_id == "farbcode":
         basis = dict(RECHNER_INFO["farbcode_wert"])
-        basis.update(titel="Widerstand: Farbcode ↔ Wert",
-                     beschreibung="Farbringe wählen und den Wert ablesen – oder umgekehrt: Welche Ringe hat 4.7 kΩ?")
+        basis.update(titel="Widerstand: Farbcode ↔ Wert (THT)",
+                     beschreibung="Farbringe wählen und den Wert ablesen – oder umgekehrt: Welche Ringe hat 4.7 kΩ?",
+                     stichworte=basis["stichworte"] + ["THT", "bedrahtet", "Wert → Farbcode"])
         return basis
     return RECHNER_INFO.get(web_rechner_id)
 
 
+def anzahl():
+    """(Rechner, Schaltpläne) im Web - für Startseite und Übersicht."""
+    ids = web_rechner_ids()
+    schaltplaene = sum(1 for rid in ids if grafiken.ist_interaktiv(rid))
+    return len(ids) - schaltplaene, schaltplaene
+
+
 def _eintrag(rid):
     i = info(rid)
-    return i and {"id": rid, "titel": i["titel"], "beschreibung": i["beschreibung"], "kategorie": i["kategorie"],
+    return i and {"id": rid, "titel": i["titel"].replace(" (interaktiv)", ""), "beschreibung": i["beschreibung"],
+                  "interaktiv": grafiken.ist_interaktiv(rid), "animation": grafiken.ist_animation(rid),
+                  "kategorie": i["kategorie"],
                   "unterkategorie": i["unterkategorie"], "stichworte": " ".join(i.get("stichworte", [])),
                   "icon": KATEGORIEN.get(i["kategorie"], ("🧮",))[0]}
 
@@ -181,3 +197,21 @@ def farbcode(eingaben):
             "wert": wert_text, "wert_einheit": wert_einheit, "einheiten": list(stufen),
             "anzahl": anzahl, "toleranzen": toleranzen, "tol": tol,
             "svg_farbe": _widerstand_svg(farben_ziel), "zeilen_farbe": zeilen_farbe, "ok_farbe": ok_farbe}
+
+
+# =============================================================================
+# SMD-CODE
+# =============================================================================
+SMD_BEISPIELE = [("103", "3 Ziffern: 10 × 10³"), ("4R7", "R = Komma"), ("4701", "4 Ziffern: 470 × 10¹"),
+                 ("01C", "EIA-96 (1 %)"), ("000", "Drahtbrücke")]
+
+
+def smd(eingaben):
+    """'103' -> Ergebniszeilen (oder Meldung). Rechnung: widerstand_rechner.smd_zeilen (wie im Fenster)."""
+    code = eingaben.get("code", "").strip()[:20]
+    if not code:
+        return {"code": "", "zeilen": [], "ok": True, "beispiele": SMD_BEISPIELE}
+    try:
+        return {"code": code, "zeilen": wr.smd_zeilen(code), "ok": True, "beispiele": SMD_BEISPIELE}
+    except RechnerFehler as fehler:
+        return {"code": code, "zeilen": [str(fehler)], "ok": False, "beispiele": SMD_BEISPIELE}

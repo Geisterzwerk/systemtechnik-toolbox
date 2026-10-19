@@ -6,13 +6,13 @@
 {# (ohne JavaScript ist einfach alles sichtbar).                                #}
 {# =========================================================================== #}
 {% block titel %}Rechner{% endblock %}
-{% block beschreibung %}{{ anzahl }} Rechner für Elektrotechnik, Elektronik, Messtechnik und Digitaltechnik – mit Einheiten wie im Datenblatt.{% endblock %}
+{% block beschreibung %}{{ anzahl }} Rechner und {{ schaltplaene }} interaktive Schaltpläne für Elektrotechnik, Elektronik, Messtechnik und Digitaltechnik – mit Einheiten wie im Datenblatt.{% endblock %}
 {% block inhalt %}
 <nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Rechner</nav>
 <h1>🧮 Rechner</h1>
-<p class="leise">{{ anzahl }} Rechner. Eingaben wie im Datenblatt: <code>4k7</code>, <code>2.2M</code>, <code>470n</code>, <code>4R7</code> – die Einheit daneben wählen.</p>
+<p class="leise">{{ anzahl }} Rechner und {{ schaltplaene }} interaktive Schaltpläne. Eingaben wie im Datenblatt: <code>4k7</code>, <code>2.2M</code>, <code>470n</code>, <code>4R7</code> – die Einheit daneben wählen.</p>
 
-<input type="search" class="filter-feld" placeholder="Rechner filtern … z.B. LED, Filter, Pt100, Baudrate" aria-label="Rechner filtern" data-filter="#rechner-liste">
+<input type="search" class="filter-feld" placeholder="Filtern … z.B. LED, Filter, Pt100, SMD, NE555" aria-label="Rechner filtern" data-filter="#rechner-liste">
 <p class="leise" data-filter-leer hidden>Kein Rechner passt. Tipp: die <a href="/suche/">Suche</a> findet auch Wissensseiten.</p>
 
 <div id="rechner-liste">
@@ -26,7 +26,7 @@
     <div class="liste">
       {% for r in g.rechner %}
       <a class="listen-eintrag" href="/rechner/{{ r.id }}/" data-filter-text="{{ r.titel }} {{ r.beschreibung }} {{ r.stichworte }} {{ g.name }}">
-        <span class="listen-titel">{{ r.titel }}</span>
+        <span class="listen-titel">{{ r.titel }}{% if r.animation %} <span class="marke">Animation</span>{% elif r.interaktiv %} <span class="marke">Schaltplan</span>{% endif %}</span>
         <span class="listen-text">{{ r.beschreibung }}</span>
       </a>
       {% endfor %}

@@ -32,7 +32,7 @@
   --ueberschrift: {{ code_farben.Dark.ueberschrift }};
 }
 </style>
-<link rel="stylesheet" href="{% static 'systemlab.css' %}">
+<link rel="stylesheet" href="{% static 'systemlab.css' %}?v={{ statisch_version }}">
 <script>
   /* gewählten Modus VOR dem Zeichnen setzen (kein Aufblitzen). Ohne gespeicherte Wahl: wie das System. */
   try { var m = localStorage.getItem("systemlab-modus"); if (m) document.documentElement.dataset.modus = m; } catch (e) {}
@@ -59,6 +59,6 @@
   <a class="melden" href="/rueckmeldung/?seite={{ request.path|urlencode }}">⚠ Fehler auf dieser Seite melden · Idee teilen</a><br>
   SystemLab · Lern- und Werkzeugplattform für technische Ausbildungen · Angaben ohne Gewähr – im Zweifel Datenblatt und Norm prüfen.
 </footer>
-<script src="{% static 'systemlab.js' %}"></script>
+<script src="{% static 'systemlab.js' %}?v={{ statisch_version }}"></script>
 </body>
 </html>

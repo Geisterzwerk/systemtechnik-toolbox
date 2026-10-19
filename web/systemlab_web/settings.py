@@ -41,6 +41,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # komprimiert die Seiten (Animationen: 680 KB -> ca. 100 KB). Django maskiert den CSRF-Schlüssel bei
+    # jeder Antwort neu - darum ist Komprimierung hier unbedenklich (Stichwort BREACH).
+    "django.middleware.gzip.GZipMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",         # Schutz für Formulare, die etwas speichern (POST)
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -72,8 +75,12 @@ STATIC_ROOT = WEB_ORDNER / "staticfiles"                        # nur für onlin
 # ---- Rechner im Web (IDs aus bauteile/rechner/rechner_info.py) -> web/rechner/formular.py ----
 # Alle Formel-Rechner (FormelDaten) laufen im Web automatisch - auch jeder neue.
 WEB_ALLE_FORMEL_RECHNER = True
-# Rechner mit eigener Webseite (keine FormelDaten): "farbcode" = Farbcode -> Wert und Wert -> Farbcode
-WEB_RECHNER_EXTRA = ["farbcode"]
+# Alle interaktiven Schaltpläne (schaltungen/grafiken*.py) und Animationen (web/wiki/grafiken.py ANIMATIONEN)
+# auch einzeln unter /rechner/<id>/
+WEB_ALLE_SCHALTUNGEN = True
+# Rechner mit eigener Webseite (keine FormelDaten): "farbcode" = Farbcode -> Wert und Wert -> Farbcode (THT),
+# "smd_code" = SMD-Aufdruck entschlüsseln
+WEB_RECHNER_EXTRA = ["farbcode", "smd_code"]
 # Auf der Startseite hervorgehoben (die übrigen stehen unter /rechner/)
 WEB_RECHNER_EMPFOHLEN = ["ohm_leistung", "spannungsteiler", "farbcode", "rc_zeit", "dmm_genauigkeit"]
 

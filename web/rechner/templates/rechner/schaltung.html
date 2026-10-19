@@ -1,0 +1,11 @@
+{% extends "basis.html" %}
+{# web/rechner/templates/rechner/schaltung.html - ein interaktiver Schaltplan als eigene Seite unter /rechner/<id>/ #}
+{# Der Plan selbst: web/wiki/templates/wiki/schaltung.html (derselbe Block wie auf den Wissensseiten)          #}
+{% block titel %}{{ s.titel }}{% endblock %}
+{% block beschreibung %}{{ info.beschreibung }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/rechner/">Rechner</a> › {{ info.kategorie }} › {{ info.unterkategorie }}</nav>
+{% include "wiki/schaltung.html" %}
+<p class="melden-zeile"><a href="/rueckmeldung/?seite={{ request.get_full_path|urlencode }}">⚠ Stimmt etwas nicht? Fehler melden (deine Einstellungen werden mitgeschickt)</a></p>
+{% if wissen %}<p><a class="chip" href="/{{ wissen.slug }}/{{ wissen.id }}/">📖 Zur Wissensseite: {{ wissen.titel }}</a></p>{% endif %}
+{% endblock %}
