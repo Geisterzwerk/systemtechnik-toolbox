@@ -8,6 +8,7 @@
 <div class="gesperrt">
   <div class="gesperrt-vorschau" aria-hidden="true" inert>
     <h3>{{ vorschau.titel }}</h3>
+    {% if vorschau.schema %}<div class="schema"><div class="nur-hell">{{ vorschau.schema.hell|safe }}</div><div class="nur-dunkel">{{ vorschau.schema.dunkel|safe }}</div></div>{% endif %}
     <p>{{ vorschau.text }}</p>
     <p>{% for name, wert in vorschau.gegeben %}<span class="chip">{{ name }} = {{ wert }}</span>{% endfor %}</p>
     <p>Gesucht: {{ vorschau.gesucht.zeichen }} – {{ vorschau.gesucht.text }}</p>

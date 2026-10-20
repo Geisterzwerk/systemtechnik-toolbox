@@ -20,7 +20,10 @@
 # nichts doppelt. Gegebene Widerstände und Kondensatoren sind Normwerte (E12, IEC 60063).
 # Kontrolle: Abweichung bis ±1 % gilt als richtig (Rundung auf 3 Stellen ist damit immer ok).
 #
-# WER RUFT DAS AUF?  web/uebungen/views.py, web/wiki/views.py (Übungen zur Seite), pruefung/rechner_faelle.py
+# Das passende Schaltbild zu jeder Aufgabe zeichnet uebungen/schemas.py.
+#
+# WER RUFT DAS AUF?  web/ueben/views.py, web/wiki/views.py (Übungen zur Seite), uebungen/schemas.py,
+#                    pruefung/rechner_faelle.py
 # =============================================================================
 
 import math
@@ -297,7 +300,7 @@ BEISPIEL_NR = 1                    # die Vorschau zeigt immer diese Aufgabe
 def vorschau(art_id="ohm_strom"):
     """Nur Titel, Text, gegebene Werte und was gesucht ist - KEINE Lösung, kein Lösungsweg."""
     a = aufgabe(art_id, BEISPIEL_NR)
-    return {"titel": a["titel"], "text": a["text"], "gegeben": a["gegeben"], "gesucht": a["gesucht"]}
+    return {"art": a["art"], "titel": a["titel"], "text": a["text"], "gegeben": a["gegeben"], "gesucht": a["gesucht"]}
 
 
 def neue_nr():

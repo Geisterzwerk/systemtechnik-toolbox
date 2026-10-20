@@ -23,6 +23,7 @@ from core.inhalte_index import gesamtindex                             # -> core
 from programmieren.engine import syntax                                # -> programmieren/engine/syntax.py
 from konto.zugang import hat_abo                                       # -> web/konto/zugang.py
 from rechner import formular                                           # -> web/rechner/formular.py
+from ueben.views import vorschau_mit_schema                            # -> web/ueben/views.py (Beispiel fürs Schloss)
 from uebungen import aufgaben                                          # -> uebungen/aufgaben.py (Übungen zur Seite)
 from wiki import grafiken, inhalt, rueckmeldung                        # -> web/wiki/grafiken.py, inhalt.py, rueckmeldung.py
 
@@ -115,7 +116,7 @@ def thema(request, slug, thema_id):
         "web_rechner": web_rechner, "schaltungen": schaltungen, "nur_desktop": nur_desktop,
         # Übungen zu dieser Seite: Titel immer sichtbar, Links nur mit Abo (sonst Schloss + Beispiel ohne Lösung)
         "uebungen": uebungen,
-        "vorschau": aufgaben.vorschau(uebungen[0]["id"]) if uebungen and not hat_abo(request.user) else None,
+        "vorschau": vorschau_mit_schema(uebungen[0]["id"]) if uebungen and not hat_abo(request.user) else None,
     })
 
 

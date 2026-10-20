@@ -383,7 +383,8 @@ konto_pruefen("<script>x" not in t, "Antwort erscheint als HTML (nicht escaped)!
 konto_pruefen(b.get("/uebungen/ohm_strom/").status_code == 302, "Aufgabe ohne Nummer: keine neue Nummer")
 konto_pruefen(b.get("/uebungen/ohm_strom/?nr=abc").status_code == 302, "Aufgabe mit Unsinn-Nummer: Absturz?")
 for art in aufgaben.ARTEN:
-    konto_pruefen(b.get(f"/uebungen/{art}/?nr=7&loesung=1").status_code == 200, f"Aufgabe {art} lädt nicht")
+    r = b.get(f"/uebungen/{art}/?nr=7&loesung=1")
+    konto_pruefen(r.status_code == 200 and 'class="schema"' in html(r), f"Aufgabe {art} lädt nicht / ohne Schema")
 r = b.get("/uebungen/blatt/?art=ohm_strom&art=rc_tau&anzahl=4&erstellen=1&loesungen=1")
 konto_pruefen(r.status_code == 302 and "nr=" in r["Location"], "Übungsblatt: keine feste Nummer")
 t = html(b.get(r["Location"]))

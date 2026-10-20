@@ -31,11 +31,14 @@
   <p class="leise klein">Nr. {{ nr }} · {{ aufgaben|length }} Aufgaben · Name: ____________________ Datum: ____________</p>
   <ol class="blatt-liste">
     {% for a in aufgaben %}
-    <li>
-      <strong>{{ a.titel }}</strong>
-      <p>{{ a.text }}</p>
-      <p>Gegeben: {% for name, wert in a.gegeben %}{{ name }} = {{ wert }}{% if not forloop.last %}, {% endif %}{% endfor %} · Gesucht: {{ a.gesucht.zeichen }}</p>
-      <p class="antwort-linie">{{ a.gesucht.zeichen }} = ______________________</p>
+    <li class="blatt-aufgabe">
+      <div>
+        <strong>{{ a.titel }}</strong>
+        <p>{{ a.text }}</p>
+        <p>Gegeben: {% for name, wert in a.gegeben %}{{ name }} = {{ wert }}{% if not forloop.last %}, {% endif %}{% endfor %} · Gesucht: {{ a.gesucht.zeichen }}</p>
+        <p class="antwort-linie">{{ a.gesucht.zeichen }} = ______________________</p>
+      </div>
+      {% if a.schema %}<figure class="schema schema-klein"><div class="nur-hell">{{ a.schema.hell|safe }}</div><div class="nur-dunkel">{{ a.schema.dunkel|safe }}</div></figure>{% endif %}
     </li>
     {% endfor %}
   </ol>

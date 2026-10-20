@@ -12,6 +12,7 @@
 
 <section class="karte aufgabe">
   <p>{{ a.text }}</p>
+  {% if schema %}<figure class="schema"><div class="nur-hell">{{ schema.hell|safe }}</div><div class="nur-dunkel">{{ schema.dunkel|safe }}</div></figure>{% endif %}
   <h2 class="karte-titel">Gegeben</h2>
   <p>{% for name, wert in a.gegeben %}<span class="chip">{{ name }} = {{ wert }}</span>{% endfor %}</p>
   <h2 class="karte-titel">Gesucht: {{ a.gesucht.zeichen }} – {{ a.gesucht.text }}</h2>

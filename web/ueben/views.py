@@ -24,10 +24,12 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 
 from konto.zugang import hat_abo                                       # -> web/konto/zugang.py
-from uebungen import aufgaben                                          # -> uebungen/aufgaben.py
+from uebungen import aufgaben, schemas                                 # -> uebungen/aufgaben.py, schemas.py
 from wiki import inhalt                                                # -> web/wiki/inhalt.py
 
 MAX_NR = 10 ** 12
+SCHEMA_BREITE = 440                    # Schema bei einer Aufgabe (Pixel, wird auf dem Handy kleiner)
+SCHEMA_BREITE_BLATT = 300              # Schema auf dem Übungsblatt - kleiner, damit mehr auf eine Seite passt
 
 
 def _nr(text):
@@ -39,8 +41,14 @@ def _nr(text):
     return nr if 1 <= nr <= MAX_NR else None
 
 
+def vorschau_mit_schema(art_id="ohm_strom"):
+    """Beispiel für die verschwommene Vorschau (ohne Lösung) + sein Schema (zeigt nur Gegebenes und "?")."""
+    v = aufgaben.vorschau(art_id)
+    return {**v, "schema": schemas.schema_paar(v, SCHEMA_BREITE)}
+
+
 def _gesperrt(request, titel, art_id="ohm_strom"):
-    return render(request, "ueben/gesperrt.html", {"titel": titel, "vorschau": aufgaben.vorschau(art_id),
+    return render(request, "ueben/gesperrt.html", {"titel": titel, "vorschau": vorschau_mit_schema(art_id),
                                                    "gruppen": aufgaben.alle_arten()})
 
 
@@ -72,7 +80,7 @@ def aufgabe(request, art_id):
     pruefung = aufgaben.antwort_pruefen(a, antwort, einheit) if antwort.strip() else None
     zeige_loesung = request.GET.get("loesung") == "1" or bool(pruefung and pruefung["richtig"])
     return render(request, "ueben/aufgabe.html", {
-        "a": a, "info": info, "antwort": antwort, "einheit": einheit, "pruefung": pruefung,
+        "a": a, "schema": schemas.schema_paar(a, SCHEMA_BREITE), "info": info, "antwort": antwort, "einheit": einheit, "pruefung": pruefung,
         "zeige_loesung": zeige_loesung, "neue_nr": aufgaben.neue_nr(), "seiten": _seiten(info),
         "toleranz": round(aufgaben.TOLERANZ * 100)})
 
@@ -96,7 +104,8 @@ def blatt(request):
             return redirect(f"/uebungen/blatt/?{teile}&anzahl={anzahl}&nr={aufgaben.neue_nr()}"
                             f"{'&loesungen=1' if mit_loesungen else ''}")
         else:
-            liste_aufgaben = aufgaben.blatt(gewaehlt, anzahl, nr)
+            liste_aufgaben = [{**a, "schema": schemas.schema_paar(a, SCHEMA_BREITE_BLATT)}
+                              for a in aufgaben.blatt(gewaehlt, anzahl, nr)]
     return render(request, "ueben/blatt.html", {
         "gruppen": aufgaben.alle_arten(), "gewaehlt": gewaehlt, "anzahl": anzahl, "max_anzahl": aufgaben.MAX_ANZAHL,
         "mit_loesungen": mit_loesungen, "aufgaben": liste_aufgaben, "fehler": fehler,

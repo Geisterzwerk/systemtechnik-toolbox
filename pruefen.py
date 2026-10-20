@@ -14,7 +14,7 @@ print("Projektordner:", basis)
 alles = True
 alles &= check("gui/bauteile_gui.py ist die NEUE Version (gemeinsamer WikiBereich)",
                "WikiBereich" in open(os.path.join(basis, "gui", "bauteile_gui.py"), encoding="utf-8").read())
-for pfad in ["uebungen/aufgaben.py", "bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rechner/basis.py",
+for pfad in ["uebungen/aufgaben.py", "uebungen/schemas.py", "bauteile/einheiten.py", "bauteile/engine/seite.py", "bauteile/rechner/basis.py",
              "bauteile/inhalte/01_passiv/widerstand.py", "bauteile/grafiken/trafo_animation.py",
              "bauteile/inhalte/03_transistoren/bipolartransistor.py", "bauteile/rechner/halbleiter_rechner.py",
              "bauteile/inhalte/02_dioden/diode.py", "bauteile/rechner/transistor_rechner.py",

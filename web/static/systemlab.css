@@ -238,6 +238,11 @@ input[type="password"], input[type="number"], .konto-feld input {
 .kachel-gesperrt { opacity: 0.7; }
 
 /* ---- Übungen (web/ueben/) ---------------------------------------------------------- */
+.schema { margin: 8px 0 12px; max-width: 440px; }
+.schema svg { width: 100%; height: auto; display: block; border-radius: 10px; border: 1px solid var(--rahmen); }
+.schema-klein { max-width: 300px; margin: 0; }
+.blatt-aufgabe { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 300px); gap: 14px; align-items: start; }
+.gesperrt-vorschau .schema { max-width: 320px; }
 .loesungsweg li { margin: 4px 0; font-family: "Cascadia Code", Consolas, monospace; font-size: 0.92rem; }
 .blatt-form fieldset { border: 1px solid var(--rahmen); border-radius: 10px; margin: 0 0 10px; padding: 6px 12px 10px; }
 .blatt-form legend { font-weight: 600; padding: 0 6px; }
@@ -252,6 +257,9 @@ input[type="password"], input[type="number"], .konto-feld input {
   .karte { border: none; padding: 0; margin: 0; background: #fff; }
   .seitenumbruch { break-before: page; }
   .blatt-liste li { break-inside: avoid; }
+  .nur-hell { display: block !important; }              /* gedruckt wird immer das helle Schema */
+  .nur-dunkel { display: none !important; }
+  .schema svg { border-color: #999; }
 }
 
 /* ---- Handy ------------------------------------------------------------------------ */
@@ -271,5 +279,6 @@ input[type="password"], input[type="number"], .konto-feld input {
   .regler input[type="range"] { grid-column: 1 / -1; }
   .suche-gross { flex-direction: column; }
   .konto-link span { display: none; }                 /* Handy: nur 👤 */
+  .blatt-aufgabe { grid-template-columns: 1fr; }
   .kopf-innen { gap: 8px; }
 }

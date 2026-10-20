@@ -27,7 +27,7 @@ import math
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile import einheiten                                               # Regler-Bereich je Einheit
-from uebungen import aufgaben as ueb                                         # Übungsgenerator
+from uebungen import aufgaben as ueb, schemas as ueb_schema                  # Übungsgenerator + Schemas
 from bauteile.rechner.widerstand_rechner import (farbcode_zeilen, farben_zu_wert, smd_entschluesseln,
                                                  smd_zeilen, wert_zu_farben)
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
@@ -678,7 +678,16 @@ FUNKTIONEN = [
     ("Übung Kontrolle: Unsinn -> Meldung statt Absturz", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1), "abc", "V")["richtig"], False),
     ("Übungsblatt: höchstens MAX_ANZAHL Aufgaben", lambda: len(ueb.blatt(["ohm_strom"], 999, 1)), ueb.MAX_ANZAHL),
     ("Übungsblatt ohne Auswahl", lambda: ueb.blatt(["gibtsnicht"], 5, 1), wirft(ValueError)),
-    ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["gegeben", "gesucht", "text", "titel"]),
+    ("Übung: jede Art hat ein Schema (SVG, Gesuchtes als „?“)",
+     lambda: all("<svg" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)) and "?" in ueb_schema.schema_svg(ueb.aufgabe(a, 1))
+                 for a in ueb.ARTEN), True),
+    ("Übung: Schema verrät die Lösung nie (200 Nummern je Art)",
+     lambda: [(a, n) for a in ueb.ARTEN for n in range(1, 201)
+              if f">{ueb.aufgabe(a, n)['loesung_text']}<" in ueb_schema.schema_svg(ueb.aufgabe(a, n))
+              or f"= {ueb.aufgabe(a, n)['loesung_text']}<" in ueb_schema.schema_svg(ueb.aufgabe(a, n))], []),
+    ("Übung: Schema zeigt alle gegebenen Werte", lambda: all(w in ueb_schema.schema_svg(ueb.aufgabe(a, 3))
+     for a in ueb.ARTEN for _n, w in ueb.aufgabe(a, 3)["gegeben"]), True),
+    ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "gegeben", "gesucht", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
     ("Regler -100…100 mV, Einheit V -> -100…100 V", lambda: einheiten.regler_bereich("spannung", -0.1, 0.1, (-1, 1), "mV", "V"),
