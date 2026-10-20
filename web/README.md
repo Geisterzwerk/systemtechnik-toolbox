@@ -31,6 +31,8 @@ py manage.py createsuperuser
 ```
 
 Benutzername und ein starkes Passwort (mind. 10 Zeichen) wählen – E-Mail kannst du leer lassen.
+Schon ein Konto über „Konto erstellen“ angelegt? Dann dieses zum Admin machen:
+`py manage.py admin_machen <Benutzername>` (zurück: `--zurueck`).
 
 - **Admin** (Superuser): alles frei, auch die Übungen. Verwaltung unter <http://127.0.0.1:8000/verwaltung/>.
 - **Abo von Hand vergeben:** Verwaltung → Benutzer → Person öffnen → Gruppen → „Abo“ → Speichern.

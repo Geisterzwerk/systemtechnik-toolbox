@@ -408,6 +408,15 @@ r = b.post("/konto/loeschen/", {"csrfmiddlewaretoken": token, "password": neu})
 konto_pruefen(r.status_code == 200 and not User.objects.filter(username="testperson").exists(), "Konto löschen klappt nicht")
 konto_pruefen(b.get("/konto/").status_code == 302, "nach dem Löschen noch angemeldet")
 
+# -- bestehendes Konto zum Admin machen (py manage.py admin_machen <name>) --
+from konto.zugang import hat_abo                                       # noqa: E402
+
+User.objects.create_user("spaeteradmin", password=secrets.token_urlsafe(16))
+call_command("admin_machen", "spaeteradmin", stdout=open(os.devnull, "w"))
+konto_pruefen(hat_abo(User.objects.get(username="spaeteradmin")), "admin_machen: Konto hat danach nicht alles frei")
+call_command("admin_machen", "spaeteradmin", "--zurueck", stdout=open(os.devnull, "w"))
+konto_pruefen(not hat_abo(User.objects.get(username="spaeteradmin")), "admin_machen --zurueck wirkt nicht")
+
 # -- Admin: alles frei, Verwaltung erreichbar --
 admin_pw = secrets.token_urlsafe(16)
 User.objects.create_superuser("testadmin", password=admin_pw)
