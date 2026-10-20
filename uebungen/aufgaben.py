@@ -26,7 +26,8 @@
 # MODULE MIT AUFGABEN (jede neue Datei unten bei den Importen eintragen):
 #   uebungen/grundlagen.py   Ohm, Leistung, Reihe/Parallel, Teiler, RC, LED
 #   uebungen/schaltungen.py  Netzwerke, Dioden, Transistor/MOSFET, RC/RL, OPV, Netzteile, Filter, Timer
-#   (weitere Bereiche folgen: Digitaltechnik, Programmieren, Server / Linux ...)
+#   uebungen/digital.py      Zahlensysteme, Logik, KV, Schaltnetze, Schaltwerke, Busse, Pegel
+#   (weitere Bereiche folgen: Programmieren, Server / Linux ...)
 # Das passende Schaltbild zu einer Aufgabe zeichnet uebungen/schemas.py.
 #
 # WER RUFT DAS AUF?  web/ueben/views.py, web/wiki/views.py (Übungen zur Seite), uebungen/schemas.py,
@@ -39,7 +40,7 @@ import re
 
 from bauteile import einheiten                                       # -> bauteile/einheiten.py
 from uebungen.kern import ARTEN, BEREICHE, STUFEN, _f                # -> uebungen/kern.py
-from uebungen import grundlagen, schaltungen                         # noqa: F401  melden ihre Aufgaben an
+from uebungen import digital, grundlagen, schaltungen                # noqa: F401  melden ihre Aufgaben an
 
 TOLERANZ = 0.01                    # ±1 %
 MAX_ANZAHL = 30                    # höchstens so viele Aufgaben auf einem Blatt
@@ -108,6 +109,12 @@ def aufgabe(art_id, nr):
 def _normal(text, vergleich):
     """Antwort vergleichbar machen. Rückgabe: Text oder Zahl (bei basis2/16/10), None = nicht lesbar."""
     t = re.sub(r"\s+", " ", str(text or "")).strip().strip("\"'„“`")
+    if vergleich == "menge":                                         # "1, 3, 5" = "5 3 1" = "{1;3;5}"
+        teile = re.findall(r"-?\d+", t)
+        return tuple(sorted(set(int(x) for x in teile))) if teile else None
+    if vergleich == "buchstaben":                                    # "bcfg" = "b, c, f, g" = "gfcb"
+        teile = re.findall(r"[a-z]", t.lower())
+        return tuple(sorted(set(teile))) if teile else None
     if vergleich.startswith("basis"):
         basis = int(vergleich[5:])
         t = t.replace(" ", "").replace("_", "").replace("'", "").lower()

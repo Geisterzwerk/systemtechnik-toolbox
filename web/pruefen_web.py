@@ -262,7 +262,7 @@ from django.contrib.auth.models import Group, User                    # noqa: E4
 
 from konto.models import Fehlversuch                                   # noqa: E402
 from bauteile import einheiten                                         # noqa: E402
-from uebungen import aufgaben                                          # noqa: E402
+from uebungen import aufgaben, schemas                                 # noqa: E402
 
 
 def konto_pruefen(bedingung, text):
@@ -384,7 +384,10 @@ konto_pruefen(b.get("/uebungen/ohm_strom/").status_code == 302, "Aufgabe ohne Nu
 konto_pruefen(b.get("/uebungen/ohm_strom/?nr=abc").status_code == 302, "Aufgabe mit Unsinn-Nummer: Absturz?")
 for art in aufgaben.ARTEN:
     r = b.get(f"/uebungen/{art}/?nr=7&loesung=1")
-    konto_pruefen(r.status_code == 200 and 'class="schema"' in html(r), f"Aufgabe {art} lädt nicht / ohne Schema")
+    konto_pruefen(r.status_code == 200 and ('class="schema"' in html(r)) == (art in schemas.SCHEMAS),
+                  f"Aufgabe {art} lädt nicht / Schema fehlt")
+    if aufgaben.aufgabe(art, 7)["antwort"] == "auswahl":
+        konto_pruefen(html(r).count('type="radio"') >= 2, f"Aufgabe {art}: Auswahl ohne Optionen")
 r = b.get("/uebungen/blatt/?art=ohm_strom&art=rc_tau&anzahl_1=2&anzahl_2=2&erstellen=1&loesungen=1")
 konto_pruefen(r.status_code == 302 and "nr=" in r["Location"], "Übungsblatt: keine feste Nummer")
 t = html(b.get(r["Location"]))

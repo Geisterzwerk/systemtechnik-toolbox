@@ -24,6 +24,54 @@ from bauteile.grafiken.svg_canvas import SvgCanvas                      # -> bau
 GESUCHT = "?"
 
 
+def iec_gatter(p, x, y, zeichen, eingaenge, invertiert=False, hoehe=None, namen=(), ausgang=""):
+    """Gatter nach IEC 60617 (Rechteck mit &, ≥1, =1, 1), Mitte (x, y), Eingänge links, Ausgang rechts.
+    namen: Beschriftung der Eingänge (z.B. ["A = 1", "B = 0"]), ausgang: Text rechts. Kreis = invertiert."""
+    h = hoehe or max(1.4, 0.7 * eingaenge + 0.4)
+    a, b = p.p(x - 0.8, y - h / 2), p.p(x + 0.8, y + h / 2)
+    p.c.create_rectangle(*a, *b, outline=p.linie, fill=p.bg, width=p.dick)
+    p.text(x, y - h / 2 + 0.35, zeichen, "center", fett=True)
+    for i in range(eingaenge):
+        ye = y - h / 2 + h * (i + 1) / (eingaenge + 1)
+        p.leitung((x - 1.8, ye), (x - 0.8, ye))
+        if i < len(namen):
+            p.text(x - 1.9, ye, namen[i], "e", fett=True)
+    x_aus = x + 0.8
+    if invertiert:
+        r = 0.16
+        (ax, ay), (bx, by) = p.p(x + 0.8, y - r), p.p(x + 0.8 + 2 * r, y + r)
+        p.c.create_oval(ax, ay, bx, by, outline=p.linie, width=p.dick, fill=p.bg)
+        x_aus += 2 * r
+    p.leitung((x_aus, y), (x + 1.9, y))
+    if ausgang:
+        p.text(x + 2.0, y, ausgang, "w", fett=True, farbe=ORANGE)
+
+
+def kasten_baustein(p, x0, y0, x1, y1, titel, links=(), rechts=(), unten=()):
+    """Baustein als Kasten (MUX, Decoder, Flipflop ...): Anschlüsse mit Namen innen und Werten aussen.
+    links/rechts: [(Pin-Name, Text aussen)], gleichmässig verteilt; unten: [(x, Pin-Name, Text)]."""
+    p.kasten(x0, y0, x1, y1, "")
+    p.text((x0 + x1) / 2, y0 + 0.35, titel, "center", fett=True)
+    for liste, seite in ((links, "links"), (rechts, "rechts")):
+        for i, (pin, aussen) in enumerate(liste):
+            y = y0 + 0.5 + (y1 - y0 - 0.5) * (i + 1) / (len(liste) + 1)
+            if seite == "links":
+                p.leitung((x0 - 0.9, y), (x0, y))
+                p.text(x0 + 0.12, y, pin, "w", klein=True)
+                if aussen:
+                    p.text(x0 - 1.0, y, aussen, "e", fett=True)
+            else:
+                p.leitung((x1, y), (x1 + 0.9, y))
+                p.text(x1 - 0.12, y, pin, "e", klein=True)
+                if aussen:
+                    p.text(x1 + 1.0, y, aussen, "w", fett=True, farbe=ORANGE if aussen.endswith(GESUCHT) else None)
+    for x, pin, aussen in unten:
+        p.leitung((x, y1), (x, y1 + 0.7))
+        p.text(x, y1 - 0.12, pin, "s", klein=True)
+        if aussen:
+            p.text(x, y1 + 0.8, aussen, "n", fett=True)
+
+
 def _kreis(p, x_q=1.5, x_r=6.0, y_o=1.0, y_u=5.0):
     """Grundkreis: Leitungen oben und unten von der Quelle (links) zum Bauteil (rechts)."""
     p.leitung((x_q, y_o + 0.6), (x_q, y_o), (x_r, y_o))

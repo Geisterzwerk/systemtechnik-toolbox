@@ -663,7 +663,7 @@ FAELLE = [
 def _verraet(a):
     """Steht die Lösung im Schema, OHNE dass sie zufällig gleich einem gegebenen Wert ist?"""
     svg, l = ueb_schema.schema_svg(a), str(a["loesung_text"])
-    if l.lstrip("-") in {w.lstrip("-") for _n, w in a["gegeben"]}:
+    if len(l) <= 2 or l.lstrip("-") in {w.lstrip("-") for _n, w in a["gegeben"]}:    # 0/1 steht in jedem Gatter
         return False
     return f">{l}<" in svg or f"= {l}<" in svg
 
@@ -695,13 +695,16 @@ FUNKTIONEN = [
      lambda: [ueb._normal(t, "basis2") for t in ("0b0101", "101", "0000 0101", "1012")], [5, 5, 5, None]),
     ("Übung Text-Vergleich Basis 16: 2Fh, 0x2f", lambda: [ueb._normal(t, "basis16") for t in ("2Fh", "0x2f", "2F")], [47, 47, 47]),
     ("Übungsblatt ohne Auswahl", lambda: ueb.blatt(["gibtsnicht"], 5, 1), wirft(ValueError)),
-    ("Übung: jede Art hat ein Schema (SVG, Gesuchtes als „?“)",
-     lambda: all("<svg" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)) and "?" in ueb_schema.schema_svg(ueb.aufgabe(a, 1))
-                 for a in ueb.ARTEN), True),
+    ("Übung: jede Elektro-Aufgabe (Grundlagen, Bauteile, Schaltungen) hat ein Schema mit „?“",
+     lambda: [a for a, d in ueb.ARTEN.items() if d["bereich"] in ("Grundlagen", "Bauteile", "Schaltungen")
+              and not ("<svg" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)) and "?" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)))], []),
+    ("Übung: jedes vorhandene Schema hat ein „?“",
+     lambda: [a for a in ueb_schema.SCHEMAS if "?" not in ueb_schema.schema_svg(ueb.aufgabe(a, 2))], []),
     ("Übung: Schema verrät die Lösung nie (200 Nummern je Art; zufällig gleich wie ein gegebener Wert zählt nicht)",
      lambda: [(a, n) for a in ueb.ARTEN for n in range(1, 201) if _verraet(ueb.aufgabe(a, n))], []),
-    ("Übung: Schema zeigt alle gegebenen Werte", lambda: all(w in ueb_schema.schema_svg(ueb.aufgabe(a, 3))
-     for a in ueb.ARTEN for _n, w in ueb.aufgabe(a, 3)["gegeben"]), True),
+    ("Übung: Schema zeigt alle gegebenen Werte (Rechenaufgaben)", lambda: [(a, w) for a in ueb_schema.SCHEMAS
+     for _n, w in ueb.aufgabe(a, 3)["gegeben"] if ueb.aufgabe(a, 3)["antwort"] == "zahl"
+     and w not in ueb_schema.schema_svg(ueb.aufgabe(a, 3))], []),
     # Schaltungs-Übungen: Nr. 3 von Hand nachgerechnet (Taschenrechner)
     ("Übung Stromteiler Nr. 3: 47 mA, 390 Ω ∥ 330 Ω -> I1 = 47 mA · 330 / 720 = 21.54 mA",
      lambda: round(ueb.aufgabe("stromteiler", 3)["loesung"] * 1e3, 2), 21.54),
@@ -713,6 +716,19 @@ FUNKTIONEN = [
     ("Übung Sallen-Key Nr. 3: 1/(2π√(1.8k·1.5k·4.7n·27n)) = 8.598 kHz", lambda: round(ueb.aufgabe("sallen_key_f0", 3)["loesung"]), 8598),
     ("Übung: Schaltungen hat Aufgaben in allen 4 Stufen",
      lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Schaltungen"}), [1, 2, 3, 4]),
+    # Digitaltechnik-Übungen: Nr. 3 von Hand nachgerechnet
+    ("Übung Zweierkomplement Nr. 3: −123 = 1000 0101", lambda: ueb.aufgabe("zk_muster", 3)["loesung"], "1000 0101"),
+    ("Übung Bitmaske Nr. 3: 0x68 AND 0x0F = 0x08", lambda: ueb.aufgabe("bitmaske", 3)["loesung"], "08"),
+    ("Übung Minterme Nr. 3: ¬A·B + A·¬C -> 2, 3, 4, 6", lambda: ueb.aufgabe("minterme", 3)["loesung"], "2, 3, 4, 6"),
+    ("Übung UART Nr. 3: 100 Byte 8N1 bei 19200 Bd = 1000 Bit / 19200 = 52.08 ms",
+     lambda: round(ueb.aufgabe("uart_dauer", 3)["loesung"] * 1e3, 2), 52.08),
+    ("Übung Antwort Binär mit Leerzeichen und 0b", lambda: ueb.antwort_pruefen(ueb.aufgabe("zk_muster", 3), "0b10000101")["richtig"], True),
+    ("Übung Antwort 7-Segment in beliebiger Reihenfolge",
+     lambda: ueb.antwort_pruefen(ueb.aufgabe("siebensegment", 3), "g f e d c a")["richtig"], True),
+    ("Übung Auswahl: falsche Option ist falsch", lambda: ueb.antwort_pruefen(ueb.aufgabe("de_morgan", 3),
+     [o for o in ueb.aufgabe("de_morgan", 3)["optionen"] if o != ueb.aufgabe("de_morgan", 3)["loesung"]][0])["richtig"], False),
+    ("Übung: Digitaltechnik hat Aufgaben in allen 4 Stufen",
+     lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Digitaltechnik"}), [1, 2, 3, 4]),
     ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "code", "gegeben", "gesucht", "sprache", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
