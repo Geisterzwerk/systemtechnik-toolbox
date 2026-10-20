@@ -28,7 +28,7 @@
 #   uebungen/schaltungen.py  Netzwerke, Dioden, Transistor/MOSFET, RC/RL, OPV, Netzteile, Filter, Timer
 #   uebungen/digital.py      Zahlensysteme, Logik, KV, Schaltnetze, Schaltwerke, Busse, Pegel
 #   uebungen/programmieren.py  Python und C: Ausgabe bestimmen, Datentypen, Schleifen, Funktionen, OOP
-#   (weitere Bereiche folgen: Server / Linux ...)
+#   uebungen/server.py       Linux: Befehle, Pfade, Pipes, Rechte, umask, Cron, Subnetze, Bash
 # Das passende Schaltbild zu einer Aufgabe zeichnet uebungen/schemas.py.
 #
 # WER RUFT DAS AUF?  web/ueben/views.py, web/wiki/views.py (Übungen zur Seite), uebungen/schemas.py,
@@ -41,7 +41,7 @@ import re
 
 from bauteile import einheiten                                       # -> bauteile/einheiten.py
 from uebungen.kern import ARTEN, BEREICHE, STUFEN, _f                # -> uebungen/kern.py
-from uebungen import digital, grundlagen, programmieren, schaltungen  # noqa: F401  melden ihre Aufgaben an
+from uebungen import digital, grundlagen, programmieren, schaltungen, server   # noqa: F401  melden ihre Aufgaben an
 
 TOLERANZ = 0.01                    # ±1 %
 MAX_ANZAHL = 30                    # höchstens so viele Aufgaben auf einem Blatt
@@ -113,6 +113,9 @@ def _normal(text, vergleich):
     if vergleich == "menge":                                         # "1, 3, 5" = "5 3 1" = "{1;3;5}"
         teile = re.findall(r"-?\d+", t)
         return tuple(sorted(set(int(x) for x in teile))) if teile else None
+    if vergleich == "worte":                                         # Dateinamen o.ä.: Reihenfolge und Kommas egal
+        teile = re.findall(r"[^\s,;]+", t)
+        return tuple(sorted(set(teile))) if teile else None
     if vergleich == "buchstaben":                                    # "bcfg" = "b, c, f, g" = "gfcb"
         teile = re.findall(r"[a-z]", t.lower())
         return tuple(sorted(set(teile))) if teile else None

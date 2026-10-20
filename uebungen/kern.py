@@ -21,7 +21,8 @@
 #        optional:   gegeben [(Name, Text)], optionen [...], akzeptiert [weitere richtige Texte],
 #                    vergleich "text" (Gross/Klein egal) | "genau" (Gross/Klein zählt, z.B. Befehle) |
 #                              "basis2" / "basis16" / "basis10" (Zahl in dieser Basis, führende Nullen egal) |
-#                              "menge" (Zahlen, Reihenfolge egal: "1, 3, 5") | "buchstaben" ("bcfg" = "g f c b"),
+#                              "menge" (Zahlen, Reihenfolge egal: "1, 3, 5") | "buchstaben" ("bcfg" = "g f c b") |
+#                              "worte" (Wörter/Dateinamen, Reihenfolge egal),
 #                    code (str) + sprache ("python", "bash", "c" ...), tabelle {"kopf": [...], "zeilen": [[...]]}
 #
 # DIE VIER STUFEN orientieren sich an öffentlich beschriebenen Niveaus (recherchiert 2026-10-20):

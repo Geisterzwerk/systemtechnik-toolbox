@@ -741,6 +741,16 @@ FUNKTIONEN = [
     ("Übung Sicherheit: Vorlagen-Ausführung kennt kein open", lambda: ueb_prog._ausgabe("open('x')"), wirft(NameError)),
     ("Übung: Programmieren hat Aufgaben in allen 4 Stufen",
      lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Programmieren"}), [1, 2, 3, 4]),
+    # Linux-Übungen: Nr. 5 von Hand nachvollzogen
+    ("Übung Linux Nr. 5: cd ..//./.. aus /home/benutzer/projekte -> /home", lambda: ueb.aufgabe("linux_cd_2", 5)["loesung"], "/home"),
+    ("Übung Linux Nr. 5: chmod a+x auf 640 -> 751", lambda: ueb.aufgabe("linux_chmod_symbolisch", 5)["loesung"], "751"),
+    ("Übung Linux Nr. 5: uniq ohne sort entfernt nur direkte Doppelte -> 5", lambda: ueb.aufgabe("linux_sort_uniq", 5)["loesung"], "5"),
+    ("Übung Linux: Netzadresse 192.168.1.77/26 = 192.168.1.64 (ipaddress)",
+     lambda: str(__import__("ipaddress").ip_network("192.168.1.77/26", strict=False).network_address), "192.168.1.64"),
+    ("Übung Linux: Dateiliste in anderer Reihenfolge ist richtig", lambda: ueb.antwort_pruefen(
+        ueb.aufgabe("linux_glob", 5), " , ".join(reversed(ueb.aufgabe("linux_glob", 5)["loesung"].split())))["richtig"], True),
+    ("Übung: Server / Linux hat Aufgaben in allen 4 Stufen",
+     lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Server / Linux"}), [1, 2, 3, 4]),
     ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "code", "gegeben", "gesucht", "sprache", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
