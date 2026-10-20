@@ -27,6 +27,7 @@ import math
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
 from bauteile import einheiten                                               # Regler-Bereich je Einheit
+from uebungen import aufgaben as ueb                                         # Übungsgenerator
 from bauteile.rechner.widerstand_rechner import (farbcode_zeilen, farben_zu_wert, smd_entschluesseln,
                                                  smd_zeilen, wert_zu_farben)
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
@@ -660,6 +661,25 @@ FAELLE = [
 # REINE FUNKTIONEN
 # =============================================================================
 FUNKTIONEN = [
+    # ---- Übungsgenerator (uebungen/aufgaben.py), Werte von Hand nachgerechnet ----
+    ("Übung belasteter Teiler Nr. 42: 5 V, 3.9 k / 1.2 k, RL 1.2 k -> 666.7 mV",
+     lambda: round(ueb.aufgabe("teiler_belastet", 42)["loesung"], 4), 0.6667),
+    ("Übung RC laden Nr. 7: 5 V, t = 2τ -> 5 V · (1 − e^−2) = 4.323 V", lambda: round(ueb.aufgabe("rc_laden", 7)["loesung"], 3), 4.323),
+    ("Übung: gleiche Nummer = gleiche Aufgabe", lambda: ueb.aufgabe("parallel", 3) == ueb.aufgabe("parallel", 3), True),
+    ("Übung: andere Nummer = andere Werte", lambda: ueb.aufgabe("parallel", 3)["gegeben"] != ueb.aufgabe("parallel", 4)["gegeben"], True),
+    ("Übung: alle Arten, 300 Nummern -> Lösung endlich und > 0",
+     lambda: all(0 < ueb.aufgabe(a, n)["loesung"] < 1e9 for a in ueb.ARTEN for n in range(1, 301)), True),
+    ("Übung Kontrolle: 0.5 % daneben = richtig", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1),
+     repr(ueb.aufgabe("teiler", 1)["loesung"] * 1.005), "V")["richtig"], True),
+    ("Übung Kontrolle: 2 % daneben = falsch", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1),
+     repr(ueb.aufgabe("teiler", 1)["loesung"] * 1.02), "V")["richtig"], False),
+    ("Übung Kontrolle: Faktor 1000 -> Hinweis auf Einheit", lambda: "Einheit" in ueb.antwort_pruefen(ueb.aufgabe("teiler", 1),
+     repr(ueb.aufgabe("teiler", 1)["loesung"]), "mV")["meldung"], True),
+    ("Übung Kontrolle: Unsinn -> Meldung statt Absturz", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1), "abc", "V")["richtig"], False),
+    ("Übungsblatt: höchstens MAX_ANZAHL Aufgaben", lambda: len(ueb.blatt(["ohm_strom"], 999, 1)), ueb.MAX_ANZAHL),
+    ("Übungsblatt ohne Auswahl", lambda: ueb.blatt(["gibtsnicht"], 5, 1), wirft(ValueError)),
+    ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["gegeben", "gesucht", "text", "titel"]),
+
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
     ("Regler -100…100 mV, Einheit V -> -100…100 V", lambda: einheiten.regler_bereich("spannung", -0.1, 0.1, (-1, 1), "mV", "V"),
      (-100.0, 100.0, (-1000.0, 1000.0))),

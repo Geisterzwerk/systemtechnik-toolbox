@@ -14,6 +14,10 @@
 #   4) Unbekannte Adressen -> 404 statt Absturz
 #   5) Sicherheit: Text aus der Adresse erscheint nie als HTML (kein <script> einschleusen)
 #   6) "Fehler melden": Speichern, CSRF-Schutz, Bot-Falle, Längen, Sperre bei vielen Meldungen, fremde Adressen
+#   7) Konten + Abo: Gäste sehen nur das Schloss (keine Lösung im HTML), Registrieren (Passwortregeln, Bot-Falle,
+#      CSRF), Login-Sperre, sichere Weiterleitung, Abmelden nur POST, Abo-Gruppe, Admin, Passwort, Löschen
+#
+# Die Datenbank ist eine TEST-Datenbank in einem temporären Ordner - deine echte (web/daten/) bleibt unberührt.
 #
 # Ergebnis: Exit-Code 0 = alles ok, 1 = mindestens ein Fehler
 # WER RUFT DAS AUF?  du (nach jeder Änderung an web/ oder an den Inhalten)
@@ -27,6 +31,10 @@ import time
 sys.stdout.reconfigure(encoding="utf-8")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "systemlab_web.settings")
 os.environ["SYSTEMLAB_HOSTS"] = "testserver,127.0.0.1,localhost"
+import tempfile                                                        # noqa: E402
+
+_TEST_ORDNER = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)   # Test-Datenbank, nach dem Lauf weg
+os.environ["SYSTEMLAB_DB"] = os.path.join(_TEST_ORDNER.name, "test.sqlite3")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import logging                                                         # noqa: E402
@@ -34,6 +42,9 @@ import logging                                                         # noqa: E
 import django                                                          # noqa: E402
 
 django.setup()
+from django.core.management import call_command                       # noqa: E402
+
+call_command("migrate", verbosity=0)                                   # Tabellen in der Test-Datenbank anlegen
 logging.getLogger("django.request").setLevel(logging.ERROR)     # 404-Tests sind Absicht, nicht melden
 logging.getLogger("django.security.csrf").setLevel(logging.ERROR)   # der Test ohne CSRF-Token (403) auch
 from django.test import Client                                         # noqa: E402
@@ -240,9 +251,183 @@ with tempfile.TemporaryDirectory() as ordner, override_settings(RUECKMELDUNGEN_D
     pruefe(len(rueckmeldung.alle()) == rueckmeldung.MAX_PRO_STUNDE, "Sperre zählt falsch")
     rueckmeldung._zeiten.clear()
 
+# ---- 7) Konten, Login-Sperre, Abo-Zugang (web/konto/) ---------------------------
+# Alles in der Test-Datenbank (oben SYSTEMLAB_DB) - die echte Datenbank bleibt unberührt.
+# Passwörter: zufällig erzeugt, nur für diesen Test.
+import secrets                                                         # noqa: E402
+
+from django.conf import settings                                       # noqa: E402
+
+from django.contrib.auth.models import Group, User                    # noqa: E402
+
+from konto.models import Fehlversuch                                   # noqa: E402
+from bauteile import einheiten                                         # noqa: E402
+from uebungen import aufgaben                                          # noqa: E402
+
+
+def konto_pruefen(bedingung, text):
+    global ok
+    if bedingung:
+        ok += 1
+    else:
+        fehler.append("Konto: " + text)
+
+
+def neuer_browser():
+    """Browser mit CSRF-Prüfung wie in echt + gültiges CSRF-Token"""
+    b = Client(enforce_csrf_checks=True)
+    b.get("/konto/anmelden/")
+    return b, b.cookies["csrftoken"].value
+
+
+def html(antwort):
+    return antwort.content.decode("utf-8", "replace")
+
+
+PW = secrets.token_urlsafe(16)
+LOESUNG = aufgaben.aufgabe("ohm_strom", 5)
+
+# -- ohne Konto: alles Abo-Pflichtige gesperrt, keine Lösung im HTML --
+gast = Client()
+for adresse in ("/uebungen/", "/uebungen/ohm_strom/?nr=5&loesung=1", "/uebungen/blatt/?art=ohm_strom&nr=5&loesungen=1"):
+    t = html(gast.get(adresse))
+    konto_pruefen("gesperrt-vorschau" in t and "Abo wählen" in t, f"{adresse}: kein Schloss für Gäste")
+    konto_pruefen(LOESUNG["loesung_text"] not in t and "Lösungsweg</h2>" not in t, f"{adresse}: Lösung für Gäste sichtbar!")
+t = html(gast.get("/bauteile/widerstand/"))
+konto_pruefen("Übungen zu diesem Thema" in t and "gesperrt-schild" in t, "Wissensseite: Übungen nicht gesperrt angezeigt")
+konto_pruefen("bald verfügbar" in html(gast.get("/abo/")), "Abo-Seite fehlt")
+konto_pruefen(gast.get("/uebungen/gibtsnicht/").status_code == 404, "unbekannte Aufgabenart kein 404")
+konto_pruefen(gast.get("/konto/").status_code == 302, "Konto-Seite ohne Login erreichbar")
+konto_pruefen(gast.get("/admin/").status_code == 404, "Verwaltung unter /admin/ erreichbar (soll woanders sein)")
+v = gast.get("/" + settings.ADMIN_PFAD, follow=True)                  # Verwaltung -> deren Login -> unser Login
+konto_pruefen(v.redirect_chain and v.redirect_chain[-1][0].startswith("/konto/anmelden/"),
+              "Verwaltung ohne Login nicht auf die gemeinsame Anmeldung (mit Sperre) umgeleitet")
+
+# -- Registrieren --
+b, token = neuer_browser()
+seite = b.get("/konto/registrieren/")
+konto_pruefen(b"csrfmiddlewaretoken" in seite.content and b'name="webseite"' in seite.content, "Registrieren ohne CSRF/Bot-Falle")
+reg = {"csrfmiddlewaretoken": token, "username": "testperson", "password1": PW, "password2": PW}
+konto_pruefen(b.post("/konto/registrieren/", {**reg, "password1": "1234567890", "password2": "1234567890"}).status_code == 400,
+              "schwaches Passwort (nur Ziffern, häufig) angenommen")
+konto_pruefen(b.post("/konto/registrieren/", {**reg, "password1": "kurz", "password2": "kurz"}).status_code == 400,
+              "zu kurzes Passwort angenommen")
+konto_pruefen(b.post("/konto/registrieren/", {**reg, "username": "<script>x</script>"}).status_code == 400,
+              "Benutzername mit HTML angenommen")
+konto_pruefen(b.post("/konto/registrieren/", {**reg, "username": "Admin"}).status_code == 400, "reservierter Name angenommen")
+konto_pruefen(Client(enforce_csrf_checks=True).post("/konto/registrieren/", {k: w for k, w in reg.items()
+                                                                             if k != "csrfmiddlewaretoken"}).status_code == 403,
+              "Registrieren ohne CSRF-Token angenommen")
+b.post("/konto/registrieren/", {**reg, "username": "botname", "webseite": "http://spam"})
+konto_pruefen(not User.objects.filter(username="botname").exists(), "Bot (Honigtopf) konnte ein Konto erstellen")
+r = b.post("/konto/registrieren/", reg)
+konto_pruefen(r.status_code == 302 and User.objects.filter(username="testperson").exists(), "Registrieren klappt nicht")
+user = User.objects.get(username="testperson")
+konto_pruefen(PW not in user.password and user.password.startswith("pbkdf2_"), "Passwort nicht gehasht gespeichert!")
+konto_pruefen("testperson" in html(b.get("/konto/")), "Konto-Seite zeigt den Namen nicht")
+konto_pruefen("gesperrt-vorschau" in html(b.get("/uebungen/")), "Konto ohne Abo sieht die Übungen")
+b2, token2 = neuer_browser()
+konto_pruefen(b2.post("/konto/registrieren/", {**reg, "csrfmiddlewaretoken": token2, "username": "TestPerson"}).status_code == 400,
+              "gleicher Name mit anderer Gross-/Kleinschreibung angenommen")
+
+# -- Abmelden nur per POST --
+konto_pruefen(b.get("/konto/abmelden/").status_code == 405, "Abmelden per GET möglich (fremde Seite könnte abmelden)")
+konto_pruefen(b.post("/konto/abmelden/", {"csrfmiddlewaretoken": b.cookies["csrftoken"].value}).status_code == 302
+              and b.get("/konto/").status_code == 302, "Abmelden klappt nicht")
+
+# -- Anmelden: falsches Ziel, Sperre, Cookie --
+Fehlversuch.objects.all().delete()
+b, token = neuer_browser()
+login = {"csrfmiddlewaretoken": token, "username": "testperson", "password": PW}
+konto_pruefen(Client(enforce_csrf_checks=True).post("/konto/anmelden/", {"username": "testperson", "password": PW}).status_code == 403,
+              "Login ohne CSRF-Token angenommen")
+falsch = b.post("/konto/anmelden/", {**login, "password": "falsch-falsch"})
+konto_pruefen(falsch.status_code == 400 and "Benutzername oder Passwort falsch" in html(falsch), "falsches Passwort: falsche Meldung")
+unbekannt = b.post("/konto/anmelden/", {**login, "username": "gibtesnicht"})
+konto_pruefen(html(unbekannt).count("Benutzername oder Passwort falsch") == 1,
+              "unbekannter Name: andere Meldung (verrät, welche Namen es gibt)")
+konto_pruefen(not Fehlversuch.objects.filter(schluessel__icontains="testperson").exists(), "Benutzername im Klartext gespeichert")
+for ziel, erwartet in (("https://boese.example/", "/konto/"), ("//boese.example/x", "/konto/"),
+                       ("/uebungen/", "/uebungen/"), ("javascript:alert(1)", "/konto/")):
+    Fehlversuch.objects.all().delete()
+    b, token = neuer_browser()
+    r = b.post("/konto/anmelden/", {"csrfmiddlewaretoken": token, "username": "testperson", "password": PW, "weiter": ziel})
+    konto_pruefen(r.status_code == 302 and r["Location"] == erwartet, f"Weiterleitung nach Login zu {ziel!r}: {r.get('Location')}")
+konto_pruefen(r.cookies["sessionid"]["httponly"] and r.cookies["sessionid"]["samesite"] == "Lax", "Sitzungs-Cookie nicht HttpOnly/SameSite")
+alte_sitzung = b.session.session_key
+Fehlversuch.objects.all().delete()
+b, token = neuer_browser()
+for _ in range(settings.SPERRE_PRO_NAME):
+    b.post("/konto/anmelden/", {"csrfmiddlewaretoken": token, "username": "testperson", "password": "falsch-falsch"})
+gesperrt = b.post("/konto/anmelden/", {"csrfmiddlewaretoken": token, "username": "testperson", "password": PW})
+konto_pruefen(gesperrt.status_code == 400 and "Zu viele" in html(gesperrt), "keine Sperre nach vielen Fehlversuchen (Brute Force)")
+Fehlversuch.objects.all().delete()
+b3, token3 = neuer_browser()
+for i in range(settings.SPERRE_PRO_ADRESSE):                  # viele verschiedene Namen vom selben Absender
+    b3.post("/konto/anmelden/", {"csrfmiddlewaretoken": token3, "username": f"name{i}", "password": "x"})
+gesperrt = b3.post("/konto/anmelden/", {"csrfmiddlewaretoken": token3, "username": "testperson", "password": PW})
+konto_pruefen("Zu viele" in html(gesperrt), "keine Sperre pro Absender (viele Namen durchprobiert)")
+Fehlversuch.objects.all().delete()
+r = b.post("/konto/anmelden/", {"csrfmiddlewaretoken": token, "username": "testperson", "password": PW})
+konto_pruefen(r.status_code == 302 and b.session.session_key != alte_sitzung, "Login klappt nicht / keine neue Sitzungs-ID")
+
+# -- Abo-Gruppe: jetzt frei --
+user.groups.add(Group.objects.get(name="Abo"))
+richtig = LOESUNG["loesung"] / dict(einheiten.EINHEITEN["strom"]["stufen"])[LOESUNG["einheit"]]
+t = html(b.get(f"/uebungen/ohm_strom/?nr=5&antwort={richtig:.4g}&einheit={LOESUNG['einheit']}"))
+konto_pruefen("✓ Richtig" in t and "Lösungsweg" in t and LOESUNG["loesung_text"] in t, "Abo: richtige Antwort nicht erkannt")
+t = html(b.get("/uebungen/ohm_strom/?nr=5&antwort=1&einheit=A"))
+konto_pruefen("✗ Leider falsch" in t and "Lösungsweg</h2>" not in t, "Abo: falsche Antwort als richtig / Lösung verraten")
+t = html(b.get("/uebungen/ohm_strom/?nr=5&antwort=<script>x</script>"))
+konto_pruefen("<script>x" not in t, "Antwort erscheint als HTML (nicht escaped)!")
+konto_pruefen(b.get("/uebungen/ohm_strom/").status_code == 302, "Aufgabe ohne Nummer: keine neue Nummer")
+konto_pruefen(b.get("/uebungen/ohm_strom/?nr=abc").status_code == 302, "Aufgabe mit Unsinn-Nummer: Absturz?")
+for art in aufgaben.ARTEN:
+    konto_pruefen(b.get(f"/uebungen/{art}/?nr=7&loesung=1").status_code == 200, f"Aufgabe {art} lädt nicht")
+r = b.get("/uebungen/blatt/?art=ohm_strom&art=rc_tau&anzahl=4&erstellen=1&loesungen=1")
+konto_pruefen(r.status_code == 302 and "nr=" in r["Location"], "Übungsblatt: keine feste Nummer")
+t = html(b.get(r["Location"]))
+konto_pruefen(t.count('class="antwort-linie"') == 4 and "Lösungen</h2>" in t, "Übungsblatt falsch")
+konto_pruefen(b.get("/uebungen/blatt/?erstellen=1").status_code == 400, "Übungsblatt ohne Auswahl angenommen")
+konto_pruefen(html(b.get("/uebungen/blatt/?art=ohm_strom&anzahl=999&nr=3")).count('class="antwort-linie"') == aufgaben.MAX_ANZAHL,
+              "Übungsblatt: Anzahl nicht begrenzt")
+konto_pruefen("gesperrt-schild" not in html(b.get("/bauteile/widerstand/")), "Abo: Wissensseite zeigt noch das Schloss")
+konto_pruefen(b.get("/" + settings.ADMIN_PFAD).status_code == 302, "Verwaltung für normale Konten offen!")
+
+# -- Passwort ändern, Konto löschen --
+neu = secrets.token_urlsafe(16)
+token = b.cookies["csrftoken"].value
+konto_pruefen(b.post("/konto/passwort/", {"csrfmiddlewaretoken": token, "old_password": "falsch", "new_password1": neu,
+                                          "new_password2": neu}).status_code == 400, "Passwort ändern ohne altes Passwort")
+r = b.post("/konto/passwort/", {"csrfmiddlewaretoken": token, "old_password": PW, "new_password1": neu, "new_password2": neu})
+konto_pruefen(r.status_code == 302 and b.get("/konto/").status_code == 200, "Passwort ändern klappt nicht / abgemeldet")
+token = b.cookies["csrftoken"].value
+konto_pruefen(b.post("/konto/loeschen/", {"csrfmiddlewaretoken": token, "password": PW}).status_code == 400,
+              "Konto löschen mit altem Passwort möglich")
+r = b.post("/konto/loeschen/", {"csrfmiddlewaretoken": token, "password": neu})
+konto_pruefen(r.status_code == 200 and not User.objects.filter(username="testperson").exists(), "Konto löschen klappt nicht")
+konto_pruefen(b.get("/konto/").status_code == 302, "nach dem Löschen noch angemeldet")
+
+# -- Admin: alles frei, Verwaltung erreichbar --
+admin_pw = secrets.token_urlsafe(16)
+User.objects.create_superuser("testadmin", password=admin_pw)
+Fehlversuch.objects.all().delete()
+b, token = neuer_browser()
+r = b.post("/konto/anmelden/", {"csrfmiddlewaretoken": token, "username": "testadmin", "password": admin_pw,
+                                "weiter": "/" + settings.ADMIN_PFAD})
+konto_pruefen(r.status_code == 302 and b.get("/" + settings.ADMIN_PFAD).status_code == 200, "Admin kommt nicht in die Verwaltung")
+konto_pruefen("gesperrt-vorschau" not in html(b.get("/uebungen/")) and "👑 Admin" in html(b.get("/konto/")),
+              "Admin hat nicht alles frei")
+konto_pruefen(b.post("/konto/loeschen/", {"csrfmiddlewaretoken": b.cookies["csrftoken"].value, "password": admin_pw}).status_code == 400
+              and User.objects.filter(username="testadmin").exists(), "Admin-Konto über die Webseite löschbar")
+Fehlversuch.objects.all().delete()
+
 print(f"{seiten} Wissensseiten, {len(schaltungen)} Schaltungen, {len(web_ids)} Rechner "
       f"({faelle} Fälle aus rechner_faelle.py) geprüft in {time.time() - t0:.1f} s")
 print(f"{ok} Aufrufe ok, {len(fehler)} Fehler")
 for f in fehler:
     print("  FEHLER", f)
+from django.db import connections                                    # noqa: E402
+
+connections.close_all()                       # Windows: Datei schliessen, sonst kann der Test-Ordner nicht weg
 sys.exit(1 if fehler else 0)

@@ -1,0 +1,10 @@
+{# web/konto/templates/konto/_formular_felder.html - Felder eines Django-Formulars mit Fehlern und Hilfetext #}
+{% for feld in formular %}
+<div class="konto-feld{% if feld.errors %} hat-fehler{% endif %}">
+  <label for="{{ feld.id_for_label }}">{{ feld.label }}</label>
+  {{ feld }}
+  {% for f in feld.errors %}<p class="feld-fehler">⚠ {{ f }}</p>{% endfor %}
+  {% if feld.help_text %}<div class="leise klein hilfe">{{ feld.help_text|safe }}</div>{% endif %}
+</div>
+{% endfor %}
+{% for f in formular.non_field_errors %}<p class="feld-fehler">⚠ {{ f }}</p>{% endfor %}

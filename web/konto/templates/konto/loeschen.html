@@ -1,0 +1,20 @@
+{% extends "basis.html" %}
+{# web/konto/templates/konto/loeschen.html - Konto löschen (Datenschutz). Passwort zur Bestätigung, POST + CSRF #}
+{% block titel %}Konto löschen{% endblock %}
+{% block inhalt %}
+<section class="karte konto-karte">
+  <h1>Konto löschen</h1>
+  {% if fehler %}<p class="ergebnis warn" role="alert">⚠ {{ fehler }}</p>{% endif %}
+  {% if not user.is_superuser %}
+  <p>Dein Konto <strong>{{ user.get_username }}</strong> wird endgültig gelöscht. Das kann nicht rückgängig gemacht werden.</p>
+  <form method="post" action="/konto/loeschen/" class="konto-form">
+    {% csrf_token %}
+    <div class="konto-feld">
+      <label for="password">Passwort zur Bestätigung</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <div class="knoepfe"><button type="submit" class="knopf gefahr-knopf">Endgültig löschen</button><a class="knopf leer" href="/konto/">Abbrechen</a></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

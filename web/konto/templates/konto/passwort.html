@@ -1,0 +1,13 @@
+{% extends "basis.html" %}
+{# web/konto/templates/konto/passwort.html - Passwort ändern (altes Passwort nötig), POST + CSRF #}
+{% block titel %}Passwort ändern{% endblock %}
+{% block inhalt %}
+<section class="karte konto-karte">
+  <h1>Passwort ändern</h1>
+  <form method="post" action="/konto/passwort/" class="konto-form">
+    {% csrf_token %}
+    {% include "konto/_formular_felder.html" %}
+    <div class="knoepfe"><button type="submit" class="knopf">Speichern</button><a class="knopf leer" href="/konto/">Abbrechen</a></div>
+  </form>
+</section>
+{% endblock %}

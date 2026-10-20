@@ -112,6 +112,20 @@
 </section>
 {% endif %}
 
+{% if uebungen %}
+<section class="karte">
+  <h2 class="karte-titel">📝 Übungen zu diesem Thema</h2>
+  {% if hat_abo %}
+  <div class="kacheln klein">
+    {% for a in uebungen %}<a class="kachel" href="/uebungen/{{ a.id }}/"><span class="kachel-titel">{{ a.titel }}</span><span class="kachel-zahlen">{{ a.stufe_text }}</span></a>{% endfor %}
+  </div>
+  {% else %}
+  <p class="leise">{% for a in uebungen %}🔒 {{ a.titel }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  {% include "konto/schloss.html" with schloss_titel="Üben mit dem Abo" %}
+  {% endif %}
+</section>
+{% endif %}
+
 <p class="melden-zeile"><a href="/rueckmeldung/?seite={{ request.path|urlencode }}">⚠ Stimmt etwas nicht? Fehler auf dieser Seite melden</a></p>
 
 {% if siehe_auch %}

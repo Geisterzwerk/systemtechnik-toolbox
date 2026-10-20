@@ -1,0 +1,15 @@
+{% extends "basis.html" %}
+{# web/ueben/templates/ueben/liste.html - Übersicht aller Aufgabenarten (mit Abo) #}
+{% block titel %}Übungen{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Übungen</nav>
+<h1>📝 Übungen</h1>
+<p class="kurz">Jede Aufgabe hat zufällige, realistische Werte. Antwort eintippen, kontrollieren, Lösungsweg ansehen – und mit „Neue Aufgabe“ so oft üben, wie du willst.</p>
+<div class="knoepfe"><a class="knopf" href="/uebungen/blatt/">🖨 Übungsblatt erstellen</a></div>
+{% for thema, arten in gruppen %}
+<h2 class="unterkategorie">{{ thema }}</h2>
+<div class="kacheln klein">
+  {% for a in arten %}<a class="kachel" href="/uebungen/{{ a.id }}/"><span class="kachel-titel">{{ a.titel }}</span><span class="kachel-zahlen">{{ a.stufe_text }}</span></a>{% endfor %}
+</div>
+{% endfor %}
+{% endblock %}

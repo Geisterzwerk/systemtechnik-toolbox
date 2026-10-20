@@ -21,7 +21,9 @@ from django.shortcuts import redirect, render
 from bauteile.rechner.rechner_info import RECHNER_INFO                 # -> bauteile/rechner/rechner_info.py
 from core.inhalte_index import gesamtindex                             # -> core/inhalte_index.py
 from programmieren.engine import syntax                                # -> programmieren/engine/syntax.py
+from konto.zugang import hat_abo                                       # -> web/konto/zugang.py
 from rechner import formular                                           # -> web/rechner/formular.py
+from uebungen import aufgaben                                          # -> uebungen/aufgaben.py (Übungen zur Seite)
 from wiki import grafiken, inhalt, rueckmeldung                        # -> web/wiki/grafiken.py, inhalt.py, rueckmeldung.py
 
 MAX_TREFFER = 30
@@ -101,6 +103,7 @@ def thema(request, slug, thema_id):
         bilder.insert(0, {"datei": d["bild"], "titel": "", "text": d.get("bild_text", ""),
                           "url": inhalt.bild_url(d["bild"])})
     steckbrief = d.get("steckbrief")
+    uebungen = aufgaben.arten_zur_seite(name, thema_id)
 
     return render(request, "wiki/thema.html", {
         "bereich": {"slug": slug, "name": name}, "e": e, "d": d,
@@ -110,6 +113,9 @@ def thema(request, slug, thema_id):
         "beispiele": beispiele, "befehle": befehle,
         "siehe_auch": [v for v in (inhalt.verweis(name, s) for s in d.get("siehe_auch", [])) if v],
         "web_rechner": web_rechner, "schaltungen": schaltungen, "nur_desktop": nur_desktop,
+        # Übungen zu dieser Seite: Titel immer sichtbar, Links nur mit Abo (sonst Schloss + Beispiel ohne Lösung)
+        "uebungen": uebungen,
+        "vorschau": aufgaben.vorschau(uebungen[0]["id"]) if uebungen and not hat_abo(request.user) else None,
     })
 
 

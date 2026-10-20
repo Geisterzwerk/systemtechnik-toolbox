@@ -6,6 +6,8 @@
 #                  Desktop-App und Webseite, keine Farbe doppelt im CSS
 #   syntax         Farben für Code (config.CODE_FARBEN) als --c-keyword, --c-string ...
 #   statisch_version  ?v=... hinter CSS/JS, damit Browser nach Änderungen nichts Altes zeigen
+#   hat_abo        darf diese Person die Abo-Funktionen nutzen? (web/konto/zugang.py, nur auf dem Server)
+#   admin_pfad     Adresse der Verwaltung (settings.ADMIN_PFAD) - nur für Admins verlinkt
 #
 # WER RUFT DAS AUF?  Django vor jedem Template (eingetragen in settings.py, TEMPLATES)
 # =============================================================================
@@ -15,6 +17,7 @@ import os
 from django.conf import settings
 
 import config                                                          # -> config.py
+from konto.zugang import hat_abo                                       # -> web/konto/zugang.py
 from wiki import inhalt                                                # -> web/wiki/inhalt.py
 
 
@@ -27,6 +30,7 @@ def statisch_version():
 
 def allgemein(request):
     return {"bereiche_nav": inhalt.bereich_infos(), "statisch_version": statisch_version(),
+            "hat_abo": hat_abo(getattr(request, "user", None)), "admin_pfad": settings.ADMIN_PFAD,
             "farben": [{"name": name.replace("_", "-"), "hell": hell, "dunkel": dunkel}
                        for name, (hell, dunkel) in config.FARBEN.items()],
             "code_farben": config.TEXT_FARBEN,

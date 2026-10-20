@@ -1,0 +1,42 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/konto/templates/konto/abo.html - Was das Abo bietet                       #}
+{# Bezahlen kommt in Phase 4 (Merchant of Record) - der Knopf ist bis dahin aus. #}
+{# =========================================================================== #}
+{% block titel %}Abo{% endblock %}
+{% block beschreibung %}SystemLab Abo: Übungen mit zufälligen Werten, Kontrolle und Lösungsweg, Übungsblätter zum Ausdrucken.{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Abo</nav>
+<h1>⭐ SystemLab Abo</h1>
+<p class="kurz">Wiki und Rechner bleiben gratis. Mit dem Abo übst du mit unbegrenzt vielen Aufgaben – mit Kontrolle und Lösungsweg.</p>
+
+{% if hat_abo %}
+<section class="karte box tipp-box"><h2 class="karte-titel">✓ Du hast vollen Zugang</h2>
+  <p>{% if user.is_superuser %}Als Admin ist bei dir alles frei.{% else %}Dein Abo ist aktiv.{% endif %}</p>
+  <a class="knopf" href="/uebungen/">📝 Zu den Übungen</a></section>
+{% endif %}
+
+<div class="zwei-spalten">
+  <section class="karte">
+    <h2 class="karte-titel">Gratis</h2>
+    <ul class="haken-liste">
+      <li>Alle Wissensseiten</li>
+      <li>Alle Rechner und interaktiven Schaltpläne</li>
+      <li>Suche, hell und dunkel, Handy</li>
+    </ul>
+  </section>
+  <section class="karte abo-karte">
+    <h2 class="karte-titel">⭐ Abo</h2>
+    <ul class="haken-liste">
+      <li><strong>Übungsgenerator:</strong> Aufgaben mit zufälligen, realistischen Werten (Normwerte E12)</li>
+      <li><strong>Sofortige Kontrolle</strong> deiner Antwort – mit Hinweis, wenn nur die Einheit nicht stimmt</li>
+      <li><strong>Lösungsweg</strong> Schritt für Schritt</li>
+      <li><strong>Übungsblätter erstellen:</strong> Themen und Anzahl wählen, mit oder ohne Lösungen drucken</li>
+      <li class="leise">Geplant: Prüfungsmodus, Lernkarten, Fortschritt</li>
+    </ul>
+    <button type="button" class="knopf" disabled aria-disabled="true">Abo wählen – bald verfügbar</button>
+    <p class="leise klein">Preis und Bezahlung folgen. Bezahlt wird später über einen sicheren Zahlungsanbieter – Kartendaten kommen nie zu SystemLab.</p>
+  </section>
+</div>
+{% if not user.is_authenticated %}<p class="leise"><a href="/konto/anmelden/?next=/abo/">Anmelden</a> oder <a href="/konto/registrieren/">Konto erstellen</a></p>{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/konto/templates/konto/registrieren.html - Konto erstellen                 #}
+{# POST + CSRF + Bot-Falle. Regeln: web/konto/formulare.py, settings.py          #}
+{# =========================================================================== #}
+{% block titel %}Konto erstellen{% endblock %}
+{% block inhalt %}
+<section class="karte konto-karte">
+  <h1>Konto erstellen</h1>
+  {% if geschlossen %}
+    <p>Neue Konten können im Moment nicht selbst erstellt werden.</p>
+  {% else %}
+  <p class="leise">Gespeichert werden nur dein Benutzername und ein Hash deines Passworts (nicht das Passwort selbst). Keine E-Mail, keine Adresse.</p>
+  {% if fehler %}<p class="ergebnis warn" role="alert">⚠ {{ fehler }}</p>{% endif %}
+  <form method="post" action="/konto/registrieren/" class="konto-form">
+    {% csrf_token %}
+    {% include "konto/_formular_felder.html" %}
+    <div class="honigtopf" aria-hidden="true">
+      <label for="webseite">Webseite</label>
+      <input id="webseite" type="text" name="webseite" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="knoepfe"><button type="submit" class="knopf">Konto erstellen</button></div>
+  </form>
+  <p class="leise">Schon ein Konto? <a href="/konto/anmelden/">Anmelden</a></p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -133,6 +133,11 @@
   }
   document.querySelectorAll("[data-schaltung]").forEach(schaltungVorbereiten);
 
+  // ---- 6b) Übungsblatt drucken ------------------------------------------------
+  document.addEventListener("click", function (ev) {
+    if (ev.target.closest("[data-drucken]")) window.print();
+  });
+
   // ---- 7) Animationen abspielen (Trafo) ------------------------------------------
   //   <div class="plan" data-animation data-ms="50"> enthält SVGs mit vielen <g class="bild">;
   //   gezeigt wird immer genau eines, alle data-ms Millisekunden das nächste (hell und dunkel im Gleichschritt).

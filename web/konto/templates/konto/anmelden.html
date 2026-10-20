@@ -1,0 +1,28 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/konto/templates/konto/anmelden.html - Anmelden (Benutzername + Passwort)  #}
+{# POST + CSRF. Login-Sperre und Prüfung: web/konto/views.py anmelden            #}
+{# =========================================================================== #}
+{% block titel %}Anmelden{% endblock %}
+{% block inhalt %}
+<section class="karte konto-karte">
+  <h1>Anmelden</h1>
+  {% if fehler %}<p class="ergebnis warn" role="alert">⚠ {{ fehler }}</p>{% endif %}
+  <form method="post" action="/konto/anmelden/" class="konto-form">
+    {% csrf_token %}
+    <input type="hidden" name="weiter" value="{{ weiter }}">
+    <div class="konto-feld">
+      <label for="username">Benutzername</label>
+      <input id="username" type="text" name="username" value="{{ name }}" maxlength="150" required
+             autocomplete="username" autocapitalize="none" spellcheck="false" autofocus>
+    </div>
+    <div class="konto-feld">
+      <label for="password">Passwort</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <div class="knoepfe"><button type="submit" class="knopf">Anmelden</button></div>
+  </form>
+  {% if registrierung %}<p class="leise">Noch kein Konto? <a href="/konto/registrieren/">Konto erstellen</a></p>{% endif %}
+  <p class="leise klein">Passwort vergessen? Das kommt mit der E-Mail-Bestätigung – bis dahin hilft der Admin.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/ueben/templates/ueben/blatt.html - Übungsblatt zusammenstellen + drucken  #}
+{# Gleiche Adresse (Arten, Anzahl, nr) = gleiches Blatt. Drucken mit dem Browser; #}
+{# beim Drucken verschwinden Kopf, Formular und Knöpfe (systemlab.css, @media print) #}
+{# =========================================================================== #}
+{% block titel %}Übungsblatt{% endblock %}
+{% block inhalt %}
+<nav class="pfad nicht-drucken" aria-label="Pfad"><a href="/">Start</a> › <a href="/uebungen/">Übungen</a> › Übungsblatt</nav>
+<h1 class="nicht-drucken">🖨 Übungsblatt</h1>
+<section class="karte nicht-drucken">
+  {% if fehler %}<p class="ergebnis warn" role="alert">⚠ {{ fehler }}</p>{% endif %}
+  <form method="get" action="/uebungen/blatt/" class="blatt-form">
+    {% for thema, arten in gruppen %}
+    <fieldset><legend>{{ thema }}</legend>
+      {% for a in arten %}<label class="schalter"><input type="checkbox" name="art" value="{{ a.id }}" {% if a.id in gewaehlt %}checked{% endif %}> {{ a.titel }}</label>{% endfor %}
+    </fieldset>
+    {% endfor %}
+    <div class="knoepfe">
+      <label class="schalter">Anzahl <input type="number" name="anzahl" value="{{ anzahl }}" min="1" max="{{ max_anzahl }}" class="zahl-feld"></label>
+      <label class="schalter"><input type="checkbox" name="loesungen" value="1" {% if mit_loesungen %}checked{% endif %}> mit Lösungen</label>
+      <button type="submit" name="erstellen" value="1" class="knopf">Neues Blatt erstellen</button>
+      {% if aufgaben %}<button type="button" class="knopf leer" data-drucken>🖨 Drucken</button>{% endif %}
+    </div>
+  </form>
+</section>
+
+{% if aufgaben %}
+<section class="karte blatt">
+  <h2 class="karte-titel">SystemLab · Übungsblatt</h2>
+  <p class="leise klein">Nr. {{ nr }} · {{ aufgaben|length }} Aufgaben · Name: ____________________ Datum: ____________</p>
+  <ol class="blatt-liste">
+    {% for a in aufgaben %}
+    <li>
+      <strong>{{ a.titel }}</strong>
+      <p>{{ a.text }}</p>
+      <p>Gegeben: {% for name, wert in a.gegeben %}{{ name }} = {{ wert }}{% if not forloop.last %}, {% endif %}{% endfor %} · Gesucht: {{ a.gesucht.zeichen }}</p>
+      <p class="antwort-linie">{{ a.gesucht.zeichen }} = ______________________</p>
+    </li>
+    {% endfor %}
+  </ol>
+  {% if mit_loesungen %}
+  <h2 class="seitenumbruch">Lösungen</h2>
+  <ol class="blatt-liste">
+    {% for a in aufgaben %}<li><strong>{{ a.gesucht.zeichen }} = {{ a.loesung_text }}</strong><br><span class="leise klein">{{ a.weg|join:" · " }}</span></li>{% endfor %}
+  </ol>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

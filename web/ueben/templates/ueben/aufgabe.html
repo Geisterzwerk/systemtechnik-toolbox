@@ -1,0 +1,48 @@
+{% extends "basis.html" %}
+{# =========================================================================== #}
+{# web/ueben/templates/ueben/aufgabe.html - EINE Aufgabe: gegeben, gesucht,       #}
+{# Antwort + Einheit (GET, es wird nichts gespeichert), Kontrolle, Lösungsweg     #}
+{# Daten: web/ueben/views.py aufgabe -> uebungen/aufgaben.py                       #}
+{# =========================================================================== #}
+{% block titel %}{{ a.titel }}{% endblock %}
+{% block inhalt %}
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/uebungen/">Übungen</a> › {{ info.thema }}</nav>
+<h1>{{ a.titel }}</h1>
+<p class="leise">{{ info.stufe_text }} · Aufgabe Nr. {{ a.nr }}</p>
+
+<section class="karte aufgabe">
+  <p>{{ a.text }}</p>
+  <h2 class="karte-titel">Gegeben</h2>
+  <p>{% for name, wert in a.gegeben %}<span class="chip">{{ name }} = {{ wert }}</span>{% endfor %}</p>
+  <h2 class="karte-titel">Gesucht: {{ a.gesucht.zeichen }} – {{ a.gesucht.text }}</h2>
+  <form method="get" action="/uebungen/{{ a.art }}/" class="rechner-form">
+    <input type="hidden" name="nr" value="{{ a.nr }}">
+    <div class="feld">
+      <label for="antwort">{{ a.gesucht.zeichen }} =</label>
+      <input id="antwort" type="text" name="antwort" value="{{ antwort }}" inputmode="decimal" maxlength="40" autocomplete="off" placeholder="z.B. 4.7 oder 4k7">
+      <select name="einheit" aria-label="Einheit">{% for e in a.einheiten %}<option {% if e == einheit %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+    </div>
+    <div class="knoepfe">
+      <button type="submit" class="knopf">Kontrollieren</button>
+      <a class="knopf leer" href="/uebungen/{{ a.art }}/?nr={{ a.nr }}&amp;loesung=1">Lösung zeigen</a>
+      <a class="knopf leer" href="/uebungen/{{ a.art }}/?nr={{ neue_nr }}">↻ Neue Aufgabe</a>
+    </div>
+  </form>
+  {% if pruefung %}<p class="ergebnis{% if not pruefung.richtig %} warn{% endif %}" role="status">{% if pruefung.richtig %}✓{% else %}✗{% endif %} {{ pruefung.meldung }}</p>{% endif %}
+  <p class="leise klein">Als richtig gilt eine Abweichung bis ±{{ toleranz }} % (Rundung). Eingabe wie bei den Rechnern: 4.7 · 4,7 · 4k7 · 470m</p>
+</section>
+
+{% if zeige_loesung %}
+<section class="karte box tipp-box">
+  <h2 class="karte-titel">Lösungsweg</h2>
+  <ol class="loesungsweg">{% for zeile in a.weg %}<li>{{ zeile }}</li>{% endfor %}</ol>
+  <p><strong>Ergebnis: {{ a.gesucht.zeichen }} = {{ a.loesung_text }}</strong></p>
+</section>
+{% endif %}
+
+{% if seiten %}
+<section class="siehe-auch"><h2>Nachlesen</h2>
+  {% for v in seiten %}<a class="chip" href="/{{ v.slug }}/{{ v.id }}/">{{ v.icon }} {{ v.titel }}</a>{% endfor %}
+</section>
+{% endif %}
+{% endblock %}

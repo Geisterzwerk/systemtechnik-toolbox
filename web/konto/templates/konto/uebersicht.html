@@ -1,0 +1,21 @@
+{% extends "basis.html" %}
+{# web/konto/templates/konto/uebersicht.html - Mein Konto: Abo-Status, Passwort, Abmelden, Löschen #}
+{% block titel %}Mein Konto{% endblock %}
+{% block inhalt %}
+<h1>Mein Konto</h1>
+{% for m in messages %}<p class="ergebnis" role="status">✓ {{ m }}</p>{% endfor %}
+<section class="karte">
+  <dl class="steckbrief">
+    <dt>Benutzername</dt><dd>{{ user.get_username }}</dd>
+    <dt>Zugang</dt><dd>{% if user.is_superuser %}👑 Admin – alles frei{% elif hat_abo %}⭐ Abo aktiv{% else %}Gratis (Wiki und Rechner) · <a href="/abo/">Abo ansehen</a>{% endif %}</dd>
+    <dt>Dabei seit</dt><dd>{{ user.date_joined|date:"d.m.Y" }}</dd>
+  </dl>
+  <div class="knoepfe">
+    {% if hat_abo %}<a class="knopf" href="/uebungen/">📝 Zu den Übungen</a>{% endif %}
+    <a class="knopf leer" href="/konto/passwort/">Passwort ändern</a>
+    {% if user.is_staff %}<a class="knopf leer" href="/{{ admin_pfad }}">⚙ Verwaltung</a>{% endif %}
+    <form method="post" action="/konto/abmelden/">{% csrf_token %}<button type="submit" class="knopf leer">Abmelden</button></form>
+  </div>
+</section>
+{% if not user.is_superuser %}<p class="klein"><a class="leise" href="/konto/loeschen/">Konto löschen</a></p>{% endif %}
+{% endblock %}

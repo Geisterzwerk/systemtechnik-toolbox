@@ -1,0 +1,26 @@
+{# =========================================================================== #}
+{# web/konto/templates/konto/schloss.html - GESPERRT: verschwommene Vorschau + Schloss #}
+{# Einbinden:  {% include "konto/schloss.html" with schloss_titel="…" %}           #}
+{#   vorschau  Beispiel-Aufgabe OHNE Lösung (uebungen/aufgaben.py vorschau)       #}
+{# Die Vorschau ist nur ein Beispiel - echte Inhalte schickt der Server ohne Abo nie #}
+{# (web/konto/zugang.py). inert + aria-hidden: nicht anklickbar, nicht vorgelesen.  #}
+{# =========================================================================== #}
+<div class="gesperrt">
+  <div class="gesperrt-vorschau" aria-hidden="true" inert>
+    <h3>{{ vorschau.titel }}</h3>
+    <p>{{ vorschau.text }}</p>
+    <p>{% for name, wert in vorschau.gegeben %}<span class="chip">{{ name }} = {{ wert }}</span>{% endfor %}</p>
+    <p>Gesucht: {{ vorschau.gesucht.zeichen }} – {{ vorschau.gesucht.text }}</p>
+    <p>{{ vorschau.gesucht.zeichen }} = <span class="vorschau-eingabe"></span> <span class="knopf">Kontrollieren</span> <span class="knopf leer">Lösung zeigen</span></p>
+    <p>Lösungsweg: 1. Formel aufschreiben · 2. Werte einsetzen · 3. Ergebnis mit Einheit</p>
+  </div>
+  <div class="gesperrt-schild">
+    <div class="schloss" aria-hidden="true">🔒</div>
+    <h2>{{ schloss_titel|default:"Mit dem Abo" }}</h2>
+    <p>Übungen mit zufälligen Werten, Kontrolle und Lösungsweg gibt es mit dem SystemLab Abo.</p>
+    <div class="knoepfe">
+      <a class="knopf" href="/abo/">⭐ Abo wählen</a>
+      {% if not user.is_authenticated %}<a class="knopf leer" href="/konto/anmelden/?next={{ request.path|urlencode }}">Anmelden</a>{% endif %}
+    </div>
+  </div>
+</div>
