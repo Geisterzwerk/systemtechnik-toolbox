@@ -25,7 +25,8 @@
 #
 # MODULE MIT AUFGABEN (jede neue Datei unten bei den Importen eintragen):
 #   uebungen/grundlagen.py   Ohm, Leistung, Reihe/Parallel, Teiler, RC, LED
-#   (weitere Bereiche folgen: Schaltungen, Digitaltechnik, Programmieren, Server / Linux ...)
+#   uebungen/schaltungen.py  Netzwerke, Dioden, Transistor/MOSFET, RC/RL, OPV, Netzteile, Filter, Timer
+#   (weitere Bereiche folgen: Digitaltechnik, Programmieren, Server / Linux ...)
 # Das passende Schaltbild zu einer Aufgabe zeichnet uebungen/schemas.py.
 #
 # WER RUFT DAS AUF?  web/ueben/views.py, web/wiki/views.py (Übungen zur Seite), uebungen/schemas.py,
@@ -38,7 +39,7 @@ import re
 
 from bauteile import einheiten                                       # -> bauteile/einheiten.py
 from uebungen.kern import ARTEN, BEREICHE, STUFEN, _f                # -> uebungen/kern.py
-from uebungen import grundlagen                                      # noqa: F401  meldet seine Aufgaben an
+from uebungen import grundlagen, schaltungen                         # noqa: F401  melden ihre Aufgaben an
 
 TOLERANZ = 0.01                    # ±1 %
 MAX_ANZAHL = 30                    # höchstens so viele Aufgaben auf einem Blatt

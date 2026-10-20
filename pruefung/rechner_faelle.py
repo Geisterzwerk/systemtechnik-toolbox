@@ -660,6 +660,14 @@ FAELLE = [
 # =============================================================================
 # REINE FUNKTIONEN
 # =============================================================================
+def _verraet(a):
+    """Steht die Lösung im Schema, OHNE dass sie zufällig gleich einem gegebenen Wert ist?"""
+    svg, l = ueb_schema.schema_svg(a), str(a["loesung_text"])
+    if l.lstrip("-") in {w.lstrip("-") for _n, w in a["gegeben"]}:
+        return False
+    return f">{l}<" in svg or f"= {l}<" in svg
+
+
 FUNKTIONEN = [
     # ---- Übungsgenerator (uebungen/aufgaben.py), Werte von Hand nachgerechnet ----
     ("Übung belasteter Teiler Nr. 42: 5 V, 3.9 k / 1.2 k, RL 1.2 k -> 666.7 mV",
@@ -667,8 +675,9 @@ FUNKTIONEN = [
     ("Übung RC laden Nr. 7: 5 V, t = 2τ -> 5 V · (1 − e^−2) = 4.323 V", lambda: round(ueb.aufgabe("rc_laden", 7)["loesung"], 3), 4.323),
     ("Übung: gleiche Nummer = gleiche Aufgabe", lambda: ueb.aufgabe("parallel", 3) == ueb.aufgabe("parallel", 3), True),
     ("Übung: andere Nummer = andere Werte", lambda: ueb.aufgabe("parallel", 3)["gegeben"] != ueb.aufgabe("parallel", 4)["gegeben"], True),
-    ("Übung: alle Arten, 300 Nummern -> Lösung endlich und > 0",
-     lambda: all(0 < ueb.aufgabe(a, n)["loesung"] < 1e9 for a in ueb.ARTEN for n in range(1, 301)), True),
+    ("Übung: alle Rechen-Arten, 300 Nummern -> Lösung endlich und ≠ 0 (OPV darf negativ sein)",
+     lambda: all(0 < abs(ueb.aufgabe(a, n)["loesung"]) < 1e9 for a in ueb.ARTEN for n in range(1, 301)
+                 if ueb.aufgabe(a, 1)["antwort"] == "zahl"), True),
     ("Übung Kontrolle: 0.5 % daneben = richtig", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1),
      repr(ueb.aufgabe("teiler", 1)["loesung"] * 1.005), "V")["richtig"], True),
     ("Übung Kontrolle: 2 % daneben = falsch", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1),
@@ -689,12 +698,21 @@ FUNKTIONEN = [
     ("Übung: jede Art hat ein Schema (SVG, Gesuchtes als „?“)",
      lambda: all("<svg" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)) and "?" in ueb_schema.schema_svg(ueb.aufgabe(a, 1))
                  for a in ueb.ARTEN), True),
-    ("Übung: Schema verrät die Lösung nie (200 Nummern je Art)",
-     lambda: [(a, n) for a in ueb.ARTEN for n in range(1, 201)
-              if f">{ueb.aufgabe(a, n)['loesung_text']}<" in ueb_schema.schema_svg(ueb.aufgabe(a, n))
-              or f"= {ueb.aufgabe(a, n)['loesung_text']}<" in ueb_schema.schema_svg(ueb.aufgabe(a, n))], []),
+    ("Übung: Schema verrät die Lösung nie (200 Nummern je Art; zufällig gleich wie ein gegebener Wert zählt nicht)",
+     lambda: [(a, n) for a in ueb.ARTEN for n in range(1, 201) if _verraet(ueb.aufgabe(a, n))], []),
     ("Übung: Schema zeigt alle gegebenen Werte", lambda: all(w in ueb_schema.schema_svg(ueb.aufgabe(a, 3))
      for a in ueb.ARTEN for _n, w in ueb.aufgabe(a, 3)["gegeben"]), True),
+    # Schaltungs-Übungen: Nr. 3 von Hand nachgerechnet (Taschenrechner)
+    ("Übung Stromteiler Nr. 3: 47 mA, 390 Ω ∥ 330 Ω -> I1 = 47 mA · 330 / 720 = 21.54 mA",
+     lambda: round(ueb.aufgabe("stromteiler", 3)["loesung"] * 1e3, 2), 21.54),
+    ("Übung Brücke Nr. 3: 5 V · (1.8/7.4 − 1.5/7.1) = 159.9 mV", lambda: round(ueb.aufgabe("bruecke_ud", 3)["loesung"] * 1e3, 1), 159.9),
+    ("Übung Gleichrichter Nr. 3: √2 · 15 V − 1.4 V = 19.81 V", lambda: round(ueb.aufgabe("gleichrichter_uc", 3)["loesung"], 2), 19.81),
+    ("Übung Z-Diode Nr. 3: 5.9 V / 470 Ω − 9.1 V / 2.7 kΩ = 9.183 mA", lambda: round(ueb.aufgabe("z_diode_strom", 3)["loesung"] * 1e3, 3), 9.183),
+    ("Übung Schmitt Nr. 3: 13 V · 3.9 k / 183.9 k = 275.7 mV", lambda: round(ueb.aufgabe("schmitt_trigger", 3)["loesung"] * 1e3, 1), 275.7),
+    ("Übung LM317 Nr. 3: 1.25 V · (1 + 220/240) + 50 µA · 220 Ω = 2.407 V", lambda: round(ueb.aufgabe("lm317", 3)["loesung"], 3), 2.407),
+    ("Übung Sallen-Key Nr. 3: 1/(2π√(1.8k·1.5k·4.7n·27n)) = 8.598 kHz", lambda: round(ueb.aufgabe("sallen_key_f0", 3)["loesung"]), 8598),
+    ("Übung: Schaltungen hat Aufgaben in allen 4 Stufen",
+     lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Schaltungen"}), [1, 2, 3, 4]),
     ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "code", "gegeben", "gesucht", "sprache", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
