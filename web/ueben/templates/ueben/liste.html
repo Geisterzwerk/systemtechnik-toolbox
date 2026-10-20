@@ -1,15 +1,36 @@
 {% extends "basis.html" %}
-{# web/ueben/templates/ueben/liste.html - Übersicht aller Aufgabenarten (mit Abo) #}
+{# =========================================================================== #}
+{# web/ueben/templates/ueben/liste.html - alle Aufgabenarten (mit Abo)          #}
+{# nach Bereich und Thema, Filter nach Stufe und Bereich (?stufe=2&bereich=…)   #}
+{# =========================================================================== #}
 {% block titel %}Übungen{% endblock %}
 {% block inhalt %}
 <nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Übungen</nav>
 <h1>📝 Übungen</h1>
-<p class="kurz">Jede Aufgabe hat zufällige, realistische Werte. Antwort eintippen, kontrollieren, Lösungsweg ansehen – und mit „Neue Aufgabe“ so oft üben, wie du willst.</p>
+<p class="kurz">{{ anzahl }} Aufgabenarten mit zufälligen Werten: Antwort eingeben, kontrollieren, Lösungsweg ansehen – und mit „Neue Aufgabe“ so oft üben, wie du willst.</p>
 <div class="knoepfe"><a class="knopf" href="/uebungen/blatt/">🖨 Übungsblatt erstellen</a></div>
-{% for thema, arten in gruppen %}
-<h2 class="unterkategorie">{{ thema }}</h2>
+
+<section class="karte filter-karte">
+  <div class="filter-zeile"><span class="leise">Stufe:</span>
+    <a class="chip{% if not stufe %} aktiv{% endif %}" href="?{% if bereich %}bereich={{ bereich|urlencode }}{% endif %}">alle</a>
+    {% for nr, s in stufen.items %}<a class="chip{% if stufe == nr %} aktiv{% endif %}" href="?stufe={{ nr }}{% if bereich %}&amp;bereich={{ bereich|urlencode }}{% endif %}" title="{{ s.text }}"><span class="stufe-marke s{{ nr }}">{{ nr }}</span> {{ s.name }}</a>{% endfor %}
+  </div>
+  <div class="filter-zeile"><span class="leise">Bereich:</span>
+    <a class="chip{% if not bereich %} aktiv{% endif %}" href="?{% if stufe %}stufe={{ stufe }}{% endif %}">alle</a>
+    {% for b in bereiche %}<a class="chip{% if bereich == b %} aktiv{% endif %}" href="?bereich={{ b|urlencode }}{% if stufe %}&amp;stufe={{ stufe }}{% endif %}">{{ b }}</a>{% endfor %}
+  </div>
+  <p class="leise klein">{% for nr, s in stufen.items %}<span class="stufe-marke s{{ nr }}">{{ nr }}</span> {{ s.name }}: {{ s.text }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+</section>
+
+{% for b, themen in baum %}
+<h2>{{ b }}</h2>
+{% for thema, arten in themen %}
+<h3 class="unterkategorie">{{ thema }}</h3>
 <div class="kacheln klein">
-  {% for a in arten %}<a class="kachel" href="/uebungen/{{ a.id }}/"><span class="kachel-titel">{{ a.titel }}</span><span class="kachel-zahlen">{{ a.stufe_text }}</span></a>{% endfor %}
+  {% for a in arten %}<a class="kachel" href="/uebungen/{{ a.id }}/"><span class="kachel-titel">{{ a.titel }}</span><span class="kachel-zahlen"><span class="stufe-marke s{{ a.stufe }}">{{ a.stufe }}</span> {{ a.stufe_text }}</span></a>{% endfor %}
 </div>
+{% endfor %}
+{% empty %}
+<p class="leise">Für diese Auswahl gibt es (noch) keine Übungen.</p>
 {% endfor %}
 {% endblock %}

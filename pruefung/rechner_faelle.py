@@ -676,7 +676,15 @@ FUNKTIONEN = [
     ("Übung Kontrolle: Faktor 1000 -> Hinweis auf Einheit", lambda: "Einheit" in ueb.antwort_pruefen(ueb.aufgabe("teiler", 1),
      repr(ueb.aufgabe("teiler", 1)["loesung"]), "mV")["meldung"], True),
     ("Übung Kontrolle: Unsinn -> Meldung statt Absturz", lambda: ueb.antwort_pruefen(ueb.aufgabe("teiler", 1), "abc", "V")["richtig"], False),
-    ("Übungsblatt: höchstens MAX_ANZAHL Aufgaben", lambda: len(ueb.blatt(["ohm_strom"], 999, 1)), ueb.MAX_ANZAHL),
+    ("Übungsblatt: höchstens MAX_ANZAHL Aufgaben", lambda: len(ueb.blatt(["ohm_strom"], 999, 1)[0]), ueb.MAX_ANZAHL),
+    ("Übungsblatt pro Stufe: 3 × Stufe 1 + 2 × Stufe 3", lambda: [a["stufe"] for a in ueb.blatt(
+        ["ohm_strom", "reihe", "rc_laden"], 0, 4, {1: 3, 3: 2})[0]], [1, 1, 1, 3, 3]),
+    ("Übungsblatt: Stufe ohne gewählte Aufgabe -> Hinweis", lambda: len(ueb.blatt(["ohm_strom"], 0, 4, {1: 2, 4: 2})[1]), 1),
+    ("Übungsblatt: zusammen nie mehr als MAX_ANZAHL", lambda: len(ueb.blatt(["ohm_strom", "rc_laden"], 0, 1, {1: 25, 3: 25})[0]),
+     ueb.MAX_ANZAHL),
+    ("Übung Text-Vergleich Basis 2: führende Nullen, 0b, Leerzeichen egal",
+     lambda: [ueb._normal(t, "basis2") for t in ("0b0101", "101", "0000 0101", "1012")], [5, 5, 5, None]),
+    ("Übung Text-Vergleich Basis 16: 2Fh, 0x2f", lambda: [ueb._normal(t, "basis16") for t in ("2Fh", "0x2f", "2F")], [47, 47, 47]),
     ("Übungsblatt ohne Auswahl", lambda: ueb.blatt(["gibtsnicht"], 5, 1), wirft(ValueError)),
     ("Übung: jede Art hat ein Schema (SVG, Gesuchtes als „?“)",
      lambda: all("<svg" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)) and "?" in ueb_schema.schema_svg(ueb.aufgabe(a, 1))
@@ -687,7 +695,7 @@ FUNKTIONEN = [
               or f"= {ueb.aufgabe(a, n)['loesung_text']}<" in ueb_schema.schema_svg(ueb.aufgabe(a, n))], []),
     ("Übung: Schema zeigt alle gegebenen Werte", lambda: all(w in ueb_schema.schema_svg(ueb.aufgabe(a, 3))
      for a in ueb.ARTEN for _n, w in ueb.aufgabe(a, 3)["gegeben"]), True),
-    ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "gegeben", "gesucht", "text", "titel"]),
+    ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "code", "gegeben", "gesucht", "sprache", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
     ("Regler -100…100 mV, Einheit V -> -100…100 V", lambda: einheiten.regler_bereich("spannung", -0.1, 0.1, (-1, 1), "mV", "V"),

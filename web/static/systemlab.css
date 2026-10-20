@@ -250,6 +250,22 @@ input[type="password"], input[type="number"], .konto-feld input {
 .blatt-liste li { margin: 0 0 14px; }
 .blatt-liste p { margin: 2px 0; }
 .antwort-linie { margin-top: 8px !important; }
+/* Stufen-Marke: 1 Einstieg (grün) · 2 Lehrabschluss (blau) · 3 Studium/HF (violett) · 4 Profi (orange) */
+.stufe-marke { display: inline-flex; align-items: center; justify-content: center; min-width: 1.45em; height: 1.45em;
+  border-radius: 999px; font-size: 0.78rem; font-weight: 700; color: #fff; vertical-align: middle; }
+.stufe-marke.s1 { background: #16A34A; } .stufe-marke.s2 { background: #2563EB; }
+.stufe-marke.s3 { background: #7C3AED; } .stufe-marke.s4 { background: #EA580C; }
+.filter-karte .filter-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin: 2px 0; }
+.chip.aktiv { border-color: var(--akzent); background: var(--akzent); color: #fff; }
+.auswahl { border: none; padding: 0; margin: 6px 0; }
+.auswahl-option { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; margin: 6px 0;
+  border: 1px solid var(--rahmen); border-radius: 10px; cursor: pointer; }
+.auswahl-option:has(input:checked) { border-color: var(--akzent); }
+.auswahl-blatt { list-style: none; padding-left: 0.4em; }
+.mono, .auswahl-option span, .auswahl-blatt li { font-family: "Cascadia Code", Consolas, monospace; }
+.aufgabe-tabelle { width: auto; margin: 8px 0; }
+.aufgabe-tabelle td, .aufgabe-tabelle th { text-align: center; font-family: "Cascadia Code", Consolas, monospace; }
+.blatt-bereich { margin: 6px 0; } .blatt-bereich summary { font-weight: 650; cursor: pointer; padding: 4px 0; }
 
 @media print {
   .kopf, .fuss, .nicht-drucken, .melden-zeile { display: none !important; }

@@ -4,15 +4,19 @@
 {% block inhalt %}
 <nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › Übungen</nav>
 <h1>📝 {{ titel }}</h1>
-<p class="kurz">Üben mit unbegrenzt vielen Aufgaben: zufällige Werte, sofortige Kontrolle, Lösungsweg und Übungsblätter zum Ausdrucken.</p>
+<p class="kurz">Üben mit {{ anzahl }} Aufgabenarten in vier Stufen: zufällige Werte, sofortige Kontrolle, Lösungsweg und Übungsblätter zum Ausdrucken.</p>
 <section class="karte">{% include "konto/schloss.html" with schloss_titel="Übungen mit dem Abo" %}</section>
 <section class="abschnitt">
   <h2>Das kannst du mit dem Abo üben</h2>
-  {% for thema, arten in gruppen %}
-  <h3 class="unterkategorie">{{ thema }}</h3>
+  <p class="leise klein">{% for nr, s in stufen.items %}<span class="stufe-marke s{{ nr }}">{{ nr }}</span> {{ s.name }}: {{ s.text }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  {% for b, themen in baum %}
+  <h3>{{ b }}</h3>
+  {% for thema, arten in themen %}
+  <h4 class="unterkategorie">{{ thema }}</h4>
   <div class="kacheln klein">
-    {% for a in arten %}<div class="kachel kachel-gesperrt"><span class="kachel-titel">🔒 {{ a.titel }}</span><span class="kachel-zahlen">{{ a.stufe_text }}</span></div>{% endfor %}
+    {% for a in arten %}<div class="kachel kachel-gesperrt"><span class="kachel-titel">🔒 {{ a.titel }}</span><span class="kachel-zahlen"><span class="stufe-marke s{{ a.stufe }}">{{ a.stufe }}</span> {{ a.stufe_text }}</span></div>{% endfor %}
   </div>
+  {% endfor %}
   {% endfor %}
 </section>
 {% endblock %}

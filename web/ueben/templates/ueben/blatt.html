@@ -1,7 +1,8 @@
 {% extends "basis.html" %}
 {# =========================================================================== #}
 {# web/ueben/templates/ueben/blatt.html - Übungsblatt zusammenstellen + drucken  #}
-{# Gleiche Adresse (Arten, Anzahl, nr) = gleiches Blatt. Drucken mit dem Browser; #}
+{# Aufgabenarten wählen, Anzahl PRO STUFE (z.B. 5 Einstieg + 5 Studium).         #}
+{# Gleiche Adresse (Arten, Anzahlen, nr) = gleiches Blatt. Drucken mit dem Browser; #}
 {# beim Drucken verschwinden Kopf, Formular und Knöpfe (systemlab.css, @media print) #}
 {# =========================================================================== #}
 {% block titel %}Übungsblatt{% endblock %}
@@ -11,18 +12,29 @@
 <section class="karte nicht-drucken">
   {% if fehler %}<p class="ergebnis warn" role="alert">⚠ {{ fehler }}</p>{% endif %}
   <form method="get" action="/uebungen/blatt/" class="blatt-form">
-    {% for thema, arten in gruppen %}
-    <fieldset><legend>{{ thema }}</legend>
-      {% for a in arten %}<label class="schalter"><input type="checkbox" name="art" value="{{ a.id }}" {% if a.id in gewaehlt %}checked{% endif %}> {{ a.titel }}</label>{% endfor %}
-    </fieldset>
+    <h2 class="karte-titel">1. Aufgaben wählen</h2>
+    {% for b, themen in baum %}
+    <details class="blatt-bereich" {% if forloop.first %}open{% endif %}><summary>{{ b }}</summary>
+      {% for thema, arten in themen %}
+      <fieldset data-gruppe><legend><label><input type="checkbox" data-alle> {{ thema }}</label></legend>
+        {% for a in arten %}<label class="schalter"><input type="checkbox" name="art" value="{{ a.id }}" {% if a.id in gewaehlt %}checked{% endif %}> <span class="stufe-marke s{{ a.stufe }}" title="{{ a.stufe_text }}">{{ a.stufe }}</span> {{ a.titel }}</label>{% endfor %}
+      </fieldset>
+      {% endfor %}
+    </details>
     {% endfor %}
+    <h2 class="karte-titel">2. Anzahl pro Stufe</h2>
+    <p class="leise klein">Jede Stufe nimmt nur gewählte Aufgaben dieser Stufe. Beispiel: 5 × Einstieg und 5 × Studium / HF.</p>
     <div class="knoepfe">
-      <label class="schalter">Anzahl <input type="number" name="anzahl" value="{{ anzahl }}" min="1" max="{{ max_anzahl }}" class="zahl-feld"></label>
+      {% for nr, s, n in pro_stufe %}<label class="schalter"><span class="stufe-marke s{{ nr }}">{{ nr }}</span> {{ s.name }} <input type="number" name="anzahl_{{ nr }}" value="{{ n }}" min="0" max="{{ max_anzahl }}" class="zahl-feld"></label>{% endfor %}
+    </div>
+    <div class="knoepfe">
       <label class="schalter"><input type="checkbox" name="loesungen" value="1" {% if mit_loesungen %}checked{% endif %}> mit Lösungen</label>
       <button type="submit" name="erstellen" value="1" class="knopf">Neues Blatt erstellen</button>
       {% if aufgaben %}<button type="button" class="knopf leer" data-drucken>🖨 Drucken</button>{% endif %}
     </div>
+    <p class="leise klein">Höchstens {{ max_anzahl }} Aufgaben pro Blatt.</p>
   </form>
+  {% for h in hinweise %}<p class="ergebnis warn">⚠ {{ h }}</p>{% endfor %}
 </section>
 
 {% if aufgaben %}
@@ -33,10 +45,16 @@
     {% for a in aufgaben %}
     <li class="blatt-aufgabe">
       <div>
-        <strong>{{ a.titel }}</strong>
+        <strong>{{ a.titel }}</strong> <span class="stufe-marke s{{ a.stufe }}" title="{{ a.stufe_text }}">{{ a.stufe }}</span>
         <p>{{ a.text }}</p>
-        <p>Gegeben: {% for name, wert in a.gegeben %}{{ name }} = {{ wert }}{% if not forloop.last %}, {% endif %}{% endfor %} · Gesucht: {{ a.gesucht.zeichen }}</p>
-        <p class="antwort-linie">{{ a.gesucht.zeichen }} = ______________________</p>
+        {% if a.code_teile %}<div class="code-block"><pre><code>{% for t in a.code_teile %}{% if t.klasse %}<span class="s-{{ t.klasse }}">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{% endfor %}</code></pre></div>{% endif %}
+        {% if a.tabelle %}<div class="tabelle-rahmen"><table class="aufgabe-tabelle"><thead><tr>{% for k in a.tabelle.kopf %}<th>{{ k }}</th>{% endfor %}</tr></thead><tbody>{% for z in a.tabelle.zeilen %}<tr>{% for zelle in z %}<td>{{ zelle }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>{% endif %}
+        {% if a.gegeben %}<p>Gegeben: {% for name, wert in a.gegeben %}{{ name }} = {{ wert }}{% if not forloop.last %}, {% endif %}{% endfor %} · Gesucht: {{ a.gesucht.zeichen }}</p>{% endif %}
+        {% if a.antwort == "auswahl" %}
+        <ul class="auswahl-blatt">{% for o in a.optionen %}<li>☐ {{ o }}</li>{% endfor %}</ul>
+        {% else %}
+        <p class="antwort-linie">{{ a.gesucht.zeichen }}{% if a.antwort == "zahl" %} ={% else %}:{% endif %} ______________________</p>
+        {% endif %}
       </div>
       {% if a.schema %}<figure class="schema schema-klein"><div class="nur-hell">{{ a.schema.hell|safe }}</div><div class="nur-dunkel">{{ a.schema.dunkel|safe }}</div></figure>{% endif %}
     </li>
@@ -45,7 +63,7 @@
   {% if mit_loesungen %}
   <h2 class="seitenumbruch">Lösungen</h2>
   <ol class="blatt-liste">
-    {% for a in aufgaben %}<li><strong>{{ a.gesucht.zeichen }} = {{ a.loesung_text }}</strong><br><span class="leise klein">{{ a.weg|join:" · " }}</span></li>{% endfor %}
+    {% for a in aufgaben %}<li><strong>{% if a.antwort == "zahl" %}{{ a.gesucht.zeichen }} = {% endif %}<span class="mono">{{ a.loesung_text }}</span></strong><br><span class="leise klein">{{ a.weg|join:" · " }}</span></li>{% endfor %}
   </ol>
   {% endif %}
 </section>

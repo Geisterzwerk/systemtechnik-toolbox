@@ -385,12 +385,19 @@ konto_pruefen(b.get("/uebungen/ohm_strom/?nr=abc").status_code == 302, "Aufgabe 
 for art in aufgaben.ARTEN:
     r = b.get(f"/uebungen/{art}/?nr=7&loesung=1")
     konto_pruefen(r.status_code == 200 and 'class="schema"' in html(r), f"Aufgabe {art} lädt nicht / ohne Schema")
-r = b.get("/uebungen/blatt/?art=ohm_strom&art=rc_tau&anzahl=4&erstellen=1&loesungen=1")
+r = b.get("/uebungen/blatt/?art=ohm_strom&art=rc_tau&anzahl_1=2&anzahl_2=2&erstellen=1&loesungen=1")
 konto_pruefen(r.status_code == 302 and "nr=" in r["Location"], "Übungsblatt: keine feste Nummer")
 t = html(b.get(r["Location"]))
 konto_pruefen(t.count('class="antwort-linie"') == 4 and "Lösungen</h2>" in t, "Übungsblatt falsch")
 konto_pruefen(b.get("/uebungen/blatt/?erstellen=1").status_code == 400, "Übungsblatt ohne Auswahl angenommen")
-konto_pruefen(html(b.get("/uebungen/blatt/?art=ohm_strom&anzahl=999&nr=3")).count('class="antwort-linie"') == aufgaben.MAX_ANZAHL,
+konto_pruefen(b.get("/uebungen/blatt/?art=ohm_strom&erstellen=1").status_code == 400, "Übungsblatt ohne Anzahl angenommen")
+t = html(b.get("/uebungen/blatt/?art=ohm_strom&anzahl_1=1&anzahl_4=3&nr=9"))
+konto_pruefen(t.count('class="antwort-linie"') == 1 and "keine dieser Stufe" in t, "Übungsblatt: Hinweis bei fehlender Stufe fehlt")
+for adresse in ("/uebungen/?stufe=2", "/uebungen/?bereich=Schaltungen", "/uebungen/?stufe=99&bereich=<b>x</b>"):
+    r = b.get(adresse)
+    konto_pruefen(r.status_code == 200 and "<b>x</b>" not in html(r), f"{adresse}: Filter falsch")
+konto_pruefen("rc_laden" not in html(b.get("/uebungen/?stufe=1")), "Filter Stufe 1 zeigt Stufe 3")
+konto_pruefen(html(b.get("/uebungen/blatt/?art=ohm_strom&anzahl_1=999&nr=3")).count('class="antwort-linie"') == aufgaben.MAX_ANZAHL,
               "Übungsblatt: Anzahl nicht begrenzt")
 konto_pruefen("gesperrt-schild" not in html(b.get("/bauteile/widerstand/")), "Abo: Wissensseite zeigt noch das Schloss")
 konto_pruefen(b.get("/" + settings.ADMIN_PFAD).status_code == 302, "Verwaltung für normale Konten offen!")

@@ -1,28 +1,51 @@
 {% extends "basis.html" %}
 {# =========================================================================== #}
-{# web/ueben/templates/ueben/aufgabe.html - EINE Aufgabe: gegeben, gesucht,       #}
-{# Antwort + Einheit (GET, es wird nichts gespeichert), Kontrolle, Lösungsweg     #}
+{# web/ueben/templates/ueben/aufgabe.html - EINE Aufgabe: Text, Schema/Code/     #}
+{# Tabelle, gegeben, gesucht, Antwort (Zahl + Einheit / Text / Auswahl), Kontrolle, #}
+{# Lösungsweg. GET - es wird nichts gespeichert.                                #}
 {# Daten: web/ueben/views.py aufgabe -> uebungen/aufgaben.py                       #}
 {# =========================================================================== #}
 {% block titel %}{{ a.titel }}{% endblock %}
 {% block inhalt %}
-<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/uebungen/">Übungen</a> › {{ info.thema }}</nav>
+<nav class="pfad" aria-label="Pfad"><a href="/">Start</a> › <a href="/uebungen/">Übungen</a> › <a href="/uebungen/?bereich={{ info.bereich|urlencode }}">{{ info.bereich }}</a> › {{ info.thema }}</nav>
 <h1>{{ a.titel }}</h1>
-<p class="leise">{{ info.stufe_text }} · Aufgabe Nr. {{ a.nr }}</p>
+<p class="leise"><span class="stufe-marke s{{ info.stufe }}">{{ info.stufe }}</span> {{ info.stufe_text }} ({{ info.stufe_info }}) · Aufgabe Nr. {{ a.nr }}</p>
 
 <section class="karte aufgabe">
   <p>{{ a.text }}</p>
   {% if schema %}<figure class="schema"><div class="nur-hell">{{ schema.hell|safe }}</div><div class="nur-dunkel">{{ schema.dunkel|safe }}</div></figure>{% endif %}
+  {% if code %}
+  <div class="code-block"><div class="code-kopf"><span>{{ a.sprache }}</span></div>
+    <pre><code>{% for t in code %}{% if t.klasse %}<span class="s-{{ t.klasse }}">{{ t.text }}</span>{% else %}{{ t.text }}{% endif %}{% endfor %}</code></pre></div>
+  {% endif %}
+  {% if a.tabelle %}
+  <div class="tabelle-rahmen"><table class="aufgabe-tabelle">
+    <thead><tr>{% for k in a.tabelle.kopf %}<th>{{ k }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for z in a.tabelle.zeilen %}<tr>{% for zelle in z %}<td>{{ zelle }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+  {% endif %}
+  {% if a.gegeben %}
   <h2 class="karte-titel">Gegeben</h2>
   <p>{% for name, wert in a.gegeben %}<span class="chip">{{ name }} = {{ wert }}</span>{% endfor %}</p>
-  <h2 class="karte-titel">Gesucht: {{ a.gesucht.zeichen }} – {{ a.gesucht.text }}</h2>
+  {% endif %}
+  <h2 class="karte-titel">Gesucht: {{ a.gesucht.zeichen }}{% if a.gesucht.text %} – {{ a.gesucht.text }}{% endif %}</h2>
   <form method="get" action="/uebungen/{{ a.art }}/" class="rechner-form">
     <input type="hidden" name="nr" value="{{ a.nr }}">
+    {% if a.antwort == "auswahl" %}
+    <fieldset class="auswahl"><legend class="leise">Wähle eine Antwort</legend>
+      {% for o in a.optionen %}<label class="auswahl-option"><input type="radio" name="antwort" value="{{ o }}" {% if antwort == o %}checked{% endif %}> <span>{{ o }}</span></label>{% endfor %}
+    </fieldset>
+    {% else %}
     <div class="feld">
       <label for="antwort">{{ a.gesucht.zeichen }} =</label>
+      {% if a.antwort == "zahl" %}
       <input id="antwort" type="text" name="antwort" value="{{ antwort }}" inputmode="decimal" maxlength="40" autocomplete="off" placeholder="z.B. 4.7 oder 4k7">
       <select name="einheit" aria-label="Einheit">{% for e in a.einheiten %}<option {% if e == einheit %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+      {% else %}
+      <input id="antwort" type="text" name="antwort" value="{{ antwort }}" maxlength="200" autocomplete="off" autocapitalize="none" spellcheck="false" class="mono">
+      {% endif %}
     </div>
+    {% endif %}
     <div class="knoepfe">
       <button type="submit" class="knopf">Kontrollieren</button>
       <a class="knopf leer" href="/uebungen/{{ a.art }}/?nr={{ a.nr }}&amp;loesung=1">Lösung zeigen</a>
@@ -30,14 +53,14 @@
     </div>
   </form>
   {% if pruefung %}<p class="ergebnis{% if not pruefung.richtig %} warn{% endif %}" role="status">{% if pruefung.richtig %}✓{% else %}✗{% endif %} {{ pruefung.meldung }}</p>{% endif %}
-  <p class="leise klein">Als richtig gilt eine Abweichung bis ±{{ toleranz }} % (Rundung). Eingabe wie bei den Rechnern: 4.7 · 4,7 · 4k7 · 470m</p>
+  {% if a.antwort == "zahl" %}<p class="leise klein">Als richtig gilt eine Abweichung bis ±{{ toleranz }} % (Rundung). Eingabe wie bei den Rechnern: 4.7 · 4,7 · 4k7 · 470m</p>{% endif %}
 </section>
 
 {% if zeige_loesung %}
 <section class="karte box tipp-box">
   <h2 class="karte-titel">Lösungsweg</h2>
   <ol class="loesungsweg">{% for zeile in a.weg %}<li>{{ zeile }}</li>{% endfor %}</ol>
-  <p><strong>Ergebnis: {{ a.gesucht.zeichen }} = {{ a.loesung_text }}</strong></p>
+  <p><strong>Lösung: {% if a.antwort == "zahl" %}{{ a.gesucht.zeichen }} = {% endif %}<span class="mono">{{ a.loesung_text }}</span></strong></p>
 </section>
 {% endif %}
 

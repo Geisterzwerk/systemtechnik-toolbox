@@ -133,9 +133,14 @@
   }
   document.querySelectorAll("[data-schaltung]").forEach(schaltungVorbereiten);
 
-  // ---- 6b) Übungsblatt drucken ------------------------------------------------
+  // ---- 6b) Übungsblatt: drucken, ganzes Thema an-/abwählen ----------------------
   document.addEventListener("click", function (ev) {
     if (ev.target.closest("[data-drucken]")) window.print();
+  });
+  document.addEventListener("change", function (ev) {
+    if (!ev.target.matches("[data-alle]")) return;
+    var gruppe = ev.target.closest("[data-gruppe]");
+    gruppe.querySelectorAll('input[name="art"]').forEach(function (k) { k.checked = ev.target.checked; });
   });
 
   // ---- 7) Animationen abspielen (Trafo) ------------------------------------------
