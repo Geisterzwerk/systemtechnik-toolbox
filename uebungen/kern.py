@@ -11,6 +11,7 @@
 # EIN ERZEUGER erzeugen(z) bekommt einen eigenen Zufallsgenerator z (random.Random) und gibt zurück:
 #   a) RECHENAUFGABE (Zahl mit Einheit) - Tupel:
 #        (text, gegeben [(Zeichen, Wert, typ)], gesucht (Zeichen, typ, Beschreibung), loesung, weg [Zeilen])
+#        typ None bei einem gegebenen Wert = einfach als Text zeigen (z.B. Farben, SMD-Code)
 #   b) ALLE ANDEREN - dict:
 #        text        Aufgabentext
 #        antwort     "text"    -> Eingabefeld, verglichen nach 'vergleich'

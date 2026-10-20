@@ -29,6 +29,7 @@
 #   uebungen/digital.py      Zahlensysteme, Logik, KV, Schaltnetze, Schaltwerke, Busse, Pegel
 #   uebungen/programmieren.py  Python und C: Ausgabe bestimmen, Datentypen, Schleifen, Funktionen, OOP
 #   uebungen/server.py       Linux: Befehle, Pfade, Pipes, Rechte, umask, Cron, Subnetze, Bash
+#   uebungen/bauteile_mess.py  Bauteile (Farbcode, SMD, C, L, Trafo …) und Messtechnik (Oszi, DMM, Pt100 …)
 # Das passende Schaltbild zu einer Aufgabe zeichnet uebungen/schemas.py.
 #
 # WER RUFT DAS AUF?  web/ueben/views.py, web/wiki/views.py (Übungen zur Seite), uebungen/schemas.py,
@@ -41,7 +42,7 @@ import re
 
 from bauteile import einheiten                                       # -> bauteile/einheiten.py
 from uebungen.kern import ARTEN, BEREICHE, STUFEN, _f                # -> uebungen/kern.py
-from uebungen import digital, grundlagen, programmieren, schaltungen, server   # noqa: F401  melden ihre Aufgaben an
+from uebungen import bauteile_mess, digital, grundlagen, programmieren, schaltungen, server   # noqa: F401  (anmelden)
 
 TOLERANZ = 0.01                    # ±1 %
 MAX_ANZAHL = 30                    # höchstens so viele Aufgaben auf einem Blatt
@@ -91,7 +92,7 @@ def aufgabe(art_id, nr):
         text, gegeben, gesucht, loesung, weg = ergebnis
         zeichen, typ, beschreibung = gesucht
         return {**basis, "antwort": "zahl", "text": text,
-                "gegeben": [(name, _f(wert, t)) for name, wert, t in gegeben],
+                "gegeben": [(name, _f(wert, t) if t else str(wert)) for name, wert, t in gegeben],   # typ None = Text
                 "gesucht": {"zeichen": zeichen, "typ": typ, "text": beschreibung},
                 "loesung": loesung, "loesung_text": _f(loesung, typ), "weg": weg,
                 "einheiten": _einheiten(typ), "einheit": einheiten.stufe_waehlen(loesung, typ)[0]}
@@ -193,6 +194,9 @@ def blatt(art_ids, anzahl, nr, pro_stufe=None):
         z.shuffle(passend)
         liste += [aufgabe(passend[i % len(passend)], z.randint(1, 10 ** 9)) for i in range(n)]
         frei -= n
+    ungenutzt = sorted({ARTEN[a]["stufe"] for a in arten} - {s for s, n in pro_stufe.items() if int(n) > 0})
+    for stufe in ungenutzt:                                          # gewählt, aber Anzahl 0 -> sagen statt still weglassen
+        hinweise.append(f"Stufe {STUFEN[stufe]['name']}: Aufgaben sind gewählt, aber die Anzahl ist 0 – sie kommen nicht aufs Blatt.")
     if not liste and not hinweise:
         raise ValueError("Bitte bei mindestens einer Stufe eine Anzahl angeben.")
     return liste, hinweise

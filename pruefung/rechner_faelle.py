@@ -690,6 +690,7 @@ FUNKTIONEN = [
     ("Übungsblatt pro Stufe: 3 × Stufe 1 + 2 × Stufe 3", lambda: [a["stufe"] for a in ueb.blatt(
         ["ohm_strom", "reihe", "rc_laden"], 0, 4, {1: 3, 3: 2})[0]], [1, 1, 1, 3, 3]),
     ("Übungsblatt: Stufe ohne gewählte Aufgabe -> Hinweis", lambda: len(ueb.blatt(["ohm_strom"], 0, 4, {1: 2, 4: 2})[1]), 1),
+    ("Übungsblatt: gewählte Stufe mit Anzahl 0 -> Hinweis", lambda: len(ueb.blatt(["ohm_strom", "rc_laden"], 0, 4, {1: 2})[1]), 1),
     ("Übungsblatt: zusammen nie mehr als MAX_ANZAHL", lambda: len(ueb.blatt(["ohm_strom", "rc_laden"], 0, 1, {1: 25, 3: 25})[0]),
      ueb.MAX_ANZAHL),
     ("Übung Text-Vergleich Basis 2: führende Nullen, 0b, Leerzeichen egal",
@@ -698,13 +699,14 @@ FUNKTIONEN = [
     ("Übungsblatt ohne Auswahl", lambda: ueb.blatt(["gibtsnicht"], 5, 1), wirft(ValueError)),
     ("Übung: jede Elektro-Aufgabe (Grundlagen, Bauteile, Schaltungen) hat ein Schema mit „?“",
      lambda: [a for a, d in ueb.ARTEN.items() if d["bereich"] in ("Grundlagen", "Bauteile", "Schaltungen")
+              and a not in ("normwert_e12",)                         # Normwert wählen: keine Schaltung dazu
               and not ("<svg" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)) and "?" in ueb_schema.schema_svg(ueb.aufgabe(a, 1)))], []),
     ("Übung: jedes vorhandene Schema hat ein „?“",
      lambda: [a for a in ueb_schema.SCHEMAS if "?" not in ueb_schema.schema_svg(ueb.aufgabe(a, 2))], []),
     ("Übung: Schema verrät die Lösung nie (200 Nummern je Art; zufällig gleich wie ein gegebener Wert zählt nicht)",
      lambda: [(a, n) for a in ueb.ARTEN for n in range(1, 201) if _verraet(ueb.aufgabe(a, n))], []),
     ("Übung: Schema zeigt alle gegebenen Werte (Rechenaufgaben)", lambda: [(a, w) for a in ueb_schema.SCHEMAS
-     for _n, w in ueb.aufgabe(a, 3)["gegeben"] if ueb.aufgabe(a, 3)["antwort"] == "zahl"
+     for _n, w in ueb.aufgabe(a, 3)["gegeben"] if ueb.aufgabe(a, 3)["antwort"] == "zahl" and _n != "Farben"   # als Farben gezeichnet
      and w not in ueb_schema.schema_svg(ueb.aufgabe(a, 3))], []),
     # Schaltungs-Übungen: Nr. 3 von Hand nachgerechnet (Taschenrechner)
     ("Übung Stromteiler Nr. 3: 47 mA, 390 Ω ∥ 330 Ω -> I1 = 47 mA · 330 / 720 = 21.54 mA",
@@ -751,6 +753,14 @@ FUNKTIONEN = [
         ueb.aufgabe("linux_glob", 5), " , ".join(reversed(ueb.aufgabe("linux_glob", 5)["loesung"].split())))["richtig"], True),
     ("Übung: Server / Linux hat Aufgaben in allen 4 Stufen",
      lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Server / Linux"}), [1, 2, 3, 4]),
+    # Bauteile/Messtechnik: Nr. 3 von Hand nachgerechnet
+    ("Übung Farbcode Nr. 3: Rot Rot Braun Silber = 22 · 10 = 220 Ω", lambda: ueb.aufgabe("farbcode_4", 3)["loesung"], 220),
+    ("Übung Leitung Nr. 3: 0.0175 · 200 m / 1.5 mm² = 2.333 Ω", lambda: round(ueb.aufgabe("leitungswiderstand", 3)["loesung"], 3), 2.333),
+    ("Übung Klasse Nr. 3: 2.5 % von 100 V bei 25 V Anzeige = 10 %", lambda: round(ueb.aufgabe("genauigkeitsklasse", 3)["loesung"], 4), 0.1),
+    ("Übung ADC Nr. 3: 4.52 V / (5 V / 1024) = 925.7 -> 925", lambda: ueb.aufgabe("adc_code", 3)["loesung"], "925"),
+    ("Übung DMS Nr. 3: 10 V · 2 · 250 µm/m / 4 = 1.25 mV", lambda: round(ueb.aufgabe("dms_bruecke", 3)["loesung"] * 1e3, 3), 1.25),
+    ("Übung: Bauteile und Messtechnik haben je mindestens 3 Stufen",
+     lambda: [len({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == b}) >= 3 for b in ("Bauteile", "Messtechnik")], [True, True]),
     ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "code", "gegeben", "gesucht", "sprache", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
