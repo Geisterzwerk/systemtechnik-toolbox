@@ -143,6 +143,19 @@ def _zahl_text(zahl, stellen):
     return text
 
 
+def regler_bereich(typ, von, bis, grenzen, start_einheit, einheit):
+    """
+    Bereich eines Schiebereglers in der GEWÄHLTEN Einheit (Desktop: WertRegler, Web: wiki/grafiken.py).
+    Der Regler ist für start_einheit gebaut, z.B. 0 … 600 mV. Wählt man V, gilt dieselbe Zahl in V:
+    0 … 600 V. Wählt man µV: 0 … 600 µV.
+    Rückgabe: (von, bis, (unten, oben)) in Basiseinheit - unten/oben = erlaubt im Zahlenfeld.
+    """
+    stufen = dict(EINHEITEN[typ]["stufen"])
+    k = float(f"{stufen[einheit] / stufen[start_einheit]:.12g}")     # 1000 statt 999.9999999
+    unten, oben = grenzen or (von, bis)
+    return von * k, bis * k, (unten * k, oben * k)
+
+
 def stufe_waehlen(wert, typ):
     """Beste Dropdown-Stufe für einen Wert: (name, zahl_in_dieser_stufe)."""
     stufen = EINHEITEN[typ]["stufen"]

@@ -217,7 +217,8 @@ class WertRegler(ctk.CTkFrame):
 
     - Slider bewegen  -> Zahlenfeld zeigt den Wert sofort an
     - Zahl eintippen  -> Enter oder Feld verlassen übernimmt, Slider springt mit
-    - Einheit wählen  -> derselbe Wert wird in der neuen Einheit angezeigt
+    - Einheit wählen  -> der Slider-Bereich gilt in der neuen Einheit (0 … 600 mV -> 0 … 600 V),
+                         der Wert wird in der neuen Einheit angezeigt (einheiten.regler_bereich)
     - Ungültig        -> Feld rot + Erklärung, der alte Wert bleibt (nie still korrigieren)
 
     text           Beschriftung links
@@ -227,7 +228,7 @@ class WertRegler(ctk.CTkFrame):
     einheit        Startauswahl im Dropdown (z.B. "kΩ"), None = Standard des Typs
     grenzen        (min, max) für das Zahlenfeld. Liegt ein Wert ausserhalb des Sliders,
                    aber innerhalb der Grenzen, wird er angenommen und der Slider wächst mit.
-                   Standard: (von, bis)
+                   Standard: (von, bis). Gilt wie von/bis für die Start-Einheit.
     ganzzahl       True -> nur ganze Zahlen (z.B. Windungen)
     log            True -> logarithmischer Slider (gleicher Weg für 100 Ω → 1 kΩ wie für 10 kΩ → 100 kΩ),
                    sinnvoll bei Widerständen, Kapazitäten, Frequenzen. Werte auf 3 Stellen gerundet.
@@ -268,7 +269,8 @@ class WertRegler(ctk.CTkFrame):
         self.wr_feld.bei_enter(self._wr_feld_uebernehmen)
         self.wr_feld.ee_feld.bind("<FocusOut>", lambda _e: self._wr_feld_uebernehmen(), add="+")
         if self.wr_feld.ee_menue is not None:
-            self.wr_feld.ee_menue.configure(command=lambda _v: self._wr_feld_schreiben())
+            self.wr_feld.ee_menue.configure(command=lambda _v: self._wr_einheit_gewechselt())
+        self._wr_basis_merken()
         self.wr_rand = self.wr_feld.ee_feld.cget("border_color")
 
         self.wr_meldung = WrapLabel(self, text="", font=config.FONT_KLEIN, text_color=self.ROT)
@@ -294,9 +296,32 @@ class WertRegler(ctk.CTkFrame):
         self.wr_slider.configure(from_=self._wr_s(von), to=self._wr_s(bis), number_of_steps=self._wr_stufen())
         if self.wr_feld.ee_menue is not None and bis > 0:      # Einheit passend zum Bereich (5 s statt 5000 ms)
             self.wr_feld.ee_menue.set(einheiten.stufe_waehlen(bis, self.wr_typ)[0])
+        self._wr_basis_merken()
         self.setzen(min(max(self.wr_wert if wert is None else wert, von), bis))
 
     # ---- intern -------------------------------------------------------------
+    def _wr_basis_merken(self):
+        """Bereich + Einheit, für die der Regler gebaut ist (Ausgangspunkt beim Einheitenwechsel)."""
+        menue = self.wr_feld.ee_menue
+        self.wr_basis = (self.wr_von, self.wr_bis, self.wr_grenzen,
+                         menue.get() if menue is not None else None)
+
+    def _wr_einheit_gewechselt(self):
+        """Neue Einheit -> der Slider-Bereich gilt in DIESER Einheit (0 … 600 mV -> 0 … 600 V).
+        Der Wert bleibt gleich, wenn er in den neuen Bereich passt, sonst rückt er an den Rand."""
+        von, bis, grenzen, start_einheit = self.wr_basis
+        self.wr_von, self.wr_bis, self.wr_grenzen = einheiten.regler_bereich(
+            self.wr_typ, von, bis, grenzen, start_einheit, self.wr_feld.ee_menue.get())
+        self.wr_slider.configure(from_=self._wr_s(self.wr_von), to=self._wr_s(self.wr_bis),
+                                 number_of_steps=self._wr_stufen())
+        alt = self.wr_wert
+        self.wr_wert = self._wr_im_slider(alt)
+        self.wr_slider.set(self._wr_s(self.wr_wert))
+        self._wr_feld_schreiben()
+        self._wr_ok()
+        if self.wr_wert != alt and self.wr_funktion:
+            self.wr_funktion()
+
     def _wr_s(self, wert):
         """Wert -> Slider-Position (bei log: Zehnerlogarithmus)."""
         return math.log10(wert) if self.wr_log else wert

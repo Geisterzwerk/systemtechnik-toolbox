@@ -26,6 +26,7 @@ import math
 
 from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as sv, transistor_mathe
 from bauteile.rechner.basis import RechnerFehler
+from bauteile import einheiten                                               # Regler-Bereich je Einheit
 from bauteile.rechner.widerstand_rechner import (farbcode_zeilen, farben_zu_wert, smd_entschluesseln,
                                                  smd_zeilen, wert_zu_farben)
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
@@ -659,6 +660,16 @@ FAELLE = [
 # REINE FUNKTIONEN
 # =============================================================================
 FUNKTIONEN = [
+    # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----
+    ("Regler -100…100 mV, Einheit V -> -100…100 V", lambda: einheiten.regler_bereich("spannung", -0.1, 0.1, (-1, 1), "mV", "V"),
+     (-100.0, 100.0, (-1000.0, 1000.0))),
+    ("Regler 0…600 mV, Einheit µV -> 0…600 µV", lambda: einheiten.regler_bereich("spannung", 0, 0.6, None, "mV", "µV"),
+     (0.0, 0.0006, (0.0, 0.0006))),
+    ("Regler gleiche Einheit -> Bereich unverändert", lambda: einheiten.regler_bereich("frequenz", 1, 45, (0.1, 200), "Hz", "Hz"),
+     (1.0, 45.0, (0.1, 200.0))),
+    ("Filter Sprungantwort Q sehr klein: langsamer Pol ≈ Q·ω0 (kein Teilen durch 0)",
+     lambda: round(fim.sprungantwort("Hochpass", 1e3, 1e-9)["dauer"] * 2 * math.pi * 1e3 * 1e-9, 3), 5.0),
+
     # ---- Messtechnik: Fourier-Synthese (Formeln: Wikipedia „Fourierreihe“) ----
     ("Fourier Rechteck: Grundschwingung 4/π", lambda: sgm.glieder("Rechteck", 3)[0][1], 4 / math.pi),
     ("Fourier Rechteck: nur ungerade, Amplitude 1/k", lambda: [k for k, _a in sgm.glieder("Rechteck", 3)], [1, 3, 5]),

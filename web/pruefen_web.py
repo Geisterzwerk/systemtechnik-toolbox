@@ -129,6 +129,21 @@ if 'data-schleife-ab="0"' in dc or "data-animation-nochmal" not in dc:  # DC: Um
 else:
     ok += 1
 
+# ---- 2c) Einheit wechseln: der Slider-Bereich gilt in der neuen Einheit ---------
+#   Messreihe "syst": -100 … 100 mV. Mit V: -100 … 100 V, mit µV: -100 … 100 µV.
+EINHEIT_FAELLE = [
+    # (Adresse-Teil, muss enthalten, darf nicht enthalten)
+    ("syst=30&messreihe-syst-e=V&messreihe-syst-ea=mV", ['value="0.03"', 'max="100.0"'], ["⚠"]),   # Wert bleibt
+    ("syst=50&messreihe-syst-e=V&messreihe-syst-ea=V", ['value="50"'], ["⚠"]),                    # 50 V erlaubt
+    ("syst=50&messreihe-syst-e=µV&messreihe-syst-ea=mV", ['value="100"', 'max="0.0001"'], ["⚠"]),  # an den Rand
+    ("syst=5000&messreihe-syst-e=V&messreihe-syst-ea=V", ["⚠"], []),                              # > Grenze 1000 V
+]
+for teil, muss, nicht in EINHEIT_FAELLE:
+    adresse = f"/schaltung/messreihe/?messreihe-{teil}"
+    text = abrufen(adresse, muss_enthalten=muss)
+    if text is not None and any(n in text for n in nicht):
+        fehler.append(f"{adresse}: enthält {[n for n in nicht if n in text]}")
+
 # ---- 3) Rechner ----------------------------------------------------------------
 # Jeder Rechner leer + mit Unsinn; dazu ALLE von Hand gerechneten Fälle aus pruefung/rechner_faelle.py:
 # Das Web muss genau dasselbe Ergebnis liefern wie die Desktop-App.

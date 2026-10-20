@@ -18,7 +18,7 @@
 #
 # EINGABEN einer Schaltung (Adresse oder Formular), alle mit der Rechner-ID davor:
 #   <id>-v=Variante   <id>-alt=vorherige Variante   <id>-<regler>=Text   <id>-<regler>-e=Einheit
-#   <id>-<schalter>=1
+#   <id>-<regler>-ea=Einheit, in der der Text steht (bis zum Wechsel = -e)   <id>-<schalter>=1
 #
 # WER RUFT DAS AUF?  web/wiki/views.py (Wissensseiten, /schaltung/<id>/)
 # =============================================================================
@@ -108,15 +108,23 @@ def _bedienung(klasse, rechner_id, eingaben):
         opt = opt[0] if opt else {}
         info = einheiten.EINHEITEN[typ]
         stufen = dict(info["stufen"])
-        einheit = eingaben.get(f"{p}{schluessel}-e") or opt.get("einheit") or info["standard"]
+        start_einheit = opt.get("einheit") or info["standard"]
+        einheit = eingaben.get(f"{p}{schluessel}-e") or start_einheit
         if einheit not in stufen:
-            einheit = opt.get("einheit") or info["standard"]
+            einheit = start_einheit
+        # Einheit gerade gewechselt? Die Zahl im Feld steht noch in der ALTEN Einheit (<id>-<regler>-ea)
+        alt_einheit = eingaben.get(f"{p}{schluessel}-ea")
+        if alt_einheit not in stufen:
+            alt_einheit = einheit
+        # Der Bereich gilt in der gewählten Einheit: 0 … 600 mV -> mit V 0 … 600 V (bauteile/einheiten.py)
+        lo_s, hi_s, (unten, oben) = einheiten.regler_bereich(typ, von, bis, opt.get("grenzen"), start_einheit, einheit)
         wert, fehler = werte[schluessel], None
         eingabe = eingaben.get(p + schluessel)
         if eingabe not in (None, "") and not (gewechselt and schluessel in klasse.STARTWERTE.get(variante, {})):
             try:
-                neu = einheiten.text_zu_zahl(eingabe, typ, stufen[einheit])
-                unten, oben = opt.get("grenzen") or (von, bis)
+                neu = einheiten.text_zu_zahl(eingabe, typ, stufen[alt_einheit])
+                if neu is not None and alt_einheit != einheit:          # Wert bleibt, rückt höchstens an den Rand
+                    neu = min(max(neu, lo_s), hi_s)
                 if neu is None:
                     fehler = "Bitte einen Wert eingeben"
                 elif not unten <= neu <= oben:
@@ -131,7 +139,7 @@ def _bedienung(klasse, rechner_id, eingaben):
             meldungen.append(f"{text}: {fehler}")
         werte[schluessel] = wert
         log = bool(opt.get("log"))
-        lo, hi = min(von, wert), max(bis, wert)
+        lo, hi = min(lo_s, wert), max(hi_s, wert)
         regler.append({
             "name": p + schluessel, "text": text, "einheit": einheit, "fehler": fehler,
             "feld": eingabe if fehler else _zahl_text(wert / stufen[einheit], opt.get("ganzzahl")),

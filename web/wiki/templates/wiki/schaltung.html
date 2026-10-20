@@ -38,6 +38,7 @@
         <select name="{{ r.name }}-e" data-regler-einheit data-faktoren='{{ r.faktoren }}' aria-label="Einheit">
           {% for ein in r.einheiten %}<option {% if ein == r.einheit %}selected{% endif %}>{{ ein }}</option>{% endfor %}
         </select>
+        <input type="hidden" name="{{ r.name }}-ea" value="{{ r.einheit }}">{# Einheit, in der die Zahl im Feld steht #}
         {% else %}<span class="einheit" data-regler-einheit data-faktoren='{{ r.faktoren }}'>{{ r.einheit }}</span><input type="hidden" name="{{ r.name }}-e" value="{{ r.einheit }}">{% endif %}
         {% if r.fehler %}<p class="feld-fehler">⚠ {{ r.fehler }}</p>{% endif %}
       </div>

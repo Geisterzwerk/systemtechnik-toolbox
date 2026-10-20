@@ -165,7 +165,9 @@ def sprungantwort(art, f0, q, punkte=480):
     if q >= 0.5:
         langsam = 1 / (2 * q)                                  # Abklingkonstante der Hüllkurve
     else:
-        langsam = (1 / q - math.sqrt(1 / (q * q) - 4)) / 2     # langsame (reelle) Polstelle
+        # langsame (reelle) Polstelle (1/q − √(1/q² − 4)) / 2, umgeformt (Produkt der Pole = 1),
+        # damit bei sehr kleinem Q nicht zwei fast gleiche Zahlen voneinander abgezogen werden (-> 0)
+        langsam = 2 / (1 / q + math.sqrt(1 / (q * q) - 4))
     # höchstens 30 Schwingungen zeigen (sonst sieht man bei sehr hohem Q nur noch eine Fläche)
     dauer_norm = max(4 * math.pi, 5 / langsam) if q < 0.5 else min(max(4 * math.pi, 5 / langsam), 60 * math.pi)
     unter = 4
