@@ -28,6 +28,7 @@ from bauteile.rechner import mosfet_mathe, normreihen, schaltvorgaenge_mathe as 
 from bauteile.rechner.basis import RechnerFehler
 from bauteile import einheiten                                               # Regler-Bereich je Einheit
 from uebungen import aufgaben as ueb, schemas as ueb_schema                  # Übungsgenerator + Schemas
+from uebungen import programmieren as ueb_prog                              # Programmier-Übungen (Ausführen)
 from bauteile.rechner.widerstand_rechner import (farbcode_zeilen, farben_zu_wert, smd_entschluesseln,
                                                  smd_zeilen, wert_zu_farben)
 from schaltungen import dioden_mathe as dm, netzwerk_mathe as nm, opv_mathe as om, rc_mathe as rm
@@ -729,6 +730,17 @@ FUNKTIONEN = [
      [o for o in ueb.aufgabe("de_morgan", 3)["optionen"] if o != ueb.aufgabe("de_morgan", 3)["loesung"]][0])["richtig"], False),
     ("Übung: Digitaltechnik hat Aufgaben in allen 4 Stufen",
      lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Digitaltechnik"}), [1, 2, 3, 4]),
+    # Programmier-Übungen: Nr. 3 von Hand nachvollzogen
+    ("Übung Python Nr. 3: 9 + 6·5 = 39, (9+6)·5 = 75", lambda: ueb.aufgabe("py_rechnen", 3)["loesung"], "39 75"),
+    ("Übung Python Scope Nr. 3: lokal 14, global 9, nach global +1 = 10", lambda: ueb.aufgabe("py_scope", 3)["loesung"], "14 9 10"),
+    ("Übung C Nr. 3: 27/2 = 13 (int), 13.00 (erst int, dann float), 13.50", lambda: ueb.aufgabe("c_division", 3)["loesung"], "13 13.00 13.50"),
+    ("Übung C Nr. 3: i = 6; a = i++ -> 6; b = ++i -> 8", lambda: ueb.aufgabe("c_postfix", 3)["loesung"], "6 8 8"),
+    ("Übung Ausgabe: Zeilenumbruch = Leerzeichen bei der Antwort",
+     lambda: ueb.antwort_pruefen(ueb.aufgabe("py_rechnen", 3), "39\n75")["richtig"], True),
+    ("Übung Sicherheit: Vorlagen-Ausführung kennt kein import", lambda: ueb_prog._ausgabe("import os"), wirft(ImportError)),
+    ("Übung Sicherheit: Vorlagen-Ausführung kennt kein open", lambda: ueb_prog._ausgabe("open('x')"), wirft(NameError)),
+    ("Übung: Programmieren hat Aufgaben in allen 4 Stufen",
+     lambda: sorted({d["stufe"] for d in ueb.ARTEN.values() if d["bereich"] == "Programmieren"}), [1, 2, 3, 4]),
     ("Übung Vorschau ohne Lösung", lambda: sorted(ueb.vorschau("rc_tau")), ["art", "code", "gegeben", "gesucht", "sprache", "text", "titel"]),
 
     # ---- Regler: Bereich gilt in der gewählten Einheit (bauteile/einheiten.py regler_bereich) ----

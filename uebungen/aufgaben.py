@@ -27,7 +27,8 @@
 #   uebungen/grundlagen.py   Ohm, Leistung, Reihe/Parallel, Teiler, RC, LED
 #   uebungen/schaltungen.py  Netzwerke, Dioden, Transistor/MOSFET, RC/RL, OPV, Netzteile, Filter, Timer
 #   uebungen/digital.py      Zahlensysteme, Logik, KV, Schaltnetze, Schaltwerke, Busse, Pegel
-#   (weitere Bereiche folgen: Programmieren, Server / Linux ...)
+#   uebungen/programmieren.py  Python und C: Ausgabe bestimmen, Datentypen, Schleifen, Funktionen, OOP
+#   (weitere Bereiche folgen: Server / Linux ...)
 # Das passende Schaltbild zu einer Aufgabe zeichnet uebungen/schemas.py.
 #
 # WER RUFT DAS AUF?  web/ueben/views.py, web/wiki/views.py (Übungen zur Seite), uebungen/schemas.py,
@@ -40,7 +41,7 @@ import re
 
 from bauteile import einheiten                                       # -> bauteile/einheiten.py
 from uebungen.kern import ARTEN, BEREICHE, STUFEN, _f                # -> uebungen/kern.py
-from uebungen import digital, grundlagen, schaltungen                # noqa: F401  melden ihre Aufgaben an
+from uebungen import digital, grundlagen, programmieren, schaltungen  # noqa: F401  melden ihre Aufgaben an
 
 TOLERANZ = 0.01                    # ±1 %
 MAX_ANZAHL = 30                    # höchstens so viele Aufgaben auf einem Blatt
