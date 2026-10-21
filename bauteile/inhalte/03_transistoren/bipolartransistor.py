@@ -30,6 +30,8 @@ THEMA = {
     "grafiken": ["transistor_simulator"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein grosses **Schleusentor**, das von einem kleinen Hilfsbach geöffnet wird: Fliesst nur ein wenig Wasser durch den Hilfsbach (Basis), öffnet sich das grosse Tor (Kollektor–Emitter) entsprechend weit. Ohne Hilfsbach bleibt das Tor zu. Fliesst mehr als genug im Hilfsbach, ist das Tor ganz offen – mehr geht nicht, egal wie viel nachkommt. Das sind die drei Zustände: Sperren, Verstärken, Sättigung.
 ## Was macht ein Transistor?
 Ein Bipolartransistor ist ein **stromgesteuertes Ventil**: Ein kleiner Strom in die **Basis** öffnet einen viel grösseren Strom vom **Kollektor** zum **Emitter**. Das Verhältnis heisst **Stromverstärkung β** (im Datenblatt **hFE**): `Ic = β · Ib`. Mit β = 100 steuert 1 mA Basisstrom bis zu 100 mA Kollektorstrom.
 ## Aufbau in Kurzform
@@ -51,6 +53,21 @@ Im aktiven Bereich wird eine kleine Signaländerung an der Basis zu einer grosse
 - **Emitterschaltung:** Spannungs- und Stromverstärkung, invertiert – die klassische Verstärkerstufe
 - **Kollektorschaltung (Emitterfolger):** Spannungsverstärkung ≈ 1, aber grosser Strom → Impedanzwandler, Längsregler
 - **Basisschaltung:** für hohe Frequenzen
+## Beispiel durchgerechnet: Transistor als Schalter
+Ein 5-V-Mikrocontroller soll 100 mA schalten. Laut Datenblatt ist β_min = 100, Übersteuerungsfaktor k = 3.
+- `Ib = k · Ic / β_min = 3 · 100 mA / 100 = 3 mA`
+- `Rb = (5 V − 0.7 V) / 3 mA ≈ 1.43 kΩ` → kleinerer Normwert **1.2 kΩ** (E12)
+- In Sättigung bleiben ≈ 0.2 V am Transistor: `0.2 V · 0.1 A = 20 mW` – kein Kühlkörper nötig.
+- Zum Vergleich: Stünde er im aktiven Bereich mit 6 V an Uce, wären es `6 V · 0.1 A = 0.6 W` – 30× mehr Wärme. Darum gilt: Schalter ganz an oder ganz aus.
+## 🔬 Genauer hingeschaut
+- **β streut stark:** Selbst innerhalb eines Typs schwankt die Stromverstärkung enorm. Der BC547 wird deshalb in Gruppen sortiert: A (110 … 220), B (200 … 450), C (420 … 800). Gute Schaltungen funktionieren mit jedem Exemplar – darum rechnet man mit β_min oder macht die Schaltung durch Gegenkopplung unabhängig von β.
+- **Temperatur:** Ube sinkt um etwa **2 mV pro Kelvin**, β steigt mit der Temperatur. Ohne Gegenkopplung kann sich ein Leistungstransistor deshalb selbst aufheizen: wärmer → mehr Strom → noch wärmer (thermisches Weglaufen).
+- **Grenzwerte im Datenblatt:** U_CEO (max. Spannung Kollektor–Emitter bei offener Basis), Ic max, P_tot (max. Verlustleistung, meist bei 25 °C Gehäuse!) und die Transitfrequenz **f_T**, bei der die Stromverstärkung auf 1 gefallen ist.
+- **Darlington:** Zwei Transistoren hintereinander – die Stromverstärkungen multiplizieren sich (z.B. 100 · 100 = 10'000). Dafür braucht die Basis ≈ 1.2 … 1.4 V und in Sättigung bleiben eher ≈ 0.7 … 1 V am Transistor statt 0.2 V.
+## 💡 Wusstest du?
+- Der erste Transistor wurde **1947** in den Bell Labs gebaut, die Erfinder erhielten 1956 den Nobelpreis für Physik. Er löste die grossen, heissen Elektronenröhren ab.
+- Der Name kommt aus dem Englischen: **trans**fer res**istor** – ein Widerstand, dessen Wert von einem anderen Anschluss gesteuert wird.
+- Die Stromverstärkung β heisst im Datenblatt **hFE**: h-Parameter, Forward current gain, Emitterschaltung.
 ## 📚 Vertiefung
 Zastrow, *Elektronik*: Kapitel 5 (Signalverstärkung mit Transistoren, Strom- und Spannungssteuerung, Arbeitspunktstabilisierung), Kapitel 8 (Schalten, Binärinverter, Leistungsschalter), Kapitel 12 (Emitterfolger als Längsregler).
 """,

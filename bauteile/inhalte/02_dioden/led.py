@@ -25,6 +25,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Elektronen fallen in der LED eine **Treppenstufe** hinunter. Bei jedem Sturz wird genau die Energie dieser Stufe als kleines Lichtteilchen abgegeben. Eine hohe Stufe ergibt energiereiches **blaues** Licht, eine niedrige Stufe **rotes** oder **infrarotes**. Um die Elektronen auf die hohe Stufe zu heben, braucht es mehr Spannung – darum braucht eine blaue LED mehr Volt als eine rote.
 ## Wie funktioniert eine LED?
 Im pn-Übergang treffen Elektronen und Löcher aufeinander. Bei der LED wird die frei werdende Energie als **Licht** abgegeben. Das Halbleitermaterial bestimmt die **Farbe** – und damit auch die **Durchlassspannung**: Blaues Licht hat mehr Energie als rotes, deshalb braucht eine blaue LED rund 3 V, eine rote nur rund 2 V. Weisse LEDs sind meist blaue LEDs mit einer gelben Leuchtstoffschicht.
 ## Warum braucht eine LED einen Vorwiderstand?
@@ -39,6 +41,20 @@ Die Kennlinie einer LED ist, wie bei jeder Diode, **sehr steil**: Schon ein weni
 - **Parallel:** Jede LED braucht ihren **eigenen** Vorwiderstand – sonst übernimmt die LED mit dem kleinsten Uf fast den ganzen Strom.
 ## Ansteuerung vom Mikrocontroller
 Ein Pin liefert typisch ca. 10–20 mA (Datenblatt!). Für mehr Strom oder viele LEDs schaltet man über einen **Transistor oder MOSFET** (siehe dort).
+## Beispiel durchgerechnet
+Drei weisse LEDs (Uf = 3.0 V laut Datenblatt, 20 mA) an 12 V in Reihe: Die LEDs brauchen zusammen 9 V, für den Widerstand bleiben 3 V.
+- `R = (12 V − 3 · 3.0 V) / 0.02 A = 150 Ω` (Normwert E12)
+- Leistung im Widerstand: `3 V · 0.02 A = 60 mW` – ein 1/4-W-Typ reicht gut
+- Nur 3 V von 12 V gehen im Widerstand verloren (25 %). Mit EINER LED pro Widerstand wären es 9 V (75 %) – Reihenschaltung spart also Energie.
+## 🔬 Genauer hingeschaut
+- **Farbe und Spannung hängen zusammen:** Die Energie eines Lichtteilchens ist `E ≈ 1240 / λ` (E in eV, Wellenlänge λ in nm). Rotes Licht mit 630 nm hat ≈ 2.0 eV, blaues mit 460 nm ≈ 2.7 eV. Die Durchlassspannung liegt in derselben Grössenordnung – etwas höher, weil auch im Halbleiter selbst Spannung abfällt.
+- **Kleine Sperrspannung:** Viele LEDs vertragen in Sperrrichtung nur etwa **5 V** (Datenblatt). An Wechselspannung oder bei verpolter Ansteuerung braucht es deshalb eine antiparallele Schutzdiode.
+- **Wärme ist der Feind:** Auch eine LED wandelt einen grossen Teil der Energie in Wärme um. Power-LEDs brauchen einen Kühlkörper – zu heiss werden sie dunkler, ändern die Farbe und altern schneller.
+- **Kennwerte im Datenblatt:** Lichtstärke in **mcd** (Millicandela) gilt nur in Hauptrichtung – eine LED mit kleinem Abstrahlwinkel wirkt von vorne viel heller. Bei weissen LEDs gibt die **Farbtemperatur** in Kelvin an, ob das Licht warm (≈ 2700 K) oder kalt (≈ 6500 K) wirkt.
+## 💡 Wusstest du?
+- Die erste LED mit sichtbarem (rotem) Licht wurde **1962** vorgestellt. Effiziente **blaue** LEDs kamen erst in den 1990er-Jahren – und wurden 2014 mit dem Nobelpreis für Physik ausgezeichnet, weil erst sie weisses LED-Licht möglich machten.
+- Die Infrarot-LED in einer Fernbedienung ist für uns unsichtbar. Viele Handykameras sehen sie aber als hellen Punkt – ein schneller Test, ob die Fernbedienung noch sendet.
+- Eine LED funktioniert auch umgekehrt: Wird sie beleuchtet, erzeugt sie eine kleine Spannung – wie eine winzige Solarzelle.
 ## 📚 Vertiefung
 Zastrow, *Elektronik*: Kapitel 2 (Halbleiterdiode, Kennlinien). Rechner „LED-Vorwiderstand“ auch auf der Seite Widerstand.
 """,

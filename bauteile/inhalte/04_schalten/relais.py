@@ -34,6 +34,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Du stehst vor einer schweren Tür, die du nicht selbst öffnen darfst – aber du kannst einem Helfer auf der anderen Seite ein **Zeichen** geben, und der öffnet sie für dich. Genau das macht ein Relais: Ein schwacher Steuerstrom (dein Zeichen) lässt einen Elektromagneten einen Schalter umlegen, der eine ganz andere, starke Last schaltet. Du berührst den Lastkreis dabei nie – die beiden Seiten sind voneinander **getrennt**.
 ## Was macht ein Relais?
 Ein Relais ist ein **elektrisch betätigter Schalter**. Ein kleiner Strom durch die **Spule** erzeugt ein Magnetfeld, das einen beweglichen **Anker** anzieht. Der Anker bewegt die **Kontakte**. Steuerkreis und Lastkreis sind dabei **galvanisch getrennt** – mit 5 V vom Mikrocontroller lassen sich so sicher 230-V-Lasten schalten.
 ## Aufbau
@@ -82,6 +84,15 @@ Klassische Steuerungsschaltung (vor allem mit Schützen): Ein **Start-Taster** (
 - **Relais:** kleine bis mittlere Lasten (bis ca. 16 A), Leiterplatte oder Koppelrelais auf der Hutschiene
 - **Schütz:** Relais für grosse Leistungen (Motoren, Heizungen), mehrpolig, mit Hilfskontakten und Funkenlöschkammern
 - **Halbleiterrelais (SSR):** kein Verschleiss, lautlos, sehr schnell, schaltet bei AC im Nulldurchgang. Aber: **Spannungsfall ≈ 1 … 1.5 V** → Wärme (Kühlkörper!), Leckstrom im ausgeschalteten Zustand, bei Defekt meist **durchlegiert** (bleibt ein).
+## 🔬 Genauer hingeschaut
+- **Monostabil oder bistabil:** Ein normales Relais ist **monostabil** – ohne Spulenstrom fällt es in die Ruhelage zurück. Ein **bistabiles** Relais (Remanenz- oder Stromstossrelais) bleibt in der zuletzt geschalteten Lage, auch ohne Strom. Ein kurzer Impuls schaltet um. Das spart Energie und wird z.B. für Treppenhauslicht mit mehreren Tastern verwendet.
+- **Zwangsgeführte Kontakte:** In Sicherheitsschaltungen (Not-Halt, Schutztüren) müssen Öffner und Schliesser mechanisch so gekoppelt sein, dass sie **nie gleichzeitig geschlossen** sein können – auch wenn ein Kontakt verschweisst ist. Nur so kann die Steuerung einen verschweissten Kontakt sicher erkennen. Diese Relais sind nach IEC 61810-3 gebaut.
+- **Reed-Relais:** Zwei magnetische Kontaktzungen liegen in einem kleinen, mit Schutzgas gefüllten Glasröhrchen. Eine Spule oder ein Dauermagnet von aussen schliesst sie. Sie sind schnell, sehr langlebig und gut für kleine Signale – Reed-Kontakte stecken auch in Fenster- und Türkontakten von Alarmanlagen.
+- **Anzugsverzögerung und Prellzeit:** Zwischen Spannung an der Spule und geschlossenem Kontakt vergehen typisch einige Millisekunden. Für schnelle oder häufige Schaltvorgänge (z.B. PWM) ist ein Relais deshalb ungeeignet – dafür nimmt man Transistoren oder Halbleiterrelais.
+## 💡 Wusstest du?
+- Frühe Computer rechneten mit Relais: Die **Zuse Z3** von 1941 bestand aus rund 2600 Relais.
+- Auch Telefonzentralen schalteten jahrzehntelang mit Relais und Drehwählern – das Klappern einer Telefonzentrale kam von Tausenden Relais.
+- Das Wort „Relais“ kommt aus dem Französischen: So hiessen früher die Stationen, an denen Postkutschen frische Pferde bekamen und die Fahrt weitergeführt wurde – das Relais „gibt das Signal weiter“.
 """,
 
     "tabellen": [

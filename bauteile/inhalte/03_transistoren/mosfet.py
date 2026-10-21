@@ -30,6 +30,8 @@ THEMA = {
     "grafiken": ["mosfet_simulator"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Ufer, dazwischen ein Graben. Über dem Graben schwebt eine elektrisch geladene **Platte** (das Gate). Je stärker sie geladen ist, desto mehr Ladungsträger zieht sie in den Graben – bis sich eine **Brücke** bildet und Strom vom einen Ufer (Source) zum anderen (Drain) fliessen kann. Die Platte berührt den Graben nicht: Einmal geladen, hält sie die Brücke ohne weiteren Strom offen. Darum ist ein MOSFET **spannungsgesteuert**.
 ## Was macht ein MOSFET?
 Ein MOSFET ist ein **spannungsgesteuerter Schalter**. Das Gate ist durch eine hauchdünne Oxidschicht isoliert – es bildet mit dem Kanal einen **Kondensator**. Liegt genug Spannung zwischen Gate und Source (**Ugs**), entsteht ein leitender Kanal zwischen Drain und Source. Solange sich Ugs nicht ändert, fliesst **kein Gatestrom**.
 ## Die drei Zustände (siehe Simulator oben)
@@ -51,6 +53,19 @@ Jeder normale MOSFET hat eine eingebaute Diode (beim N-Kanal von Source nach Dra
 - **N-Kanal, High-Side:** braucht eine Gate-Spannung **über** +Ub → Gate-Treiber mit Bootstrap / Ladungspumpe
 ## IGBT
 Ein IGBT kombiniert MOSFET-Ansteuerung (Spannung am Gate) mit einem bipolaren Ausgang. Er ist gut bei **hohen Spannungen** (> 600 V) und grossen Strömen (Frequenzumrichter, Induktionsherd), aber langsamer als ein MOSFET.
+## Beispiele durchgerechnet
+**Leitverlust:** Ein MOSFET mit Rds(on) = 20 mΩ schaltet 5 A: `P = I² · Rds(on) = 25 A² · 0.02 Ω = 0.5 W`. Heiss steigt Rds(on) z.B. um den Faktor 1.5 → **0.75 W**. Zum Vergleich: Ein Bipolartransistor mit 0.2 V Sättigung hätte bei 5 A bereits 1 W.
+**Gate umladen:** Gate-Ladung Qg = 20 nC soll in 100 ns umgeladen werden: `Ig = Qg / t = 20 nC / 100 ns = 0.2 A` – viel mehr, als ein µC-Pin liefert. Darum gibt es Gate-Treiber.
+**Ansteuerleistung:** Bei PWM wird das Gate dauernd umgeladen: `P = Qg · Ugs · f`. Mit 20 nC, 10 V und 20 kHz sind das nur **4 mW** – im Mittel braucht ein MOSFET also kaum Ansteuerleistung, aber kurzzeitig grosse Stromspitzen.
+## 🔬 Genauer hingeschaut
+- **Das Miller-Plateau:** Beim Einschalten steigt Ugs zuerst an, bleibt dann eine Weile fast konstant und steigt danach weiter. In diesem Plateau wird die Kapazität zwischen Gate und Drain umgeladen, während die Drainspannung fällt. Genau dort entstehen die Schaltverluste – ein starker Treiber verkürzt diese Zeit.
+- **Parallelschalten:** Voll durchgeschaltet hat Rds(on) einen positiven Temperaturkoeffizienten: Der wärmere MOSFET bekommt weniger Strom, die Last verteilt sich von selbst. Das gilt aber **nur im Schaltbetrieb** – im Übergangsbereich ist es umgekehrt und ein einzelner MOSFET kann überhitzen.
+- **Das Gate ist empfindlich:** Die Oxidschicht ist nur Nanometer dünn. Mehr als die maximale Ugs (oft ±20 V) oder eine elektrostatische Entladung zerstört sie. Darum MOSFETs ESD-geschützt anfassen und das Gate nie offen lassen.
+- **SOA (Safe Operating Area):** Das Diagramm im Datenblatt zeigt, welche Kombination aus Spannung, Strom und Dauer der MOSFET aushält. Für Linearbetrieb (z.B. elektronische Last) ist es wichtiger als Rds(on).
+## 💡 Wusstest du?
+- Der MOSFET wurde **1959** in den Bell Labs erstmals gebaut und ist heute das am häufigsten hergestellte Bauteil überhaupt: Ein moderner Prozessor enthält Milliarden davon.
+- **CMOS** (Complementary MOS) kombiniert immer einen N- und einen P-Kanal-MOSFET. Im Ruhezustand ist einer davon gesperrt – darum braucht CMOS-Logik fast nur beim Umschalten Strom.
+- Auch Flash-Speicher (USB-Stick, SSD) beruht auf einem MOSFET-Trick: Bei der klassischen Bauart sitzt im Gate eine rundum isolierte Schicht (**Floating Gate**), auf der Ladung jahrelang gefangen bleibt – sie verschiebt die Schwellspannung und speichert so ein Bit.
 ## 📚 Vertiefung
 Zastrow, *Elektronik*: Kapitel 1.4 (Halbleiter-Kanäle), Kapitel 4 (Feldeffekttransistor J-FET), Kapitel 8 (Analogschalter, Leistungsschalter), Kapitel 12.5 (Schaltregler).
 """,

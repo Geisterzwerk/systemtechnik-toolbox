@@ -31,6 +31,8 @@ THEMA = {
     "grafiken": ["rc_ladekurve"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Rohr, in dem eine **Gummimembran** quer gespannt ist. Wasser kann nicht hindurch – aber wenn du von links drückst, wölbt sich die Membran, und rechts wird Wasser herausgeschoben. Je länger du drückst, desto stärker ist die Membran gespannt, bis sie genauso stark zurückdrückt: Dann fliesst nichts mehr. Drückst du abwechselnd hin und her, bewegt sich das Wasser auf beiden Seiten ständig mit – der „Wechselstrom“ kommt scheinbar durch. Genau so verhält sich ein Kondensator.
 ## Was macht ein Kondensator?
 Ein Kondensator besteht aus **zwei leitenden Platten**, getrennt durch einen Isolator (**Dielektrikum**). Legt man eine Spannung an, sammeln sich auf der einen Platte positive, auf der anderen negative Ladungen. Zwischen den Platten entsteht ein elektrisches Feld – darin steckt die gespeicherte Energie. **Gleichstrom kann nicht hindurchfliessen** – es fliesst nur so lange Strom, bis der Kondensator geladen ist.
 ## Die wichtigste Regel
@@ -58,6 +60,21 @@ Ein Kondensator **wehrt sich gegen schnelle Spannungsänderungen**: `i = C · du
 - **Reihe:** `1/C = 1/C1 + 1/C2 + …` – kleiner als der kleinste. Die Spannung teilt sich **umgekehrt** zu C auf.
 ## Der echte Kondensator
 Ein realer Kondensator hat neben C auch einen Serienwiderstand (**ESR**) und eine Serieninduktivität (**ESL**). Deshalb wirkt er nur bis zu seiner **Eigenresonanzfrequenz** als Kondensator – darüber verhält er sich wie eine Spule. Darum kombiniert man oft einen grossen Elko mit einem kleinen 100-nF-Keramik-Kondensator.
+## Beispiele durchgerechnet
+**Zeitkonstante:** R = 10 kΩ, C = 100 µF → `τ = R · C = 10'000 Ω · 0.0001 F = 1 s`. An 12 V geladen ist der Kondensator nach 1 s auf 63 % (≈ 7.6 V), nach 5 s auf 99.3 % (≈ 11.9 V). Im ersten Moment fliessen `12 V / 10 kΩ = 1.2 mA`.
+**Blindwiderstand:** 100 nF hat bei 50 Hz `Xc = 1 / (2π · 50 Hz · 100 nF) ≈ 31.8 kΩ`, bei 1 MHz nur noch ≈ **1.6 Ω**. Darum lässt ein Abblockkondensator die 50 Hz in Ruhe, schliesst aber schnelle Störungen kurz.
+**Glättung:** Nach einem Brückengleichrichter wird der Elko 100× pro Sekunde nachgeladen. Die Welligkeit ist ungefähr `ΔU ≈ I / (f · C)` mit f = 100 Hz. Bei 1 A und 4700 µF: `ΔU ≈ 1 A / (100 Hz · 0.0047 F) ≈ 2.1 V`.
+**Reihenschaltung:** 100 µF und 10 µF in Reihe ergeben `1 / (1/100 + 1/10) ≈ 9.1 µF`. Beide tragen dieselbe Ladung – an 11 V liegen deshalb **10 V am kleinen** und nur 1 V am grossen Kondensator.
+## 🔬 Genauer hingeschaut
+- **Das Dielektrikum macht den Unterschied:** Die Dielektrizitätszahl εr sagt, wie viel mehr Kapazität ein Isolator gegenüber Vakuum bringt. Ungefähre Werte: Luft ≈ 1, Polypropylen ≈ 2.2, Polyester (PET) ≈ 3.3, Aluminiumoxid (Elko) ≈ 9, Tantaloxid ≈ 27, Bariumtitanat-Keramik (Klasse 2) mehrere Tausend. Die riesigen Werte der Keramik erkauft man sich mit der starken Abhängigkeit von Temperatur und Spannung.
+- **ESR heizt:** Durch den Serienwiderstand entsteht bei jedem Wechselstrom Wärme: `P = I² · ESR`. Deshalb steht im Elko-Datenblatt ein maximaler **Rippelstrom** – wird er überschritten, wird der Elko heiss und altert schnell.
+- **Spannungsteilung in Reihe:** Elkos in Reihe (z.B. für höhere Spannung) teilen die Spannung im Betrieb nach ihrem **Leckstrom** auf, nicht nach ihrer Kapazität. Darum gehört zu jedem Elko ein Symmetrierwiderstand parallel.
+- **Phasenverschiebung:** Bei Sinusspannung ist der Strom genau dann am grössten, wenn sich die Spannung am schnellsten ändert (im Nulldurchgang). Daher eilt der Strom 90° voraus – im Mittel wird keine Wirkleistung umgesetzt, nur hin- und hergeschoben (Blindleistung).
+## 💡 Wusstest du?
+- Einer der ersten Kondensatoren war die **Leidener Flasche** (1745/46): ein Glasgefäss, innen und aussen mit Metallfolie belegt.
+- Die Einheit **Farad** ist nach Michael Faraday benannt. 1 F ist riesig: Ein Plattenkondensator mit 1 mm Luftspalt bräuchte für 1 F eine Fläche von rund **113 km²** – mehr als der ganze Zürichsee.
+- **Superkondensatoren** schaffen trotzdem Tausende Farad: Ihre Ladungsschichten liegen nur Nanometer auseinander, auf Kohlenstoff mit einer riesigen inneren Oberfläche.
+- Ein 1000-µF-Elko an 400 V speichert `½ · C · U² = 80 J` – genug für einen gefährlichen Schlag. Deshalb Netzteile auch nach dem Ausstecken erst entladen.
 """,
 
     "tabellen": [

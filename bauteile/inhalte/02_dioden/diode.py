@@ -30,6 +30,8 @@ THEMA = {
     "grafiken": ["diode_kennlinie"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Drehkreuz** am Eingang eines Stadions: In die eine Richtung kommst du mit einem kleinen Schubs durch, in die andere Richtung bleibt es gesperrt, egal wie fest du drückst. Der kleine Schubs ist die **Schwellspannung** (bei Silizium etwa 0.7 V). Drückst du in Sperrrichtung mit enormer Kraft, bricht das Drehkreuz irgendwann – das ist die maximale Sperrspannung.
 ## Was macht eine Diode?
 Eine Diode ist ein **Ventil für den Strom**. In Durchlassrichtung (Plus an der Anode) leitet sie, sobald die Spannung die **Schwellspannung** überschreitet. In Sperrrichtung (Plus an der Kathode) fliesst praktisch kein Strom.
 ## Wie funktioniert das?
@@ -54,6 +56,18 @@ In der Praxis reicht meist die Näherung: **U_D ≈ 0.7 V** (Si), der Rest der S
 - **Schottky:** kleine Durchlassspannung, sehr schnell, aber grösserer Sperrstrom
 - **Kleinsignaldiode** (1N4148): schnell, kleine Ströme
 - **Z-Diode, LED, TVS-Diode:** eigene Seiten bzw. siehe unten
+## Beispiel durchgerechnet
+Eine Si-Diode mit 1 kΩ Vorwiderstand an 12 V: An der Diode liegen ≈ 0.7 V, am Widerstand der Rest. `I = (12 V − 0.7 V) / 1 kΩ ≈ 11.3 mA`. Die Diode setzt dabei nur `0.7 V · 11.3 mA ≈ 8 mW` um.
+Bei grossem Strom sieht das anders aus: Eine 1N4007 hat bei 1 A bis zu ≈ 1.1 V Durchlassspannung → rund **1 W** Wärme. Darum werden Brückengleichrichter in Netzteilen warm – und darum sind Schottky-Dioden mit ihrer kleineren Durchlassspannung in Schaltreglern so beliebt.
+## 🔬 Genauer hingeschaut
+- **Die Diodengleichung:** `I = Is · (e^(U / (n · U_T)) − 1)` mit der Temperaturspannung `U_T = k · T / q ≈ 26 mV` bei Raumtemperatur. Is ist ein winziger Sättigungsstrom, n liegt zwischen 1 und 2. Folge: Etwa **60 mV mehr Spannung bringen 10× mehr Strom** (für n = 1). Darum ist die Näherung „0.7 V“ so brauchbar – der genaue Strom ändert die Spannung kaum.
+- **Temperatur:** Die Durchlassspannung sinkt bei Silizium um ungefähr **2 mV pro Kelvin**. Das nutzt man sogar als einfachen Temperatursensor. Der Sperrstrom steigt dagegen stark mit der Temperatur.
+- **Sperrerholzeit trr:** Schaltet eine Diode von Durchlass auf Sperren, fliesst kurz ein Strom rückwärts, bis die Ladungsträger ausgeräumt sind. Bei der 1N4148 sind das wenige Nanosekunden, bei Standard-Gleichrichtern wie der 1N4007 Mikrosekunden. In Schaltnetzteilen mit 100 kHz würde eine langsame Diode deshalb heiss.
+- **Sperrschichtkapazität:** Die Sperrschicht wirkt wie ein kleiner Kondensator, dessen Kapazität mit der Sperrspannung sinkt. Bei der **Kapazitätsdiode** (Varicap) ist das gewollt – damit stimmt man Schwingkreise elektronisch ab.
+## 💡 Wusstest du?
+- Die Typen **1N4001 bis 1N4007** sind alle für 1 A gebaut und unterscheiden sich nur in der Sperrspannung: von 50 V (1N4001) bis 1000 V (1N4007).
+- Den Gleichrichter-Effekt an einem Kontakt zwischen Metall und Kristall entdeckte Ferdinand Braun schon **1874** – lange bevor man ihn erklären konnte. Die ersten Radioempfänger („Detektorempfänger“) nutzten genau diesen Effekt.
+- Auch eine LED, eine Solarzelle und ein Fotodetektor sind Dioden – nur auf andere Aufgaben optimiert.
 ## 📚 Vertiefung
 Zastrow, *Elektronik*: Kapitel 1 (Widerstandsverhalten von Halbleitern), Kapitel 2 (Halbleiterdiode, Arbeiten mit Kennlinien, Begrenzerschaltungen), Kapitel 10 (Gleichrichtung).
 """,

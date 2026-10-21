@@ -28,6 +28,8 @@ THEMA = {
     "grafiken": ["zdiode_kennlinie"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Badewanne mit **Überlauf**: Egal wie stark der Hahn läuft, das Wasser steigt nie über die Überlauf-Öffnung – der Überschuss fliesst einfach ab. Die Z-Diode ist dieser Überlauf: Die Spannung kann nicht über Uz steigen, der „überschüssige“ Strom fliesst durch die Z-Diode ab. Und genau wie beim Überlauf wird dabei immer etwas „verschwendet“.
 ## Was macht eine Z-Diode?
 In Durchlassrichtung verhält sie sich wie eine normale Diode. Interessant ist die **Sperrrichtung**: Bis zur **Z-Spannung Uz** sperrt sie, danach leitet sie – und die Spannung bleibt dabei **fast konstant**, auch wenn sich der Strom stark ändert. Dieser Durchbruch ist **nicht zerstörend**, solange die maximale Verlustleistung eingehalten wird.
 ## Die Kennlinie – warum −Uz?
@@ -46,6 +48,21 @@ Die Z-Diode „verheizt“ immer den Strom, den die Last gerade nicht braucht. S
 - **Begrenzung** von Signalen auf einen maximalen Wert
 - **Pegelverschiebung:** eine feste Spannung „abziehen“
 - **Schnelles Abschalten von Relais:** Z-Diode in Reihe zur Freilaufdiode
+## Beispiel durchgerechnet
+5.1-V-Hilfsspannung aus 12 V für eine Last mit 10 mA. Die Z-Diode soll mindestens 5 mA führen (Iz,min).
+- Gesamtstrom durch Rv: `10 mA + 5 mA = 15 mA`
+- `Rv = (12 V − 5.1 V) / 15 mA = 460 Ω` → kleinerer Normwert **430 Ω** (damit sicher genug Strom fliesst)
+- Mit 430 Ω fliessen `6.9 V / 430 Ω ≈ 16 mA`. Ohne Last nimmt die Z-Diode alles auf: `Pz = 5.1 V · 16 mA ≈ 82 mW` – eine 0.5-W-Z-Diode ist weit weg von ihrer Grenze.
+- Am Widerstand: `6.9 V · 16 mA ≈ 110 mW` → 1/4-W-Widerstand reicht.
+## 🔬 Genauer hingeschaut
+- **Zwei Effekte:** Unter etwa 5 V bricht die Diode durch den **Zener-Effekt** durch (Elektronen „tunneln“ durch die sehr dünne Sperrschicht), darüber durch den **Lawineneffekt** (beschleunigte Elektronen schlagen weitere frei). Beide sind bei Einhalten der Leistung nicht zerstörend.
+- **Temperaturkoeffizient:** Der Zener-Effekt hat einen negativen, der Lawineneffekt einen positiven TK. Im Bereich um **5 … 6 V** heben sie sich fast auf – solche Z-Dioden sind am temperaturstabilsten.
+- **Weich unter 5 V:** Z-Dioden mit kleiner Spannung (z.B. 2.7 V oder 3.3 V) haben einen sehr runden Knick in der Kennlinie und stabilisieren schlecht. Für genaue kleine Spannungen nimmt man eine **Referenzspannungsquelle** (z.B. TL431).
+- **Rauschen:** Im Lawinendurchbruch rauscht eine Z-Diode deutlich. Für Messschaltungen deshalb mit einem Kondensator parallel glätten oder eine Referenz-IC verwenden.
+## 💡 Wusstest du?
+- Benannt ist sie nach dem Physiker Clarence Zener, der den Durchbruch-Effekt **1934** beschrieben hat. Ironischerweise arbeiten die meisten „Zener-Dioden“ über 5 V gar nicht mit dem Zener-Effekt, sondern mit dem Lawineneffekt.
+- Z-Dioden gibt es in Abstufungen wie die E24-Reihe (z.B. 4.7 V, 5.1 V, 5.6 V, 6.2 V …).
+- **TVS-Dioden** sind eng verwandt: Sie sind für kurze, sehr hohe Störimpulse gebaut (z.B. an Datenleitungen und Eingängen), nicht zum Stabilisieren.
 ## 📚 Vertiefung
 Zastrow, *Elektronik*: Kapitel 3 (Spannungsstabilisierung, Z-Diode, Analyse der Stabilisierungs-Grundschaltung), Kapitel 12 (Stabilisierte Stromversorgung).
 """,

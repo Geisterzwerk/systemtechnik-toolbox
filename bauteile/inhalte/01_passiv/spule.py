@@ -29,6 +29,8 @@ THEMA = {
     "grafiken": ["rl_kurve"],
 
     "erklaerung": """
+## Stell dir vor …
+Wasser fliesst durch ein langes, schweres Rohr. Willst du es in Bewegung setzen, musst du eine Weile drücken – die Wassermasse ist **träge**. Schliesst du dann plötzlich einen Hahn, will das Wasser weiterfliessen und es gibt einen harten Schlag im Rohr (Wasserschlag). Eine Spule verhält sich genauso: Der Strom kommt langsam in Gang und will beim Abschalten mit aller Kraft weiterfliessen – das ist die gefürchtete Abschaltspitze.
 ## Was macht eine Spule?
 Eine Spule ist ein aufgewickelter Draht, oft um einen Kern aus Eisen oder Ferrit. Fliesst Strom hindurch, entsteht ein **Magnetfeld** – darin steckt Energie. Die Spule ist das Gegenstück zum Kondensator: Sie **wehrt sich gegen schnelle Stromänderungen**.
 ## Die wichtigste Regel
@@ -53,6 +55,20 @@ Ein Kern kann nur ein begrenztes Magnetfeld aufnehmen. Wird der Strom zu gross, 
 - **Sensoren:** induktive Näherungsschalter, Stromzangen
 ## Reihen- und Parallelschaltung
 Wie beim Widerstand (solange sich die Spulen magnetisch nicht beeinflussen): Reihe addiert sich, parallel wird es kleiner.
+## Beispiele durchgerechnet
+**Zeitkonstante:** L = 10 mH, Drahtwiderstand R = 10 Ω an 12 V → `τ = L / R = 1 ms`. Der Endstrom ist `12 V / 10 Ω = 1.2 A`, nach 1 ms sind 63 % erreicht, nach 5 ms gilt er als eingeschwungen.
+**Gespeicherte Energie:** `W = ½ · L · I² = ½ · 0.01 H · (1.2 A)² = 7.2 mJ`. Diese Energie muss beim Abschalten irgendwo hin – ohne Freilaufdiode in einen Funken oder in den Transistor.
+**Blindwiderstand:** Dieselben 10 mH haben bei 50 Hz `XL = 2π · f · L ≈ 3.1 Ω`, bei 100 kHz schon ≈ **6.3 kΩ**. Eine Drossel lässt also Gleichstrom und Netzfrequenz fast ungehindert durch, bremst aber hohe Frequenzen.
+**Abschaltspitze:** Eine Relaisspule mit 100 mH führt 50 mA. Wird der Strom in 1 µs unterbrochen, ergibt `u = L · di/dt = 0.1 H · 0.05 A / 1 µs` rechnerisch **5000 V**. In Wirklichkeit begrenzen Kapazitäten und Durchschläge – trotzdem reicht es locker, um einen Transistor zu zerstören.
+## 🔬 Genauer hingeschaut
+- **Kein Bauteil ist ideal:** Zwischen den Windungen gibt es eine kleine Kapazität. Zusammen mit L ergibt sie eine **Eigenresonanz** – darüber wirkt die Spule wie ein Kondensator. Beim Kondensator ist es genau umgekehrt.
+- **Luftspalt:** Ein kleiner Luftspalt im Kern senkt zwar die Induktivität, erhöht aber den Strom bis zur Sättigung deutlich. Speicherdrosseln in Schaltreglern haben darum fast immer einen Luftspalt (oder einen Pulverkern, bei dem der Spalt im Material verteilt ist).
+- **Skin-Effekt:** Bei hoher Frequenz fliesst der Strom nur noch an der Oberfläche des Drahts. Bei Kupfer ist die Eindringtiefe etwa `66 mm / √f` – bei 50 Hz ≈ 9 mm (unwichtig), bei 100 kHz nur ≈ 0.2 mm. Deshalb verwendet man für HF-Spulen **Litze** aus vielen dünnen, isolierten Drähten.
+- **Phasenverschiebung:** Bei Sinusstrom eilt die Spannung an der Spule dem Strom um 90° voraus – genau umgekehrt wie beim Kondensator. Merksatz: „Bei der Induktivität kommt der Strom zu spät.“
+## 💡 Wusstest du?
+- Die elektromagnetische **Induktion** wurde 1831 von Michael Faraday entdeckt. Die Einheit **Henry** ist nach Joseph Henry benannt, der den Effekt fast gleichzeitig fand.
+- Eine elektrische Zahnbürste lädt ohne Kontakte: In der Ladestation und im Griff steckt je eine Spule – zusammen ein Transformator mit grossem Luftspalt. Kabellose Handy-Ladegeräte funktionieren nach demselben Prinzip.
+- Die Zündspule im Auto nutzt die Abschaltspitze bewusst: Aus 12 V werden so viele Tausend Volt für den Zündfunken.
 """,
 
     "tabellen": [

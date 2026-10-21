@@ -29,6 +29,8 @@ THEMA = {
     "grafiken": ["trafo_animation"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Hebel**: Auf der einen Seite drückst du mit wenig Kraft einen langen Weg, auf der anderen Seite bewegt sich die Last mit viel Kraft einen kurzen Weg. Die Arbeit ist auf beiden Seiten gleich. Beim Trafo ist es dasselbe mit Spannung und Strom: Aus hoher Spannung und kleinem Strom wird niedrige Spannung mit grossem Strom – die **Leistung bleibt (fast) gleich**.
 ## Wie funktioniert ein Transformator? (siehe Animation oben)
 Ein Trafo besteht aus **zwei Spulen** auf einem gemeinsamen **Eisenkern**. Sie sind elektrisch **nicht** verbunden – die Energie wird nur über das Magnetfeld übertragen:
 - **①** Die Wechselspannung U1 treibt einen Wechselstrom durch die **Primärspule**
@@ -51,6 +53,19 @@ Weil Primär- und Sekundärseite nur magnetisch gekoppelt sind, gibt es **keine 
 - **Kurzschlussspannung uk:** Wie „weich“ der Trafo ist. Kleines uk → Spannung bleibt stabil, aber grosser Kurzschlussstrom.
 ## Frequenz und Baugrösse
 Je höher die Frequenz, desto **kleiner** kann der Kern bei gleicher Leistung sein. Darum sind Schaltnetzteile (Trafo bei 50–500 kHz, Ferritkern) viel kleiner und leichter als klassische 50-Hz-Netztrafos.
+## Beispiele durchgerechnet
+**Kleiner Netztrafo:** 230 V auf 12 V, 24 VA. Übersetzung `ü = 230 / 12 ≈ 19.2`. Sekundär dürfen `24 VA / 12 V = 2 A` fliessen, primär sind es (ideal) nur `24 VA / 230 V ≈ 0.10 A`.
+**Impedanz übersetzen:** Ein Ausgangsübertrager mit ü = 10 lässt einen 8-Ω-Lautsprecher primär wie `8 Ω · 10² = 800 Ω` aussehen.
+**Wie viele Windungen?** Die Transformator-Hauptgleichung `U = 4.44 · f · N · B̂ · A` verbindet Spannung und Kern. Mit 50 Hz, einer Flussdichte von 1.2 T und 10 cm² Kernquerschnitt ergibt sich ≈ 0.27 V pro Windung → primär rund **860 Windungen**, für 12 V sekundär rund 45 (in der Praxis etwas mehr, um die Verluste unter Last auszugleichen).
+## 🔬 Genauer hingeschaut
+- **Warum die Frequenz zählt:** In der Hauptgleichung steht f. Bei gleicher Spannung braucht eine höhere Frequenz weniger Windungen oder weniger Kernquerschnitt. Deshalb sind Schaltnetzteile so klein – und deshalb sind Bahn-Trafos für 16.7 Hz grösser als vergleichbare 50-Hz-Trafos.
+- **Einschaltstrom:** Je nachdem, in welchem Moment der Sinusspannung eingeschaltet wird und wie der Kern vorher magnetisiert war, kann der Kern beim Einschalten kurz in Sättigung gehen. Dann fliesst ein Vielfaches des Nennstroms – besonders bei **Ringkerntrafos**. Darum brauchen sie träge Sicherungen oder eine Einschaltstrombegrenzung.
+- **Wirkungsgrad:** Grosse Leistungstrafos im Netz erreichen über 99 %. Kleine Trafos haben anteilig mehr Kupfer- und Eisenverluste und werden darum im Betrieb spürbar warm.
+- **Spartrafo:** Primär- und Sekundärwicklung sind eine gemeinsame Wicklung mit Anzapfung. Er ist kleiner und günstiger, bietet aber **keine galvanische Trennung** – als Sicherheitstrafo ist er nicht zulässig.
+## 💡 Wusstest du?
+- Das typische **Brummen** eines Trafos hat 100 Hz, nicht 50 Hz: Die Bleche ziehen sich bei jeder Halbwelle zusammen (Magnetostriktion), egal in welche Richtung das Feld zeigt.
+- Strom wird über weite Strecken mit Hochspannung übertragen, weil die Leitungsverluste mit `I² · R` wachsen: **10× höhere Spannung** heisst 10× kleinerer Strom und damit nur noch **1/100 der Verluste**. Ohne Trafo wäre das nicht möglich.
+- Die SBB fahren mit **15 kV bei 16.7 Hz** – das Bahnnetz hat eine eigene, tiefere Frequenz als das 50-Hz-Landesnetz.
 """,
 
     "tabellen": [
