@@ -19,6 +19,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Temperatur kann man nicht direkt sehen – man misst immer eine **Wirkung**: Beim Quecksilberthermometer dehnt sich Flüssigkeit aus, beim Pt100 ändert sich ein Widerstand, beim Thermoelement entsteht eine kleine Spannung. Welcher Sensor passt, hängt davon ab, wie heiss, wie genau, wie schnell und wie günstig es sein muss.
 ## Widerstandsthermometer (Pt100 / Pt1000)
 Der Widerstand von Platin steigt fast **linear** mit der Temperatur: Pt100 hat bei 0 °C genau 100 Ω und ändert sich um ca. **0.385 Ω pro Kelvin**. Er ist **genau, stabil und genormt** (IEC 60751) – der Standard in der Industrie und Prozessmesstechnik.
 - **Leitungswiderstand:** Bei 2-Leiter-Schaltung wird der Widerstand der Zuleitungen mitgemessen. 0.5 Ω pro Ader ergibt beim Pt100 schon rund **2.6 K** Fehler! Abhilfe: **3-Leiter** (kompensiert) oder **4-Leiter** (misst die Spannung stromlos direkt am Sensor).
@@ -33,6 +35,19 @@ Zwei verschiedene Metalle, an einem Ende verbunden: Ist die **Messstelle** wärm
 - **Günstig, Geräte, −40 … 150 °C:** NTC
 - **Sehr heiss (Ofen, Abgas):** Thermoelement
 - **Auf der Leiterplatte, digital:** Halbleiter-Sensor-IC
+## Beispiele durchgerechnet
+**Pt100:** Bei 100 °C hat ein Pt100 rund **138.5 Ω** (Normtabelle). Mit der Näherung 0.385 Ω/K: `100 Ω + 100 K · 0.385 Ω/K = 138.5 Ω`.
+**2-Leiter-Fehler:** Zwei Adern à 0.5 Ω ergeben 1 Ω zu viel → `1 Ω / 0.385 Ω/K ≈ 2.6 K` zu warm. Beim Pt1000 wären es nur ≈ 0.26 K.
+**Thermoelement Typ K:** Bei 500 °C an der Messstelle und 0 °C an der Vergleichsstelle liefert es rund **20.6 mV**. Stehen die Klemmen bei 25 °C und fehlt die Vergleichsstellenkompensation, zeigt die Messung rund 25 K zu wenig an.
+**NTC 10 kΩ, B = 3950 K:** `R(T) = R25 · e^(B · (1/T − 1/T25))` mit T in Kelvin. Bei 50 °C (323.15 K): `10 kΩ · e^(3950 · (1/323.15 − 1/298.15)) ≈ 3.6 kΩ`. Der Widerstand fällt also auf etwa ein Drittel.
+## 🔬 Genauer hingeschaut
+- **Toleranzklassen Pt100 (IEC 60751):** Klasse A ±(0.15 + 0.002 · |t|) °C, Klasse B ±(0.3 + 0.005 · |t|) °C. Bei 100 °C heisst das ±0.35 °C bzw. ±0.8 °C.
+- **Ansprechzeit:** Ein Sensor braucht Zeit, um die Temperatur des Mediums anzunehmen. Angegeben wird z.B. t90 (Zeit bis 90 % des Sprungs). Ein dickes Schutzrohr schützt den Sensor, macht ihn aber deutlich träger.
+- **Einbautiefe:** Steckt der Fühler zu wenig tief im Medium, leitet das Schutzrohr Wärme nach aussen ab und der Sensor misst zu tief. Faustregel der Hersteller: eintauchen um ein Vielfaches des Schutzrohr-Durchmessers.
+- **Messstrom und Eigenerwärmung:** Die Leistung im Sensor ist `P = I² · R`. Bei Pt100 und 1 mA sind das nur 0.1 mW – in ruhender Luft kann aber schon das eine messbare Erwärmung verursachen.
+## 💡 Wusstest du?
+- Der absolute Nullpunkt liegt bei **0 K = −273.15 °C**. Ein Temperaturunterschied von 1 K ist genau gleich gross wie 1 °C. Seit 2019 ist das Kelvin über die Boltzmann-Konstante definiert.
+- Den Effekt, auf dem das Thermoelement beruht, entdeckte Thomas Johann Seebeck **1821**.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 3.6 (Widerstandstemperaturfühler: Metall, Heissleiter, Kaltleiter, Fehlermöglichkeiten), Kapitel 2.5 (Thermoelement, Sperrschicht-Temperatursensor).
 """,

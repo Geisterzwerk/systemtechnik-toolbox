@@ -19,6 +19,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Eine alte **Balkenwaage**: Liegt auf beiden Seiten genau gleich viel, steht der Zeiger in der Mitte. Schon ein winziges Zusatzgewicht auf einer Seite sieht man sofort am Ausschlag – viel besser, als wenn man 1 kg und 1.001 kg einzeln abliest und vergleicht. Die Wheatstone-Brücke macht dasselbe mit zwei Spannungsteilern: Sie zeigt nur den **Unterschied** an.
 ## Warum eine Brücke?
 Ändert sich ein Widerstand nur um 0.1 %, ist das mit einem einfachen Spannungsteiler kaum messbar: Die kleine Änderung „schwimmt“ auf einer grossen Grundspannung. Die **Wheatstone-Brücke** vergleicht zwei Spannungsteiler. Sind sie **abgeglichen** (R1/R2 = R3/R4), ist die Ausgangsspannung **genau null** – jede kleine Änderung eines Widerstands erscheint direkt als kleine Ausgangsspannung um null herum, die man stark verstärken kann.
 ## Abgleichbrücke und Ausschlagbrücke
@@ -31,6 +33,19 @@ Ein DMS ist ein dünnes Widerstandsgitter, das auf ein Bauteil geklebt wird. Wir
 - **Halbbrücke:** 2 aktive DMS (z.B. einer gedehnt, einer gestaucht) – doppeltes Signal, Temperatureffekte heben sich auf
 - **Vollbrücke:** 4 aktive DMS – vierfaches Signal, beste Kompensation. So sind Wägezellen aufgebaut.
 Näherung: `Ua ≈ Ue · k · ε · n / 4` (n = Anzahl aktiver DMS mit passender Anordnung).
+## Beispiel durchgerechnet
+Eine Vollbrücke mit vier aktiven DMS (k = 2) wird mit 10 V gespeist, die Dehnung beträgt 1000 µm/m (ε = 0.001):
+- `Ua ≈ Ue · k · ε · n / 4 = 10 V · 2 · 0.001 · 4 / 4 = 20 mV`
+- Mit nur einem aktiven DMS (Viertelbrücke) wären es **5 mV** – und Temperatureinflüsse würden voll durchschlagen.
+- Wägezellen werden deshalb in **mV/V** angegeben: Eine Zelle mit 2 mV/V liefert bei 10 V Speisung und Nennlast 20 mV. Das Signal muss vor dem ADC stark verstärkt werden.
+## 🔬 Genauer hingeschaut
+- **Instrumentenverstärker:** Beide Brückenausgänge liegen bei etwa der halben Speisespannung, der Unterschied ist nur wenige mV. Ein normaler Verstärker würde die halbe Speisespannung mitverstärken. Ein **Instrumentenverstärker** verstärkt nur die Differenz und unterdrückt den Gleichtakt.
+- **Lange Leitungen:** Der Leitungswiderstand senkt die Speisespannung, die wirklich an der Brücke ankommt. Bei der **6-Leiter-Technik** misst das Gerät die Speisespannung über zwei zusätzliche Fühlerleitungen (Sense) direkt an der Brücke und gleicht aus.
+- **Nichtlinearität:** Die Formel `Ua ≈ …` ist eine Näherung für kleine Änderungen. Bei der Viertelbrücke wird der Fehler mit grösserer Dehnung spürbar, bei der Vollbrücke mit gegenläufigen DMS hebt er sich weitgehend auf.
+- **Ratiometrische Messung:** Misst der ADC die Brückenspannung im Verhältnis zur Speisespannung (gleiche Referenz), kürzen sich Schwankungen der Speisung heraus.
+## 💡 Wusstest du?
+- Die Brücke trägt den Namen von Charles Wheatstone, der sie 1843 bekannt machte – erfunden hat sie aber bereits 1833 Samuel Hunter Christie.
+- In jeder digitalen Küchen- oder Personenwaage steckt mindestens eine Wägezelle mit DMS in Brückenschaltung.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 3.3 (Abgleich- und Ausschlag-Widerstandsmessbrücke), Kapitel 3.4 (Verstärker für Brückenschaltungen), Kapitel 3.11 (Dehnungsmessstreifen), Kapitel 3.12 (Linearisieren).
 """,

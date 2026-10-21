@@ -20,6 +20,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Du willst eine Herdplatte beschreiben, die mit Wechselspannung heizt. Interessant ist nicht, wie hoch die Spannung kurz ausschlägt, sondern **wie warm die Platte wird**. Der **Effektivwert** ist genau die Gleichspannung, die dieselbe Platte gleich warm machen würde. Der **Scheitelwert** dagegen ist für die Isolation wichtig – denn die muss auch die kurze Spitze aushalten.
 ## Warum gibt es so viele „Werte“?
 Eine Wechselspannung ändert sich ständig. Welche Zahl man angibt, hängt davon ab, was man wissen will:
 - **Scheitelwert Û:** Wie hoch wird die Spannung maximal? (Isolation, Spannungsfestigkeit)
@@ -31,6 +33,22 @@ Eine Wechselspannung ändert sich ständig. Welche Zahl man angibt, hängt davon
 - **AC oder AC+DC:** Viele Geräte messen im AC-Bereich nur den Wechselanteil. Für eine Mischspannung (z.B. PWM 0 … 12 V) braucht es **AC+DC**, oder man rechnet `U_eff = √(U_DC² + U_AC²)`.
 ## PWM
 Bei einem Rechteck von 0 … Û mit Tastgrad D gilt: Mittelwert = D · Û, Effektivwert = √D · Û. Ein Motor „spürt“ eher den Mittelwert, ein Heizwiderstand den Effektivwert.
+## Beispiele durchgerechnet
+**Netzspannung 230 V (Sinus):**
+- Scheitelwert `Û = √2 · 230 V ≈ 325 V`, Spitze-Spitze ≈ **650 V**
+- Arithmetischer Mittelwert: **0 V** (positive und negative Halbwelle heben sich auf)
+- Gleichrichtwert `2/π · Û ≈ 207 V` → Formfaktor `230 / 207 ≈ 1.11`
+**PWM an einem Heizwiderstand:** 12 V, Tastgrad 25 %, R = 12 Ω.
+- Mittelwert `0.25 · 12 V = 3 V`, Effektivwert `√0.25 · 12 V = 6 V`
+- Leistung `P = U_eff² / R = 36 / 12 = 3 W` – genau ein Viertel der 12 W bei Dauer-Ein. Wer mit dem Mittelwert rechnet (3 V → 0.75 W), liegt um den Faktor 4 daneben.
+**Falsche Anzeige ohne True-RMS:** Ein Rechteck mit ±5 V hat den Effektivwert 5 V. Ein mittelwertbildendes Multimeter misst den Gleichrichtwert 5 V und multipliziert mit 1.111 → zeigt **5.55 V** (11 % zu viel).
+## 🔬 Genauer hingeschaut
+- **Formfaktor** `F = U_eff / Gleichrichtwert` und **Crestfaktor** `C = Û / U_eff` beschreiben die Signalform: Sinus F ≈ 1.11, C ≈ 1.41 · Rechteck (symmetrisch) F = 1, C = 1 · Dreieck F ≈ 1.15, C ≈ 1.73.
+- **Warum Crestfaktor wichtig ist:** Ein True-RMS-Multimeter kann nur Signale bis zu einem bestimmten Crestfaktor richtig messen (Datenblatt, oft 3). Ströme von Schaltnetzteilen und Gleichrichtern mit Glättungs-Elko fliessen nur in kurzen Spitzen und haben einen deutlich höheren Crestfaktor als Sinus.
+- **Effektivwert allgemein:** `U_eff = √( (1/T) · ∫ u(t)² dt )` – man quadriert, mittelt über eine Periode und zieht die Wurzel („root mean square“, RMS). Genau so rechnen digitale True-RMS-Geräte mit ihren Abtastwerten.
+## 💡 Wusstest du?
+- Früher lag die Netzspannung in Europa bei 220 V bzw. 240 V. Mit der Norm IEC 60038 wurde sie auf **230 V ±10 %** vereinheitlicht.
+- Zwischen zwei Aussenleitern misst man **400 V** – das ist `230 V · √3`, weil die drei Phasen um je 120° verschoben sind.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 2.1.3 (Messung von Wechselstrom und Wechselspannung), Kapitel 1.8 (informationstragende Parameter von Messsignalen).
 """,

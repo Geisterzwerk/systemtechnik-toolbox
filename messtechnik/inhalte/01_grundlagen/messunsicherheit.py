@@ -21,6 +21,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Vier Leute werfen Darts. Die erste trifft immer dicht beieinander, aber alles links unten – **präzise, aber nicht richtig** (systematischer Fehler). Der zweite verteilt die Pfeile wild um die Mitte – im Mittel **richtig, aber unpräzise** (zufällige Fehler). Die dritte trifft eng um die Mitte – **richtig und präzise**. Messen ist genauso: Man will beides, und muss ehrlich sagen, wie gross die Streuung ist.
 ## Warum ist kein Messwert exakt?
 Jede Messung beeinflusst das Messobjekt und hat ein unvollkommenes Messgerät. Der „wahre Wert“ ist deshalb nie genau bekannt – man gibt an, **in welchem Bereich** er mit welcher Wahrscheinlichkeit liegt: das ist die **Messunsicherheit**.
 ## Die zwei Arten von Fehlern
@@ -44,6 +46,23 @@ Wird aus mehreren Messwerten etwas berechnet (z.B. P = U · I), pflanzen sich di
 - **Richtigkeit:** wie nahe der Mittelwert am wahren Wert liegt (systematisch)
 - **Präzision:** wie eng die Werte beieinander liegen (zufällig)
 - **Auflösung:** kleinste Änderung, die angezeigt wird – sagt NICHTS über die Genauigkeit!
+## Beispiele durchgerechnet
+**Multimeter-Genauigkeit:** Angabe ±(0.5 % + 2 Digits). Angezeigt werden 4.000 V im 6-V-Bereich (letzte Stelle = 1 mV):
+- `0.5 % · 4.000 V = 20 mV`, dazu `2 · 1 mV = 2 mV` → **±22 mV**, der Wert liegt also zwischen 3.978 V und 4.022 V.
+- Dieselbe Spannung im 60-V-Bereich zeigt 4.00 V (letzte Stelle = 10 mV): `20 mV + 2 · 10 mV = ±40 mV` – fast doppelt so unsicher.
+**Messreihe:** Fünf Messungen ergeben 10.1, 10.3, 9.9, 10.2, 10.0 (in V).
+- Mittelwert `x̄ = 10.10 V`, Standardabweichung `s ≈ 0.158 V`
+- Unsicherheit des Mittelwerts `s / √5 ≈ 0.071 V`, mal Student-Faktor t ≈ 2.78 (95 %, n = 5) → **±0.20 V**
+- Ergebnis: **U = (10.10 ± 0.20) V** mit 95 % Vertrauen
+**Fehlerfortpflanzung:** P = U · I mit U ±1 % und I ±2 %. Worst Case: **±3 %**. Statistisch: `√(1² + 2²) ≈ ±2.2 %`.
+## 🔬 Genauer hingeschaut
+- **Der GUM:** International wird die Messunsicherheit nach dem „Guide to the Expression of Uncertainty in Measurement“ (GUM) angegeben. Er unterscheidet **Typ A** (statistisch aus Messreihen ermittelt) und **Typ B** (aus anderen Informationen: Datenblatt, Kalibrierschein, Erfahrung).
+- **Grenzwerte umrechnen:** Steht im Datenblatt nur „±a“, nimmt man oft an, dass jeder Wert dazwischen gleich wahrscheinlich ist (Rechteckverteilung). Die Standardunsicherheit ist dann `u = a / √3`.
+- **Erweiterte Unsicherheit:** Die kombinierte Standardunsicherheit u wird mit einem Erweiterungsfaktor multipliziert: `U = k · u`. Mit **k = 2** liegt der wahre Wert bei normalverteilten Grössen mit rund **95 %** Wahrscheinlichkeit im angegebenen Bereich. Auf Kalibrierscheinen steht darum oft „k = 2“.
+- **Sinnvoll runden:** Die Unsicherheit wird auf ein bis zwei gültige Stellen gerundet, der Messwert auf dieselbe Stelle. „10.0973 ± 0.2 V“ täuscht eine Genauigkeit vor, die es nicht gibt.
+## 💡 Wusstest du?
+- **Kalibrieren** heisst: Abweichung gegenüber einer genaueren Referenz feststellen und dokumentieren. **Eichen** ist eine amtliche Prüfung im gesetzlichen Messwesen (z.B. Zapfsäulen, Ladenwaagen, Stromzähler). In der Schweiz ist dafür das Eidgenössische Institut für Metrologie **METAS** zuständig.
+- Seit **2019** sind alle SI-Einheiten über Naturkonstanten festgelegt. Das Kilogramm hängt seither an der Planck-Konstante statt an einem Metallzylinder in einem Tresor bei Paris.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 1.4 (Messfehler und Messunsicherheiten, Normalverteilung, Student'sche t-Verteilung, korrelierte Messgrössen).
 """,

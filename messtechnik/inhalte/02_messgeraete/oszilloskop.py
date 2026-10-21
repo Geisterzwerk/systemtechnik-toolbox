@@ -21,6 +21,8 @@ THEMA = {
     "grafiken": ["abtastung"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Multimeter zeigt dir **eine Zahl** – wie ein Foto von einem Fussballspiel mit dem Spielstand. Ein Oszilloskop zeigt dir **den Film**: wie sich die Spannung im Lauf der Zeit verändert. Der **Trigger** sorgt dafür, dass der Film immer im gleichen Moment beginnt – wie ein Stroboskop, das einen sich drehenden Ventilator scheinbar stillstehen lässt.
 ## Bandbreite – die wichtigste Kenngrösse
 Das Oszilloskop verhält sich wie ein **Tiefpass**. Bei der Bandbreitenfrequenz B zeigt es einen Sinus schon **ca. 30 % zu klein** an. Faustregel: **B ≥ 3 … 5 × die höchste Signalfrequenz**. Für Rechtecksignale zählen die Oberwellen – massgebend ist die **Anstiegszeit**: `tr ≈ 0.35 / B`. Das Oszilloskop selbst „verschmiert“ Flanken; angezeigt wird ungefähr `√(tr,Signal² + tr,Oszi²)`.
 ## Abtastrate und Aliasing (siehe Grafik oben)
@@ -33,6 +35,18 @@ Ein digitales Oszilloskop tastet das Signal ab. Ist die Abtastrate zu klein, ent
 Bei den meisten Tischoszilloskopen ist die Masseklemme **mit dem Schutzleiter verbunden**. Klemmt man sie an einen Punkt, der nicht auf Erdpotenzial liegt (z.B. netzseitige Elektronik, Brückenschaltungen), entsteht ein **Kurzschluss über den Schutzleiter**. Lösung: **Differenztastkopf**, isoliertes Oszilloskop oder Trenntrafo für den Prüfling – niemals den Schutzleiter des Oszilloskops abklemmen!
 ## Trigger
 Der Trigger sorgt für ein **stehendes Bild**: Die Aufzeichnung startet immer an derselben Stelle (z.B. steigende Flanke bei 1 V). Für einmalige Ereignisse: **Single**-Modus.
+## Beispiele durchgerechnet
+**Anstiegszeit:** Ein 100-MHz-Oszilloskop hat `tr ≈ 0.35 / 100 MHz = 3.5 ns`. Ein Signal mit echten 5 ns Anstiegszeit erscheint mit `√(5² + 3.5²) ≈ 6.1 ns` – 22 % zu langsam.
+**Speichertiefe und Abtastrate:** 10 Millionen Punkte Speicher, 10 Teilungen à 1 ms → 10 ms Aufzeichnung → maximal `10'000'000 / 0.01 s = 1 GSa/s`. Bei 100 ms/div (1 s Aufzeichnung) bleiben nur noch 10 MSa/s – schnelle Störungen können dann verschwinden oder als Alias erscheinen.
+**Vertikale Auflösung:** Ein 8-Bit-Oszilloskop teilt den Bildschirm in 256 Stufen. Bei 1 V/div und 8 Teilungen sind das `8 V / 256 ≈ 31 mV` pro Stufe. Für kleine Signale die Empfindlichkeit so wählen, dass das Signal den Schirm gut füllt.
+## 🔬 Genauer hingeschaut
+- **Lange Masseleitung = Spule:** Die Krokodilklemme am Tastkopf hat eine Induktivität von einigen Dutzend Nanohenry. Bei schnellen Flanken entstehen dadurch Überschwinger, die im echten Signal gar nicht existieren. Für saubere Messungen die kurze **Massefeder** direkt am Tastkopf verwenden.
+- **AC- und DC-Kopplung:** Bei DC sieht man das ganze Signal inklusive Gleichanteil. AC blendet den Gleichanteil aus – ideal, um z.B. 50 mV Welligkeit auf 12 V Gleichspannung gross darzustellen.
+- **Messfunktionen und Cursor:** Moderne Geräte messen Frequenz, Effektivwert, Anstiegszeit usw. automatisch. Diese Werte sind nur so gut wie die Aufzeichnung: Ist das Signal abgeschnitten (übersteuert) oder zu klein, stimmen sie nicht.
+- **FFT:** Die meisten Digitaloszilloskope können das Signal in seine Frequenzen zerlegen. So sieht man z.B. Oberwellen eines Netzteils oder die Störfrequenz, die ein Signal verrauscht.
+## 💡 Wusstest du?
+- Alte Oszilloskope zeichneten mit einem Elektronenstrahl auf einer **Braunschen Röhre** (Ferdinand Braun, 1897) – derselben Technik wie in alten Röhrenfernsehern.
+- Legt man zwei Sinussignale auf X und Y (XY-Modus), entstehen **Lissajous-Figuren**. Aus ihrer Form kann man das Frequenzverhältnis und die Phasenverschiebung ablesen.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 2.2 (Oszilloskop, Baugruppen, Betriebsarten), Kapitel 6.5.2 (Digitales Speicheroszilloskop), Kapitel 6.4.2 und 8.3.3 (Abtasttheorem), Kapitel 1.5 (dynamisches Verhalten).
 """,

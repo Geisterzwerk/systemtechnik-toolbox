@@ -21,6 +21,8 @@ THEMA = {
     "grafiken": ["abtastung"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Film besteht aus **Einzelbildern** – zwischen zwei Bildern sieht die Kamera nichts. Das ist das **Abtasten**. Und statt einer stufenlosen Rampe gibt es nur eine **Treppe** mit festen Stufen – Zwischenwerte werden auf die nächste Stufe gerundet. Das ist das **Quantisieren**. Ein AD-Wandler macht aus einer stufenlosen Spannung beides: eine Folge von Bildern, und jedes Bild als Stufennummer.
 ## Vom Signal zur Zahl
 Ein AD-Wandler macht zwei Dinge:
 - **Abtasten (zeitlich):** Er schaut nur zu bestimmten Zeitpunkten hin – `fs` Mal pro Sekunde. Ein **Abtast-Halte-Glied** friert den Wert kurz ein, während gewandelt wird.
@@ -34,6 +36,18 @@ Ein 16-Bit-Wandler zeigt Schritte von 1/65536 – aber Rauschen, Offset, Verstä
 - **Delta-Sigma:** tastet sehr schnell mit 1 Bit ab und filtert digital – sehr hohe Auflösung (16–24 Bit), eher langsam. Typisch für Wägezellen, Temperatur, Audio und Prozessmessgeräte.
 - **Dual-Slope (Zweirampen):** integriert über eine feste Zeit – sehr störsicher gegen Netzbrumm, langsam. Klassisch in Digitalmultimetern.
 - **Flash (parallel):** ein Komparator pro Stufe – extrem schnell, aber wenige Bits. Oszilloskope, Video.
+## Beispiele durchgerechnet
+**Stufengrösse (LSB):** 12-Bit-Wandler mit Uref = 3.3 V → `3.3 V / 4096 ≈ 0.81 mV` pro Stufe. Ein 10-Bit-Wandler mit 5 V hat `5 V / 1024 ≈ 4.9 mV`.
+**Rohwert in Volt:** `U = N · Uref / 2ⁿ`. Liest der 12-Bit-Wandler N = 2048, sind das `2048 · 3.3 V / 4096 = 1.65 V`.
+**Abtastrate:** Menschen hören bis etwa 20 kHz. Die Audio-CD tastet darum mit 44.1 kHz ab – die Nyquist-Frequenz von 22.05 kHz liegt knapp darüber, dazwischen bleibt Platz für den Anti-Aliasing-Filter.
+## 🔬 Genauer hingeschaut
+- **Theoretische Grenze:** Selbst ein idealer Wandler rauscht durch das Runden. Der beste mögliche Signal-Rausch-Abstand ist `SNR ≈ 6.02 · n + 1.76 dB` – bei 12 Bit ≈ 74 dB. Daraus kommt auch die Formel für die effektive Bitzahl: `ENOB = (SINAD − 1.76 dB) / 6.02 dB`.
+- **Die Quelle muss mitspielen:** Beim Abtasten lädt der Wandler einen kleinen internen Kondensator. Ist die Quelle sehr hochohmig (z.B. Spannungsteiler mit 1 MΩ), wird er nicht rechtzeitig voll geladen und der Messwert ist zu klein. Abhilfe: niederohmiger Teiler, Kondensator am Eingang, Puffer-OPV oder längere Abtastzeit (Datenblatt).
+- **Ratiometrisch messen:** Hängen Sensor (z.B. NTC-Teiler, Poti, Brücke) und ADC-Referenz an derselben Spannung, kürzt sich diese heraus. Schwankt die Versorgung, bleibt der Messwert trotzdem gleich.
+- **Überabtastung (Oversampling):** Mit etwas Rauschen und vielen gemittelten Messungen lässt sich die Auflösung erhöhen: 4× so viele Abtastwerte ergeben etwa 1 Bit mehr.
+## 💡 Wusstest du?
+- Der **Wagenrad-Effekt** in Filmen ist Aliasing: Die Speichen drehen sich zwischen zwei Bildern fast eine ganze Speichenteilung weiter – im Film scheint sich das Rad langsam oder sogar rückwärts zu drehen.
+- Klassische digitale Telefonie tastet Sprache mit **8 kHz** ab. Das reicht für Frequenzen bis knapp 4 kHz – genug zum Verstehen, aber darum klingt Telefon „dünn“.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 6 (Abtast-Halte-Glied, Komparator, Parallel-, SAR-, Zweirampen- und Delta-Sigma-Umsetzer, Kenngrössen, Abtasttheorem, Quantisierungsrauschen, effektive Bitzahl), Kapitel 8 (Spektralanalyse, DFT, Fensterfunktionen).
 """,

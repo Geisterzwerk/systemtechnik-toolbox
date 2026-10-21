@@ -20,6 +20,8 @@ THEMA = {
     },
 
     "erklaerung": """
+## Stell dir vor …
+Du willst wissen, wie viel Wasser ein Bach führt. Möglichkeit 1: Du hältst einen Eimer hinein und stoppst, wie lange er zum Füllen braucht. Möglichkeit 2: Du wirfst ein Holzstück hinein, misst seine Geschwindigkeit und multiplizierst mit dem Querschnitt des Bachs. Fast alle Durchflussmesser arbeiten nach der zweiten Idee: Sie messen eine **Geschwindigkeit** (oder Masse) und rechnen mit dem Rohrquerschnitt auf den **Volumenstrom** um.
 ## Magnetisch-induktiv (MID)
 Nach dem **Induktionsgesetz**: Bewegt sich ein Leiter durch ein Magnetfeld, entsteht eine Spannung. Beim MID ist die **leitfähige Flüssigkeit** der Leiter. Spulen erzeugen quer zum Rohr ein Magnetfeld, zwei Elektroden greifen die Spannung ab: `U ≈ B · D · v` (proportional zur mittleren Fliessgeschwindigkeit). Daraus folgt mit dem Querschnitt der Volumenstrom.
 - ✅ keine bewegten Teile, kein Druckverlust, unabhängig von Druck, Temperatur und Viskosität
@@ -36,6 +38,19 @@ Zwei Sensoren senden sich abwechselnd Ultraschallimpulse schräg durch das Rohr.
 - **Differenzdruck (Blende):** klassisch und günstig, aber Druckverlust und begrenzter Messbereich
 ## Einbau
 Die meisten Prinzipien brauchen ein **gleichmässiges Strömungsprofil**: gerade Rohrstrecken vor und nach dem Sensor (Ein- und Auslaufstrecken, oft einige × DN – Herstellerangabe), **Rohr voll gefüllt** und keine Luftblasen an den Elektroden.
+## Beispiel durchgerechnet
+Ein Rohr mit 50 mm Innendurchmesser, mittlere Fliessgeschwindigkeit 2 m/s:
+- Querschnitt `A = π · (0.025 m)² ≈ 0.00196 m²`
+- Volumenstrom `Q = v · A ≈ 0.0039 m³/s` = **3.9 l/s** = **14.1 m³/h**
+- Umrechnen: 1 m³/h = 1000 l / 3600 s ≈ 0.278 l/s
+**MID-Signal:** Bei einer angenommenen Flussdichte von 10 mT entstehen an den Elektroden `U ≈ B · D · v = 0.01 T · 0.05 m · 2 m/s = 1 mV` – ein kleines Signal, das der Messumformer sauber verstärken muss.
+## 🔬 Genauer hingeschaut
+- **Laminar oder turbulent:** Die Reynolds-Zahl `Re = v · D / ν` (ν = kinematische Viskosität, Wasser ≈ 10⁻⁶ m²/s) sagt, wie die Strömung aussieht. Unter etwa 2300 ist sie laminar (Profil wie eine Parabel), weit darüber turbulent (flaches Profil). Im Beispiel oben ist `Re = 2 · 0.05 / 10⁻⁶ = 100'000` – klar turbulent, wie in den meisten technischen Rohren.
+- **Volumen oder Masse:** Bei Flüssigkeiten ist das fast dasselbe. Bei **Gasen** ändert sich das Volumen stark mit Druck und Temperatur. Darum gibt man dort meist den **Massestrom** oder den auf Normbedingungen umgerechneten **Normvolumenstrom** an.
+- **Messspanne (Turndown):** Jedes Prinzip misst nur in einem bestimmten Bereich gut. Ein Gerät, das bei 2 m/s genau ist, kann bei 0.1 m/s unbrauchbar sein. Bei der Auswahl darum Minimal- und Maximaldurchfluss prüfen.
+## 💡 Wusstest du?
+- Die **Corioliskraft**, die der Coriolis-Messer nutzt, lenkt auch grosse Luftmassen auf der rotierenden Erde ab – darum drehen sich Tiefdruckgebiete auf der Nordhalbkugel gegen den Uhrzeigersinn.
+- Der Wasserzähler im Haus ist meist ein einfacher **Flügelrad-** oder Ringkolbenzähler: Das Wasser treibt ein Rädchen an, das mechanisch mitgezählt wird.
 ## 📚 Vertiefung
 Schrüfer, *Elektrische Messtechnik*: Kapitel 2.4.4 (Induktions-Durchflussmesser), Kapitel 7.3.4 (Ultraschall-Durchflussmesser), Kapitel 7.4.6 (Coriolis-Massendurchflussmesser), Kapitel 3.7.2 (thermischer Massenstrommesser).
 """,
