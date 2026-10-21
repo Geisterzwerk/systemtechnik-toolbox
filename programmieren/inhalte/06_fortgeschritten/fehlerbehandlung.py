@@ -8,6 +8,8 @@ THEMA = {
                    "try catch", "try except"],
 
     "erklaerung": """
+## Stell dir vor …
+Das **Sicherheitsnetz im Zirkus**: Der Artist versucht ein schwieriges Kunststück (`try`). Klappt es nicht, fällt er ins Netz (`catch`/`except`) statt auf den Boden – die Vorstellung geht weiter. Und egal ob es geklappt hat oder nicht, am Ende verbeugt er sich (`finally`).
 ## Das Problem
 Manche Fehler passieren erst **zur Laufzeit**: Die Datei fehlt, der Benutzer tippt "abc" statt einer Zahl, der Sensor antwortet nicht, oder es wird durch 0 geteilt. Ohne Behandlung **stürzt das Programm ab**.
 ## Die Lösung: try / catch
@@ -19,6 +21,12 @@ Manche Fehler passieren erst **zur Laufzeit**: Die Datei fehlt, der Benutzer tip
 Wenn deine Funktion ungültige Werte bekommt, **wirf** einen Fehler: `raise` (Python) / `throw` (C++/C#). So merkt der Aufrufer sofort, dass etwas nicht stimmt.
 ## Den Traceback lesen (Python)
 Die Fehlermeldung von unten nach oben lesen: Die **letzte Zeile** nennt den Fehlertyp, darüber steht die Datei mit der Zeilennummer.
+## 🔬 Genauer hingeschaut
+- **Gezielt fangen:** `except ValueError:` fängt nur den erwarteten Fehler. Ein nacktes `except:` fängt alles – auch Tippfehler im eigenen Code und sogar Ctrl+C – und versteckt so echte Fehler.
+- **`finally` läuft immer:** Code im `finally`-Block wird ausgeführt, egal ob ein Fehler auftrat oder nicht – ideal zum Aufräumen (Verbindung schliessen, Gerät ausschalten).
+- **Erst fragen oder einfach versuchen?** Python bevorzugt oft „einfach versuchen und Fehler abfangen“ (EAFP) statt „vorher alles prüfen“ (LBYL). Beispiel: Datei öffnen und `FileNotFoundError` abfangen – zwischen Prüfen und Öffnen könnte die Datei sonst schon wieder verschwunden sein.
+## 💡 Wusstest du?
+- 1947 fanden Techniker im Relaisrechner Harvard Mark II eine Motte, die einen Fehler verursacht hatte. Sie klebten sie ins Logbuch mit dem Vermerk „first actual case of bug being found“ – das Wort „Bug“ für Programmfehler gab es schon vorher, aber diese Geschichte machte es berühmt.
 """,
 
     "bild": "try_catch.png",

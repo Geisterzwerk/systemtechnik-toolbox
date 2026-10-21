@@ -8,6 +8,8 @@ THEMA = {
                    "standardbibliothek", "__name__", "__init__.py", "from"],
 
     "erklaerung": """
+## Stell dir vor …
+Statt jedes Werkzeug selbst zu schmieden, kaufst du einen **Werkzeugkasten** im Baumarkt und nimmst heraus, was du brauchst. Module sind solche Werkzeugkästen: Python bringt viele schon mit (Standardbibliothek), weitere installiert man dazu, und eigene Module ordnen den eigenen Code.
 ## Drei Arten von Code
 - **Standardbibliothek:** ist mitgeliefert, z.B. Python `math`, `os`, `json`; C++ `<vector>`, `<cmath>`; C# `System.IO`
 - **Externe Pakete:** muss man installieren. Python: **pip**, C#: **NuGet**, C++: vcpkg/conan oder manuell
@@ -21,6 +23,12 @@ THEMA = {
 Beim Import wird eine Python-Datei **komplett ausgeführt**. Code unter `if __name__ == "__main__":` läuft aber nur, wenn die Datei **direkt gestartet** wird, und nicht beim Import. So kann eine Datei gleichzeitig Modul und eigenständiges Programm sein.
 ## Virtuelle Umgebung (Python)
 Jedes Projekt bekommt seine eigenen Pakete, dadurch gibt es keine Versionskonflikte zwischen Projekten.
+## 🔬 Genauer hingeschaut
+- **Ein Modul wird nur einmal geladen:** Beim ersten `import` führt Python die Datei aus und merkt sich das Ergebnis in `sys.modules`. Jeder weitere Import bekommt dasselbe Modul zurück – der Code darin läuft nicht noch einmal.
+- **Nur vertrauenswürdige Pakete installieren:** Ein Paket aus dem Internet ist fremder Code, der auf deinem Rechner läuft. Es gibt gefälschte Pakete mit fast gleichem Namen wie bekannte (Tippfehler-Fallen). Darum Namen genau prüfen und nur Pakete installieren, die man wirklich braucht – so hält es auch dieses Projekt.
+- **Batterien inklusive:** Für viele Aufgaben braucht Python gar kein Zusatzpaket: `json`, `csv`, `pathlib`, `datetime`, `math`, `random`, `sqlite3` sind schon dabei.
+## 💡 Wusstest du?
+- Gib in Python einmal `import this` ein: Es erscheint der „Zen of Python“, eine Sammlung von Leitsätzen wie „Simple is better than complex“.
 """,
 
     "beispiele": [

@@ -8,6 +8,8 @@ THEMA = {
                    "text zu zahl", "implizit", "explizit"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Wechselstube**: Du gibst Franken und bekommst Euro. Der Wert bleibt ungefähr gleich, aber die Form ändert sich – und manchmal gehen ein paar Rappen verloren. Typumwandlung ist genau das: Aus dem Text „42“ wird die Zahl 42, aus 3.9 wird die Ganzzahl 3. Auch dabei kann etwas verloren gehen.
 ## Implizit vs. explizit
 - **Implizit (automatisch):** Der Compiler wandelt selbst um, wenn **nichts verloren geht**, z.B. `int` → `double`.
 - **Explizit (Cast):** Du erzwingst die Umwandlung, obwohl Information verloren gehen kann, z.B. `double` → `int` (Nachkommastellen fallen weg).
@@ -17,6 +19,12 @@ Eingaben von der Tastatur, aus Dateien oder von der seriellen Schnittstelle sind
 - `int(3.9)` (Python), `static_cast<int>(3.9)` (C++) und `(int)3.9` (C#) **schneiden ab** → `3`
 - `Convert.ToInt32(3.9)` in C# **rundet** → `4`. Bei `.5` rundet es auf die nächste gerade Zahl ("Banker's Rounding"): `Convert.ToInt32(2.5)` = `2`!
 - Python `round(2.5)` = `2` (ebenfalls Banker's Rounding)
+## 🔬 Genauer hingeschaut
+- **Komma oder Punkt:** `float("3,5")` scheitert in Python – es erwartet einen Punkt. In C# hängt `double.Parse` von der Spracheinstellung des Systems ab: Auf einem deutsch-schweizerischen System kann „3.5“ plötzlich anders gelesen werden. Für Dateien und Schnittstellen darum immer `CultureInfo.InvariantCulture` angeben.
+- **Zweistufig umwandeln:** `int("3.5")` ist in Python ein Fehler. Erst `float("3.5")`, dann `int(...)` – und dabei bewusst entscheiden, ob abgeschnitten oder gerundet werden soll.
+- **Stille Verluste:** In C++ wird ein zu grosser Wert bei der Umwandlung in einen kleineren Ganzzahltyp oft ohne Fehler abgeschnitten. Der Compiler warnt bei impliziten Verkleinerungen meist nur.
+## 💡 Wusstest du?
+- 1999 ging die NASA-Sonde **Mars Climate Orbiter** verloren, weil ein Programmteil mit englischen Einheiten rechnete und ein anderer metrische Werte erwartete. Die Zahlen passten – nur ihre Bedeutung nicht.
 """,
 
     "tabelle": {

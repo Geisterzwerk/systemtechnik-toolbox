@@ -9,6 +9,8 @@ THEMA = {
                    "gleitkomma", "overflow", "typ"],
 
     "erklaerung": """
+## Stell dir vor …
+In der Küche gibt es **verschiedene Behälter**: ein Schnapsglas, eine Tasse, einen Eimer. Wasser passt in alle, aber in das Schnapsglas nur wenig. Datentypen sind solche Behälter: Ein `byte` fasst nur Zahlen bis 255, ein `int` viel mehr, ein `double` auch Kommazahlen. Wer zu viel in einen kleinen Behälter giesst, hat eine Überschwemmung – einen Überlauf.
 ## Warum Datentypen?
 Im Speicher liegen nur Bits. Erst der **Datentyp** sagt, wie diese Bits gelesen werden: als Ganzzahl, als Kommazahl oder als Buchstabe. Er legt ausserdem fest, **wie viel Speicher** eine Variable belegt und **welcher Wertebereich** möglich ist.
 ## Die Grundregel für den Wertebereich
@@ -24,6 +26,12 @@ Mit **n Bit** gibt es `2^n` Kombinationen:
 - `int` ist in Python **unbegrenzt gross**. Es gibt keinen Overflow, Python nimmt einfach mehr Speicher.
 - `float` ist in Python immer ein 64-Bit-**double**.
 - Jeder Wert ist ein Objekt mit Zusatzinfos. `sys.getsizeof(1)` ergibt **28 Byte** (64-Bit-System), obwohl die Zahl selbst nur 4 Byte bräuchte.
+## 🔬 Genauer hingeschaut
+- **Kommazahlen sind ungenau:** `0.1 + 0.2` ergibt `0.30000000000000004`. Gleitkommazahlen werden binär gespeichert, und 0.1 lässt sich binär nicht exakt darstellen – genau wie 1/3 dezimal nicht. Darum Kommazahlen nie mit `==` vergleichen, sondern mit einer kleinen Toleranz.
+- **Wie genau?** `float` hat etwa 7 gültige Dezimalstellen, `double` etwa 15 bis 16. Für Geldbeträge gibt es in C# `decimal` und in Python das Modul `decimal`, die dezimal rechnen.
+- **Python-Ganzzahlen wachsen mit:** In Python kann ein `int` beliebig gross werden – `2 ** 100` funktioniert einfach. In C++ und C# hat jeder Ganzzahltyp eine feste Grösse.
+## 💡 Wusstest du?
+- Viele Systeme speichern die Zeit als Sekunden seit 1.1.1970 in einer 32-Bit-Zahl mit Vorzeichen. Diese läuft am **19. Januar 2038** über – das „Jahr-2038-Problem“. Neuere Systeme verwenden darum 64 Bit.
 """,
 
     "bild": "datentypen_bits.png",

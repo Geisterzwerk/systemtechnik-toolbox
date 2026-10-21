@@ -7,6 +7,8 @@ THEMA = {
                    "lebensdauer", "static", "block", "namespace", "nonlocal"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Haus mit Zimmern**: Was in deinem Zimmer liegt (lokale Variable), sehen nur die, die im Zimmer sind. Was im Wohnzimmer liegt (globale Variable), sehen alle. Hast du in deinem Zimmer etwas mit demselben Namen wie im Wohnzimmer, gilt in deinem Zimmer deine Version.
 ## Lokale Variablen
 Eine Variable, die **in einer Funktion** angelegt wird, existiert nur dort. Nach dem Ende der Funktion ist sie weg. Jede Funktion hat ihre eigenen lokalen Variablen, gleiche Namen stören sich also nicht.
 ## Globale Variablen
@@ -14,6 +16,12 @@ Diese werden **ausserhalb** jeder Funktion angelegt und sind überall sichtbar. 
 ## Block-Scope
 - **C++ / C#:** Jeder `{ }`-Block ist ein eigener Bereich. Eine Variable, die in einem `if` oder `for` angelegt wird, gibt es danach nicht mehr.
 - **Python:** `if` und `for` bilden **keinen** eigenen Bereich. Nur Funktionen, Klassen und Module tun das.
+## 🔬 Genauer hingeschaut
+- **Python sucht in vier Stufen (LEGB):** Lokal → umschliessende Funktion (Enclosing) → Global (Modul) → Built-in. Darum kann man versehentlich eine eingebaute Funktion überdecken, z.B. mit einer Variablen namens `list` oder `sum`.
+- **`global` und `nonlocal`:** Will eine Funktion eine äussere Variable nicht nur lesen, sondern neu zuweisen, braucht Python `global name` bzw. `nonlocal name` für eine umschliessende Funktion. Meist ist ein Rückgabewert die bessere Lösung.
+- **Python hat keinen Block-Scope:** Eine Variable, die in einem `if` oder einer `for`-Schleife angelegt wird, existiert danach weiter. In C++ und C# endet sie mit der schliessenden Klammer.
+## 💡 Wusstest du?
+- Nach `for i in range(3): pass` hat `i` in Python den Wert 2 – die Schleifenvariable bleibt nach der Schleife erhalten.
 """,
 
     "beispiele": [

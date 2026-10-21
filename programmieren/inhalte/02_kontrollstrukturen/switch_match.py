@@ -7,12 +7,20 @@ THEMA = {
                    "state machine", "zustandsautomat", "auswahl", "mehrfachauswahl"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Stellwerk mit vielen Gleisen**: Je nach Zugnummer wird eine bestimmte Weiche gestellt. Statt zehnmal zu fragen „Ist es Zug 1? Nein. Ist es Zug 2? …“, schaut man in einer Tabelle nach und stellt direkt das richtige Gleis. switch und match sind diese Tabelle im Code.
 ## Wann switch statt if?
 Wenn **eine Variable** mit vielen **festen Werten** verglichen wird, z.B. Menüauswahl, Befehlscodes oder Zustände einer Zustandsmaschine.
 ## Wichtige Unterschiede
 - **C++:** `switch` funktioniert nur mit **Ganzzahlen, char und enum**, nicht mit Strings! Ohne `break` läuft der Code in den nächsten `case` weiter (**Fallthrough**).
 - **C#:** Funktioniert auch mit **Strings**. Vergessenes `break` ist ein **Compiler-Fehler** (kein versehentlicher Fallthrough). Seit C# 8 gibt es die kompakte **switch expression**.
 - **Python:** Bis 3.9 gab es kein switch, man nutzte `if/elif` oder Dictionaries. Seit **Python 3.10** gibt es `match / case`.
+## 🔬 Genauer hingeschaut
+- **Durchfallen in C++:** Fehlt am Ende eines `case` das `break`, läuft das Programm in C++ einfach in den nächsten `case` weiter. C# verbietet dieses ungewollte Durchfallen – dort meldet der Compiler einen Fehler.
+- **Python `match` ist mehr als switch:** Seit Python 3.10 (2021) prüft `match` nicht nur Werte, sondern auch Strukturen, z.B. `case (x, 0):` für ein Tupel, dessen zweites Element 0 ist.
+- **Alternative Tabelle:** Oft ist ein Dictionary eleganter: `aktionen = {"start": starten, "stopp": stoppen}` und dann `aktionen[befehl]()`.
+## 💡 Wusstest du?
+- Ein `default:` bzw. `case _:` am Ende fängt alle unerwarteten Werte ab. Gerade bei Eingaben von aussen sollte es nie fehlen – sonst passiert bei einem Tippfehler einfach gar nichts.
 """,
 
     "bild": "switch.png",

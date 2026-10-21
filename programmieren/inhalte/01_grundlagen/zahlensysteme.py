@@ -8,6 +8,8 @@ THEMA = {
                    "and", "or", "xor", "0x", "0b", "register", "msb", "lsb"],
 
     "erklaerung": """
+## Stell dir vor …
+Die **Ziffern auf einem Kilometerzähler** – nur mit anderen Rädchen: Beim Dezimalsystem hat jedes Rädchen 10 Ziffern, im Binärsystem 2, im Hexadezimalsystem 16. Die Zahl dahinter bleibt dieselbe, nur die Schreibweise ändert sich. Programmiersprachen erlauben alle drei Schreibweisen direkt im Code.
 ## Die drei wichtigen Zahlensysteme
 - **Dezimal (Basis 10):** Ziffern 0–9, normales Rechnen
 - **Binär (Basis 2):** Ziffern 0 und 1. So speichert der Computer alles. Schreibweise im Code: `0b1010`
@@ -24,6 +26,12 @@ So werden signed-Zahlen gespeichert: **alle Bits invertieren und dann +1**.
 - Das MSB ist bei negativen Zahlen immer 1.
 ## Bit-Operationen
 Damit setzt, löscht oder prüft man einzelne Bits, z.B. in Registern von Mikrocontrollern oder in Status-Bytes von Sensoren.
+## 🔬 Genauer hingeschaut
+- **Schreibweisen im Code:** `0b1010` (binär), `0x1F` (hex) funktionieren in Python, C++ (binär ab C++14) und C#. Oktal schreibt Python `0o17`; in C++ bedeutet eine führende Null Oktal – `010` ist dort 8!
+- **Lesbare grosse Zahlen:** Python und C# erlauben `1_000_000`, C++ ab C++14 `1'000'000`. Für Bitmuster praktisch: `0b1010_0101`.
+- **Umwandeln in Python:** `bin(10)` → `'0b1010'`, `hex(255)` → `'0xff'`, `int('ff', 16)` → 255, `format(5, '08b')` → `'00000101'` (8 Stellen mit führenden Nullen).
+## 💡 Wusstest du?
+- Ein alter Informatiker-Witz: „Es gibt 10 Arten von Menschen – die, die Binärzahlen verstehen, und die, die es nicht tun.“
 """,
 
     "bild": "zahlensysteme.png",

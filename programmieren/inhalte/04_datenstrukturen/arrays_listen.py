@@ -8,6 +8,8 @@ THEMA = {
                    "count", "zweidimensional", "matrix", "list comprehension"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Eierkarton**: Viele gleiche Fächer nebeneinander, jedes mit einer Nummer. Du kannst sofort auf das fünfte Fach greifen, ohne die anderen anzuschauen. Ein Array ist so ein Karton mit fester Grösse, eine Liste ein Karton, der bei Bedarf wächst.
 ## Array vs. Liste
 - **Array:** feste Grösse, die beim Anlegen festgelegt wird. Die Elemente liegen direkt hintereinander im Speicher und sind deshalb sehr schnell.
 - **Liste (dynamisches Array):** kann wachsen und schrumpfen. C++: `std::vector`, C#: `List<T>`, Python: `list`
@@ -20,6 +22,12 @@ Bei 5 Elementen gehen die Indizes von **0 bis 4**. `liste[5]` ist ausserhalb:
 - **Slicing:** `liste[1:3]` gibt die Elemente 1 und 2 zurück, `liste[::-1]` die umgedrehte Liste
 - Eine Liste kann gemischte Typen enthalten (sollte man aber vermeiden)
 - **Tupel** `(1, 2, 3)` ist wie eine Liste, aber unveränderlich
+## 🔬 Genauer hingeschaut
+- **Zugriff schnell, Einfügen vorne langsam:** Auf jedes Element per Index zugreifen geht sofort, egal wie lang die Liste ist. Ein Element **vorne** einfügen oder löschen verschiebt dagegen alle anderen – bei Millionen Elementen spürbar.
+- **Kopie oder nicht?** `b = a` kopiert in Python keine Liste, beide Namen zeigen auf dieselbe. Eine echte (flache) Kopie gibt es mit `a.copy()` oder `a[:]`. Enthält die Liste selbst wieder Listen, braucht es `copy.deepcopy()`.
+- **Grenzen prüfen:** Ein Zugriff hinter das Ende wirft in Python und C# einen Fehler. In C++ liest ein `array[10]` bei 10 Elementen einfach irgendeinen Speicher – ein gefährlicher, schwer zu findender Fehler. `.at(10)` prüft dagegen.
+## 💡 Wusstest du?
+- Warum beginnt der Index bei 0? Er ist der **Abstand** zum Anfang: Das erste Element liegt 0 Plätze weit vom Start entfernt. Edsger Dijkstra begründete diese Zählweise 1982 in einer bekannten Notiz.
 """,
 
     "bild": "array_index.png",

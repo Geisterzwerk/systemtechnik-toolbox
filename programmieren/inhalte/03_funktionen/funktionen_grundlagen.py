@@ -8,6 +8,8 @@ THEMA = {
                    "deklaration"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Kaffeemaschine**: Oben kommen Wasser und Bohnen hinein (Parameter), unten kommt Kaffee heraus (Rückgabewert). Wie es innen funktioniert, musst du nicht wissen – du drückst einfach den Knopf. Eine Funktion ist so eine Maschine im Code: einmal gebaut, beliebig oft benutzt.
 ## Warum Funktionen?
 - **Wiederverwendung:** Einmal schreiben, überall benutzen
 - **Übersicht:** Ein grosses Problem in kleine, benannte Schritte zerlegen
@@ -20,6 +22,12 @@ Eine Funktion ist wie eine **Blackbox**: Es kommen **Parameter** hinein, sie mac
 - `void` (C++/C#) bzw. kein `return` (Python) bedeutet: Die Funktion gibt nichts zurück.
 ## Funktion vs. Methode
 Eine **Methode** ist eine Funktion, die zu einer **Klasse** gehört. In C# ist fast alles eine Methode, weil jeder Code in einer Klasse steht.
+## 🔬 Genauer hingeschaut
+- **Eine Aufgabe pro Funktion:** Eine Funktion sollte genau eine Sache gut machen und einen Namen haben, der sagt, was sie tut (`berechne_widerstand`, `lese_sensor`). Wird der Name lang oder braucht ein „und“, ist sie meist zu gross.
+- **Reine Funktionen:** Eine Funktion, die nur aus ihren Parametern ein Ergebnis berechnet und sonst nichts verändert, ist am einfachsten zu testen. Funktionen mit Nebenwirkungen (Datei schreiben, globale Variable ändern) sind manchmal nötig, sollten aber klar als solche erkennbar sein.
+- **DRY – Don't Repeat Yourself:** Steht derselbe Code an drei Stellen, gehört er in eine Funktion. Ein Fehler muss dann nur einmal korrigiert werden.
+## 💡 Wusstest du?
+- Python bringt rund 70 eingebaute Funktionen mit, die man ohne Import benutzen kann – von `print()` und `len()` bis `sorted()` und `round()`.
 """,
 
     "bild": "funktion_blackbox.png",

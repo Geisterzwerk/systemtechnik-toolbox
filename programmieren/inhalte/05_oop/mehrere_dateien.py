@@ -9,6 +9,8 @@ THEMA = {
                    "modul", "package", "klassen verbinden", "objekte kommunizieren", "pragma once"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Werkstatt mit beschrifteten Schubladen**: Schrauben in die eine, Kabel in die andere, Werkzeug in die dritte. Alles in eine einzige Kiste zu werfen funktioniert am Anfang – aber nach einem Jahr findest du nichts mehr. Ein Programm auf mehrere Dateien zu verteilen ist genau dieses Aufräumen.
 ## Warum aufteilen?
 Sobald ein Programm wächst, wird eine einzige Datei unübersichtlich. Die Regel lautet: **Eine Klasse pro Datei**, und der Dateiname entspricht dem Klassennamen.
 ## Wie kommunizieren Objekte?
@@ -22,6 +24,11 @@ Objekte arbeiten zusammen, indem eines eine **Referenz auf ein anderes** besitzt
 - **C#:** Alle `.cs`-Dateien eines Projekts kennen sich **automatisch**. Mit `namespace` ordnet man sie, mit `using` greift man auf andere Namespaces zu.
 ## Genau so ist diese Toolbox gebaut!
 `main.py` erzeugt die `App`, die App ruft `programmieren_gui.create()` auf, und diese Funktion benutzt `lader.py`, `suche.py` und `seite.py`. Schau dir die Kommentare `# -> Datei.py` im Code an.
+## 🔬 Genauer hingeschaut
+- **Zirkuläre Importe:** Importiert Datei A die Datei B und B wiederum A, kann Python beim Laden auf halbfertige Module stossen. Lösung: gemeinsame Teile in eine dritte Datei auslagern, oder den Import in die Funktion verschieben, die ihn braucht.
+- **Zusammenhalt und Kopplung:** Eine gute Datei enthält Dinge, die zusammengehören (hoher Zusammenhalt), und weiss möglichst wenig über die Innereien anderer Dateien (lose Kopplung). Dann kann man eine Datei ändern, ohne dass anderswo etwas bricht.
+## 💡 Wusstest du?
+- Grosse Projekte wie der Linux-Kernel bestehen aus Zehntausenden Dateien, an denen Tausende Menschen gleichzeitig arbeiten. Das funktioniert nur, weil jede Datei eine klare Aufgabe hat.
 """,
 
     "bild": "mehrere_dateien.png",

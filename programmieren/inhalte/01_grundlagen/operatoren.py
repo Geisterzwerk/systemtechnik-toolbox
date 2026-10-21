@@ -8,6 +8,8 @@ THEMA = {
                    "&&", "||", "potenz", "hoch", "inkrement", "++", "+=", "rangfolge", "ternär"],
 
     "erklaerung": """
+## Stell dir vor …
+Die **Tasten auf einem Taschenrechner**: +, −, ×, ÷ verbinden zwei Zahlen zu einer neuen. In Programmen gibt es dazu noch Vergleiche (ist grösser als?) und Logik (und, oder, nicht). Operatoren sind diese Tasten – und genau wie beim Taschenrechner gilt Punkt vor Strich.
 ## Arten von Operatoren
 - **Arithmetisch:** rechnen (`+ - * / %`)
 - **Vergleich:** ergeben `true`/`false` (`== != < > <= >=`)
@@ -19,6 +21,12 @@ THEMA = {
 - **C++ / C#:** `7 / 2` = `3` wenn **beide** Werte int sind! Für 3.5 braucht es `7.0 / 2`.
 ## Kurzschluss-Auswertung (Short-Circuit)
 Bei `A && B` wird B **nicht mehr geprüft**, wenn A schon false ist. So kann man sicher schreiben: `if (liste != null && liste.Count > 0)`
+## 🔬 Genauer hingeschaut
+- **Negative Ganzzahl-Division:** Python rundet bei `//` immer nach unten: `-7 // 2` ergibt **−4**. C++ und C# schneiden ab: `-7 / 2` ergibt **−3**. Auch der Rest unterscheidet sich: `-7 % 2` ist in Python 1, in C++ und C# −1.
+- **Vorrang:** `*` vor `+`, Vergleiche vor `and`/`&&`, `and` vor `or`. Wer unsicher ist, setzt Klammern – das kostet nichts und macht den Code lesbarer.
+- **`=` und `==`:** Ein Gleichheitszeichen weist zu, zwei vergleichen. In C++ ist `if (x = 5)` gültig (und immer wahr) – ein klassischer Fehler, den der Compiler oft nur als Warnung meldet. Python verbietet das in einem `if`.
+## 💡 Wusstest du?
+- Python kennt kein `++` und `--`. `x++` ist dort ein Syntaxfehler, und `++x` ist zwar erlaubt, bedeutet aber nur zweimal „plus“ – der Wert ändert sich nicht. Man schreibt `x += 1`.
 """,
 
     "tabellen": [

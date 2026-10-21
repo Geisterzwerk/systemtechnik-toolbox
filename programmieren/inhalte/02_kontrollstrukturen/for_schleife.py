@@ -7,6 +7,8 @@ THEMA = {
                    "iterieren", "durchlaufen", "enumerate", "wiederholen", "for schleife", "for each"],
 
     "erklaerung": """
+## Stell dir vor …
+Du steigst eine **Treppe mit 10 Stufen** hinauf und zählst dabei: 1, 2, 3 … 10. Du weisst vorher genau, wie oft du einen Schritt machst. Das ist die for-Schleife: Sie wiederholt etwas eine bekannte Anzahl Mal oder für jedes Element einer Sammlung.
 ## Wann for?
 Wenn **vorher klar ist, wie oft** wiederholt wird, oder wenn man **alle Elemente** einer Liste bzw. eines Arrays durchgehen will.
 ## Die klassische Zählschleife (C++ / C#)
@@ -22,6 +24,12 @@ Python-`for` geht immer **über eine Sammlung**. Für Zahlen nimmt man `range()`
 - `range(10, 0, -1)` → 10 … 1 (rückwärts)
 ## foreach
 Alle Elemente einer Sammlung durchgehen, ohne Index: C# `foreach`, C++ range-based `for (auto x : liste)`, Python `for x in liste`.
+## 🔬 Genauer hingeschaut
+- **Das Ende ist exklusiv:** `range(0, 10)` liefert 0 bis 9, nicht 10. Genauso in C++/C#: `for (int i = 0; i < 10; i++)`. So stimmt die Anzahl (10) direkt mit der Zahl im Code überein.
+- **Liste nicht während des Durchlaufs ändern:** Wer in einer for-Schleife Elemente aus derselben Liste entfernt, überspringt Elemente oder bekommt einen Fehler. Besser eine neue Liste bauen oder über eine Kopie laufen.
+- **Python-Helfer:** `enumerate(liste)` liefert Index und Wert zusammen, `zip(a, b)` läuft über zwei Listen gleichzeitig. Damit braucht man fast nie `range(len(liste))`.
+## 💡 Wusstest du?
+- Der **Zaunpfahl-Fehler** (off-by-one): Wie viele Pfosten braucht ein 10 m langer Zaun mit einem Pfosten pro Meter? Nicht 10, sondern 11. Genau dieser Fehler passiert bei Schleifengrenzen ständig.
 """,
 
     "bild": "for_schleife.png",

@@ -7,6 +7,8 @@ THEMA = {
                    "kopfgesteuert", "wiederholen", "wile", "while schleife", "polling", "warten"],
 
     "erklaerung": """
+## Stell dir vor …
+Du stellst Wasser auf den Herd und **wartest, bis es kocht**. Wie lange das dauert, weisst du vorher nicht – du schaust einfach immer wieder nach. Die while-Schleife macht genau das: Sie wiederholt, solange eine Bedingung gilt, und hört auf, sobald sie nicht mehr gilt.
 ## Prinzip
 Die Bedingung wird **vor jedem Durchlauf** geprüft (kopfgesteuert). Ist sie gleich am Anfang falsch, läuft die Schleife **kein einziges Mal**.
 ## Wann while statt for?
@@ -16,6 +18,12 @@ Wenn man **nicht weiss, wie oft** wiederholt werden muss:
 - Hauptschleife eines Programms oder Mikrocontrollers (`while True` / `while (true)`)
 ## Endlosschleifen
 Wird die Bedingung nie falsch, läuft die Schleife ewig. Manchmal ist das gewollt (Server, Mikrocontroller-Loop, Menü). Dann braucht es aber einen Ausstieg mit `break`.
+## 🔬 Genauer hingeschaut
+- **Aktives Warten frisst Rechenzeit:** Eine Schleife, die nur ständig eine Bedingung prüft, lastet einen Prozessorkern voll aus. Mit einer kurzen Pause (`time.sleep(0.01)`) oder einem Ereignis statt dem Dauerprüfen bleibt der Rechner ruhig.
+- **Immer eine Notbremse:** Beim Warten auf ein Gerät oder eine Netzwerkantwort gehört ein **Timeout** dazu – sonst hängt das Programm für immer, wenn das Gerät nie antwortet.
+- **Kommazahl als Bedingung:** `while x != 1.0: x += 0.1` hört nie auf, weil x durch Rundungsfehler 1.0 nie genau trifft. Besser `while x < 1.0`.
+## 💡 Wusstest du?
+- In jedem Arduino-Programm steckt eine versteckte Endlosschleife: Das Hauptprogramm ruft deine Funktion `loop()` einfach immer und immer wieder auf.
 """,
 
     "bild": "while_schleife.png",

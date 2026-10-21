@@ -7,6 +7,8 @@ THEMA = {
                    "entscheidung", "wenn", "dann", "sonst", "if schleife", "abfrage", "condition"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Weggabelung** mit einem Schild: „Wenn es regnet, nimm den Weg links unter dem Dach, sonst den rechten durch den Park.“ Das Programm kommt an die Gabelung, prüft die Bedingung und geht genau einen Weg – nie beide.
 ## Prinzip
 `if` prüft eine **Bedingung**, also einen Ausdruck, der wahr oder falsch ist.
 - Ist sie **wahr**, wird der Block darunter ausgeführt.
@@ -15,6 +17,12 @@ THEMA = {
 Es wird **immer höchstens EIN Block** ausgeführt, und zwar der erste, dessen Bedingung zutrifft. Deshalb ist die Reihenfolge wichtig!
 ## Hinweis
 `if` ist **keine Schleife**. Der Block wird höchstens einmal ausgeführt. Wiederholungen macht man mit `for` oder `while`.
+## 🔬 Genauer hingeschaut
+- **Früh aussteigen statt tief verschachteln:** Statt drei verschachtelter `if` prüft man Fehlerfälle zuerst und verlässt die Funktion sofort (`return`). Der eigentliche Normalfall steht dann ohne Einrückung darunter.
+- **Was ist „wahr“?** In Python gelten `0`, `0.0`, `""`, `[]`, `{}` und `None` als falsch, alles andere als wahr. `if liste:` heisst also „wenn die Liste nicht leer ist“. C# verlangt dagegen echte `bool`-Werte.
+- **Kommazahlen nicht mit `==` vergleichen:** `if spannung == 3.3` kann wegen Rundungsfehlern falsch sein. Besser `abs(spannung - 3.3) < 0.001` oder in Python `math.isclose()`.
+## 💡 Wusstest du?
+- Für kurze Fälle gibt es eine Kurzform: in Python `x = "an" if aktiv else "aus"`, in C++ und C# `x = aktiv ? "an" : "aus";`.
 """,
 
     "bild": "if_else.png",

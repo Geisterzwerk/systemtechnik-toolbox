@@ -8,6 +8,8 @@ THEMA = {
                    "bauplan", "self", "this", "member", "feld", "struct"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Bauplan für ein Haus** ist noch kein Haus. Aber nach dem Plan kannst du viele Häuser bauen, jedes mit eigener Farbe und eigenen Bewohnern. Die Klasse ist der Bauplan, die Objekte sind die Häuser. Alle haben dieselbe Struktur, aber jedes hat seine eigenen Werte.
 ## Die Idee
 Bisher waren **Daten** (Variablen) und **Funktionen** getrennt. OOP packt beides zusammen: Ein **Objekt** weiss etwas (Attribute) und kann etwas (Methoden).
 - **Klasse** = Bauplan, z.B. "Temperatursensor"
@@ -24,6 +26,12 @@ Innerhalb einer Methode verweist `self` (Python) bzw. `this` (C++/C#) auf **das 
 - **Vererbung:** Eine Klasse übernimmt alles von einer anderen und erweitert es
 - **Polymorphie:** Gleicher Methodenaufruf, unterschiedliches Verhalten je nach Objekt
 - **Abstraktion:** Nur das Wichtige nach aussen zeigen, Details verstecken
+## 🔬 Genauer hingeschaut
+- **Gleich oder dasselbe?** Zwei Objekte können gleiche Werte haben und trotzdem zwei verschiedene Objekte sein. Python unterscheidet `==` (gleicher Inhalt) und `is` (dasselbe Objekt), C# `Equals` und `ReferenceEquals`.
+- **Schön ausgeben:** Damit `print(objekt)` etwas Sinnvolles zeigt statt einer Speicheradresse, definiert man in Python `__str__` bzw. `__repr__`, in C# `ToString()`.
+- **Weniger Tipparbeit:** Für Klassen, die vor allem Daten halten, erzeugt Python mit `@dataclass` Konstruktor, Vergleich und Ausgabe automatisch. C# hat dafür `record`.
+## 💡 Wusstest du?
+- Die erste objektorientierte Programmiersprache war **Simula 67** aus Norwegen – entwickelt, um Abläufe wie Warteschlangen und Verkehr zu simulieren.
 """,
 
     "bild": "klasse_objekt.png",

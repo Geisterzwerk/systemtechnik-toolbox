@@ -8,6 +8,8 @@ THEMA = {
                    "setprecision", "format", "konsole", "terminal"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Programm ist wie ein **Schalter am Bahnhof**: Du sagst etwas hinein (Eingabe), drinnen wird gearbeitet, und heraus kommt eine Antwort (Ausgabe). Ohne Ein- und Ausgabe würde ein Programm zwar rechnen – aber niemand würde je etwas davon merken.
 ## Ausgabe
 - **Python:** `print()`. Mehrere Werte mit Komma trennen, Formatierung mit **f-Strings**: `f"U = {u:.2f} V"`
 - **C++:** `std::cout << wert;`  Mit `<<` werden Teile aneinandergehängt, `"\\n"` oder `std::endl` macht eine neue Zeile.
@@ -17,6 +19,12 @@ Eingaben kommen **immer als Text** an und müssen für Berechnungen umgewandelt 
 - **Python:** `input("Frage: ")` gibt einen `str` zurück
 - **C++:** `std::cin >> zahl;` liest bis zum nächsten Leerzeichen. Für ganze Zeilen `std::getline(std::cin, text);`
 - **C#:** `Console.ReadLine()` gibt einen `string?` zurück (kann null sein)
+## 🔬 Genauer hingeschaut
+- **Eingaben sind immer Text:** `input()` in Python und `Console.ReadLine()` in C# liefern einen String – auch wenn jemand „42“ eintippt. Zum Rechnen muss man umwandeln und mit falschen Eingaben rechnen (siehe Typumwandlung und Fehlerbehandlung).
+- **Drei Datenströme:** Jedes Konsolenprogramm hat Standard-Eingabe (stdin), Standard-Ausgabe (stdout) und Standard-Fehlerausgabe (stderr). Fehlermeldungen gehören nach stderr – so bleiben sie sichtbar, auch wenn die normale Ausgabe in eine Datei umgeleitet wird.
+- **Puffer:** Ausgaben werden oft erst gesammelt und dann auf einmal geschrieben. Erscheint eine Ausgabe verspätet, hilft `print(..., flush=True)` bzw. `std::flush`.
+## 💡 Wusstest du?
+- Das berühmte erste Programm „Hello, World!“ stammt aus Lehrmaterial zur Programmiersprache C aus den 1970er-Jahren und wird seither in fast jeder Sprache als erstes Beispiel verwendet.
 """,
 
     "tabelle": {

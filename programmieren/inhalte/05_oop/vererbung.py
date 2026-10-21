@@ -8,6 +8,8 @@ THEMA = {
                    "override", "ueberschreiben", "überschreiben", "extends"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Fahrzeug** hat Räder und kann fahren. Ein **Auto** ist ein Fahrzeug, hat zusätzlich einen Motor. Ein **Velo** ist auch ein Fahrzeug, hat zusätzlich Pedale. Was alle Fahrzeuge gemeinsam haben, beschreibt man einmal in der Basisklasse – die Unterklassen erben es und ergänzen nur ihr Besonderes.
 ## Prinzip
 Viele Dinge haben Gemeinsamkeiten: Ein Temperatursensor und ein Drucksensor haben beide einen Namen, einen Wert und eine Einheit. Statt das doppelt zu programmieren:
 - **Basisklasse** (Ober-/Elternklasse) `Sensor` enthält alles Gemeinsame
@@ -23,6 +25,12 @@ Die Kindklasse ruft den Konstruktor der Basisklasse auf, damit deren Teil initia
 - **C#:** `: base(name)`
 ## Methoden überschreiben
 Die Kindklasse kann eine geerbte Methode **ersetzen** (override). Wie das Programm dann zur Laufzeit die richtige Methode wählt, erklärt das Thema **Polymorphie**.
+## 🔬 Genauer hingeschaut
+- **Komposition vor Vererbung:** Oft ist „hat ein“ besser als „ist ein“: Ein Auto *hat* einen Motor, statt *ein* Motor zu sein. Tiefe Vererbungsketten werden schnell unübersichtlich, weil man zum Verstehen einer Klasse alle Vorfahren kennen muss.
+- **Mehrfachvererbung:** Python und C++ erlauben, von mehreren Klassen zu erben. Python legt dabei eine feste Suchreihenfolge fest (MRO, anzeigen mit `Klasse.__mro__`). C# erlaubt nur eine Basisklasse, aber beliebig viele Interfaces.
+- **Die Basisklasse nicht vergessen:** Überschreibt eine Unterklasse den Konstruktor, muss sie den der Basisklasse selbst aufrufen (`super().__init__(...)` bzw. `: base(...)`), sonst fehlen die geerbten Attribute.
+## 💡 Wusstest du?
+- In Python erbt jede Klasse automatisch von `object`, in C# von `System.Object`. Darum hat jedes Objekt schon Methoden wie `__str__` bzw. `ToString()`, ohne dass man sie schreibt.
 """,
 
     "bild": "vererbung.png",

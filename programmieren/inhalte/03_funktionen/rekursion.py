@@ -7,6 +7,8 @@ THEMA = {
                    "abbruchbedingung", "basisfall", "stack overflow", "selbstaufruf"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **russische Matrjoschka**: Du öffnest eine Puppe, darin ist eine kleinere, darin eine noch kleinere … bis zur kleinsten, die sich nicht mehr öffnen lässt. Rekursion funktioniert genauso: Eine Funktion löst ein Problem, indem sie sich selbst mit einem kleineren Teil aufruft – bis zum einfachsten Fall (Abbruchbedingung).
 ## Prinzip
 Ein Problem wird auf eine **kleinere Version desselben Problems** zurückgeführt:
 - **Basisfall (Abbruchbedingung):** der einfachste Fall mit direkter Antwort, z.B. `0! = 1`
@@ -16,6 +18,12 @@ Jeder Aufruf belegt Platz auf dem **Stack**. Ohne Abbruchbedingung oder bei zu t
 Jede Rekursion kann auch mit einer Schleife geschrieben werden. Die Schleife ist oft schneller.
 ## Typische Einsätze
 Ordnerstrukturen durchsuchen (Ordner in Ordnern), Baumstrukturen, Sortierverfahren (Quicksort, Mergesort).
+## 🔬 Genauer hingeschaut
+- **Jeder Aufruf kostet Platz:** Jeder rekursive Aufruf legt seine Variablen auf den Stack. Python bricht standardmässig nach etwa **1000** verschachtelten Aufrufen mit `RecursionError` ab (`sys.getrecursionlimit()`).
+- **Doppelte Arbeit vermeiden:** Die naive Fibonacci-Rekursion berechnet dieselben Werte immer wieder und wird extrem langsam. Mit einem Zwischenspeicher (Memoization, in Python `@functools.lru_cache`) wird sie schnell.
+- **Oft geht es auch ohne:** Viele Rekursionen lassen sich als Schleife schreiben. Rekursion lohnt sich vor allem bei verschachtelten Strukturen wie Ordnerbäumen oder Ausdrücken mit Klammern.
+## 💡 Wusstest du?
+- Sucht man bei Google nach „Rekursion“ bzw. „recursion“, fragt die Suche: „Meintest du: Rekursion?“ – ein Insider-Witz der Entwickler.
 """,
 
     "beispiele": [

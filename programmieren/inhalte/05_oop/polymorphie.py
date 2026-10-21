@@ -8,6 +8,8 @@ THEMA = {
                    "pure virtual", "= 0", "vielgestaltigkeit", "dynamic dispatch", "duck typing"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Fernbedienung mit einer Play-Taste**: Drückst du sie beim Fernseher, läuft ein Film; beim Radio Musik; beim Beamer eine Präsentation. Die Taste ist immer dieselbe – was passiert, entscheidet das Gerät. Polymorphie heisst genau das: Ein Aufruf, verschiedene Objekte, jedes reagiert auf seine Weise.
 ## Die Idee
 Man hat eine Liste mit **verschiedenen** Geräten (Motor, Lampe, Ventil) und ruft bei allen `einschalten()` auf. **Jedes Gerät weiss selbst, was es dabei tun muss.** Der aufrufende Code muss den genauen Typ nicht kennen.
 Das macht Programme **erweiterbar**: Ein neues Gerät (z.B. eine Pumpe) braucht nur eine neue Klasse. Die Schleife, die alle einschaltet, bleibt unverändert.
@@ -20,6 +22,12 @@ Eine Basisklasse, von der man **keine Objekte erzeugen** kann. Sie gibt nur vor,
 Ein reiner **Vertrag**: "Jede Klasse, die mich umsetzt, hat diese Methoden." In C# sehr verbreitet (`interface IGeraet`), eine Klasse kann **mehrere** Interfaces umsetzen.
 ## Python: Duck Typing
 "Wenn es quakt wie eine Ente, ist es eine Ente." In Python funktioniert Polymorphie auch **ohne** gemeinsame Basisklasse. Es reicht, dass jedes Objekt die aufgerufene Methode hat.
+## 🔬 Genauer hingeschaut
+- **Überladen oder Überschreiben?** Überladen = mehrere Methoden mit gleichem Namen, aber anderen Parametern in derselben Klasse; der Compiler wählt beim Übersetzen. Überschreiben = eine Unterklasse ersetzt eine Methode der Basisklasse; welche läuft, entscheidet sich erst zur Laufzeit am echten Objekt.
+- **Ersetzbarkeitsprinzip:** Überall, wo ein Objekt der Basisklasse erwartet wird, muss auch ein Objekt der Unterklasse funktionieren, ohne Überraschungen. Eine Unterklasse, die eine geerbte Methode „verbietet“, verletzt dieses Prinzip (Liskov).
+- **In C++ braucht es `virtual`:** Nur Methoden, die in der Basisklasse als `virtual` markiert sind, werden zur Laufzeit am echten Objekt ausgewählt. In C# braucht es `virtual` und `override`, in Python ist jede Methode automatisch überschreibbar.
+## 💡 Wusstest du?
+- Das Wort kommt aus dem Griechischen: poly = viel, morphe = Gestalt – „Vielgestaltigkeit“.
 """,
 
     "beispiele": [

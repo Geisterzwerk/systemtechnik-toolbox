@@ -7,6 +7,8 @@ THEMA = {
                    "speicher", "wert", "initialisieren", "readonly", "zuweisen"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **beschriftete Schublade**: Auf dem Etikett steht ein Name (`spannung`), drin liegt ein Wert (`5.0`). Du kannst den Inhalt austauschen, der Name bleibt. In Python ist es eher ein **Namensschild**, das an einen Gegenstand gehängt wird – zwei Schilder können am selben Gegenstand hängen.
 ## Was ist eine Variable?
 Eine Variable ist ein **Name für einen Speicherplatz** im Arbeitsspeicher (RAM). Stell sie dir wie eine beschriftete Schublade vor: Der Name steht aussen, der Wert liegt drin.
 - **Deklarieren:** Die Variable anlegen (Name + in C++/C# auch den Typ)
@@ -20,6 +22,12 @@ Werte, die sich nie ändern dürfen (z.B. π, Maximalwerte):
 - **C++:** `const double PI = 3.14159;`  (oder `constexpr`)
 - **C#:** `const double PI = 3.14159;`
 - **Python:** Es gibt keine echten Konstanten. Man schreibt den Namen GROSS (`PI = 3.14159`) als Abmachung.
+## 🔬 Genauer hingeschaut
+- **Python: Namen zeigen auf Objekte:** `a = [1, 2]` und dann `b = a` erzeugt keine Kopie – beide Namen zeigen auf dieselbe Liste. Ändert man `b.append(3)`, sieht man die 3 auch in `a`. Bei Zahlen und Strings fällt das nicht auf, weil sie unveränderlich sind.
+- **Gross-/Kleinschreibung zählt:** `Spannung` und `spannung` sind zwei verschiedene Variablen – in allen drei Sprachen.
+- **Reservierte Wörter:** Namen wie `if`, `for`, `class` sind Schlüsselwörter und als Variablennamen verboten. In Python zeigt `import keyword; print(keyword.kwlist)` die vollständige Liste.
+## 💡 Wusstest du?
+- Gute Variablennamen sind wichtiger als viele Kommentare: `zeit_s` oder `strom_ma` sagt sofort, welche Einheit gemeint ist. Viele Fehler in technischer Software entstehen durch verwechselte Einheiten.
 """,
 
     "bild": "variable_speicher.png",

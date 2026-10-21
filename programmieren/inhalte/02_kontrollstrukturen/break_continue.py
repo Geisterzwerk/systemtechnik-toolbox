@@ -7,6 +7,8 @@ THEMA = {
                    "pass", "else", "for else", "vorzeitig"],
 
     "erklaerung": """
+## Stell dir vor …
+Du suchst in einem **Stapel Briefe** nach einer bestimmten Rechnung. Findest du sie, hörst du sofort auf zu suchen – das ist `break`. Ist ein Brief nur Werbung, legst du ihn ungelesen weg und nimmst den nächsten – das ist `continue`.
 ## break
 Beendet die **innerste** Schleife sofort. Das Programm macht nach der Schleife weiter.
 ## continue
@@ -14,6 +16,12 @@ Bricht nur den **aktuellen Durchlauf** ab und springt direkt zum nächsten.
 ## Python-Extra
 - `pass` ist ein leerer Befehl, ein Platzhalter, wo Python einen Block erwartet.
 - `for … else`: Der `else`-Block läuft nur, wenn die Schleife **ohne** break beendet wurde. Das ist praktisch für Suchen.
+## 🔬 Genauer hingeschaut
+- **Nur die innerste Schleife:** `break` verlässt nur die Schleife, in der es steht. Bei verschachtelten Schleifen läuft die äussere weiter. Lösungen: eine Merker-Variable, oder die Schleifen in eine Funktion packen und mit `return` aussteigen.
+- **Sparsam einsetzen:** Viele `break` und `continue` in einer langen Schleife machen den Ablauf schwer verständlich. Oft lässt sich die Bedingung direkt in den Schleifenkopf schreiben.
+- **`continue` in while-Schleifen:** Steht das Hochzählen am Ende des Schleifenkörpers, wird es durch `continue` übersprungen – und die Schleife läuft endlos. In `for`-Schleifen passiert das nicht.
+## 💡 Wusstest du?
+- 1968 schrieb Edsger Dijkstra den berühmten Artikel „Go To Statement Considered Harmful“. `break` und `continue` sind gezähmte Sprünge: Sie springen nur an klar definierte Stellen.
 """,
 
     "beispiele": [

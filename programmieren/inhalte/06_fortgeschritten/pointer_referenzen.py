@@ -9,6 +9,8 @@ THEMA = {
                    "garbage collector", "werttyp", "referenztyp", "id()"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Zettel mit einer Adresse**: Der Zettel ist nicht das Haus, aber er sagt dir, wo das Haus steht. Gibst du jemandem den Zettel, kann er zum selben Haus gehen und dort etwas verändern. Ein Pointer ist so ein Zettel: Er speichert die Adresse eines Wertes im Speicher, nicht den Wert selbst.
 ## Speicheradressen
 Jede Variable liegt an einer **Adresse** im Arbeitsspeicher, wie eine Hausnummer. Ein **Pointer (Zeiger)** ist eine Variable, die **eine Adresse speichert**, also auf eine andere Variable "zeigt".
 ## C++: Pointer und Referenzen
@@ -25,6 +27,12 @@ Hier gibt es (fast) keine Pointer. Dafür unterscheidet man:
 - **Werttypen** (C#: int, double, struct): Bei der Zuweisung wird **kopiert**
 - **Referenztypen** (C#: class, Arrays, List; **in Python ALLES**): Die Variable speichert nur einen **Verweis**. Die Zuweisung `b = a` kopiert den Verweis, und beide zeigen auf **dasselbe Objekt**!
 - Der **Garbage Collector** gibt nicht mehr benutzte Objekte automatisch frei.
+## 🔬 Genauer hingeschaut
+- **Die drei klassischen Pointer-Fehler:** Ein Nullzeiger zeigt nirgendwohin – darauf zugreifen bringt das Programm zum Absturz. Ein hängender Zeiger zeigt auf Speicher, der schon freigegeben ist. Und vergessenes `delete` lässt Speicher nie wieder frei (Speicherleck).
+- **Smart Pointer:** Modernes C++ verwendet statt rohem `new`/`delete` meist `std::unique_ptr` (genau ein Besitzer) und `std::shared_ptr` (mehrere Besitzer, zählt mit). Der Speicher wird automatisch freigegeben.
+- **C# und Python räumen selbst auf:** Ein Garbage Collector gibt Objekte frei, auf die nichts mehr zeigt. Referenzen gibt es dort trotzdem überall – nur ohne direkte Adressrechnung.
+## 💡 Wusstest du?
+- Der Informatiker Tony Hoare, der 1965 die Null-Referenz einführte, nannte sie später seinen „Milliarden-Dollar-Fehler“ – wegen all der Abstürze, die sie seither verursacht hat.
 """,
 
     "bild": "pointer.png",

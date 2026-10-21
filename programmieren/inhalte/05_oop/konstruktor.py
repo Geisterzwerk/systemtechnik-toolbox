@@ -8,6 +8,8 @@ THEMA = {
                    "dispose", "using", "raii", "klassenvariable", "static", "statisch"],
 
     "erklaerung": """
+## Stell dir vor …
+Beim **Einzug in eine neue Wohnung** wird zuerst eingerichtet: Möbel hinstellen, Namensschild an die Tür, Strom anmelden. Erst dann wohnt man richtig. Der Konstruktor ist dieser Einzug: Er bringt ein neues Objekt in einen gültigen Startzustand. Beim Auszug (Destruktor) wird wieder aufgeräumt.
 ## Konstruktor
 Eine spezielle Methode, die **automatisch beim Erzeugen** eines Objekts aufgerufen wird. Sie sorgt dafür, dass das Objekt von Anfang an in einem **gültigen Zustand** ist.
 - **Python:** `def __init__(self, ...)`
@@ -19,6 +21,12 @@ Wird aufgerufen, wenn das Objekt **zerstört** wird. Hier gibt man Ressourcen fr
 - **C# / Python:** Der **Garbage Collector** räumt irgendwann automatisch auf. Für ein sofortiges Aufräumen nutzt man `using` (C#, IDisposable) bzw. `with` (Python).
 ## Statische Member (Klassenvariablen)
 Diese gehören der **Klasse** und nicht einem einzelnen Objekt. Alle Objekte teilen sie, z.B. einen Zähler, wie viele Sensoren es gibt.
+## 🔬 Genauer hingeschaut
+- **Python: zwei Schritte:** Genau genommen erzeugt `__new__` das Objekt, und `__init__` richtet es nur ein. Im Alltag schreibt man fast immer nur `__init__`.
+- **C++: Aufräumen garantiert (RAII):** In C++ wird der Destruktor sofort aufgerufen, wenn ein Objekt seinen Gültigkeitsbereich verlässt. Darum bindet man Ressourcen wie Dateien an Objekte – sie werden automatisch und zuverlässig freigegeben.
+- **C#: Aufräumen mit `using`:** Der Garbage Collector entscheidet selbst, wann ein Objekt verschwindet. Für Dateien und Verbindungen verwendet man darum `IDisposable` und einen `using`-Block, der sofort aufräumt.
+## 💡 Wusstest du?
+- Pythons `with open(...) as f:` folgt derselben Idee wie RAII in C++: Am Ende des Blocks wird die Datei garantiert geschlossen – auch wenn dazwischen ein Fehler auftritt.
 """,
 
     "beispiele": [

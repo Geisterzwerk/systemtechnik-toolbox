@@ -8,6 +8,8 @@ THEMA = {
                    "zeichen", "escape", "unicode", "utf-8", "verketten", "concat"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Perlenkette**, bei der jede Perle ein Buchstabe ist. Du kannst die Perlen zählen, die dritte anschauen oder ein Stück der Kette abschneiden. Aber du kannst keine einzelne Perle austauschen – willst du etwas ändern, fädelst du eine neue Kette auf. So verhalten sich Strings in Python und C#.
 ## Was ist ein String?
 Eine **Folge von Zeichen**. Man kann ihn wie eine Liste mit Index ansprechen: `text[0]` ist das erste Zeichen.
 ## Unveränderlich (immutable)
@@ -15,6 +17,12 @@ In **Python** und **C#** kann ein String nicht verändert werden. Jede "Änderun
 ## Escape-Zeichen
 Sonderzeichen im Text werden mit einem Backslash geschrieben: `\\n` = neue Zeile, `\\t` = Tab, `\\"` = Anführungszeichen, `\\\\` = Backslash
 - Für Windows-Pfade praktisch: Python `r"C:\\temp"`, C# `@"C:\\temp"` (dabei werden Backslashes NICHT als Escape gelesen)
+## 🔬 Genauer hingeschaut
+- **Zeichen sind nicht Bytes:** `len("Grüsse")` ist in Python 6, in UTF-8 gespeichert braucht das Wort aber 7 Bytes, weil „ü“ zwei Bytes belegt. Beim Lesen und Schreiben von Dateien deshalb immer das Encoding angeben.
+- **Zusammensetzen in Schleifen:** `text += teil` in einer langen Schleife erzeugt jedes Mal einen neuen String. Schneller ist es, die Teile in einer Liste zu sammeln und am Ende `"".join(teile)` zu verwenden (in C#: `StringBuilder`).
+- **Gross/klein ignorieren:** Für Vergleiche ohne Rücksicht auf Gross- und Kleinschreibung beide Seiten umwandeln, in Python am gründlichsten mit `.casefold()`.
+## 💡 Wusstest du?
+- Ein einzelnes Emoji kann aus mehreren Zeichen bestehen: Das Familien-Emoji 👨‍👩‍👧 sind in Python 5 Zeichen – drei Personen und zwei unsichtbare Verbinder.
 """,
 
     "tabelle": {

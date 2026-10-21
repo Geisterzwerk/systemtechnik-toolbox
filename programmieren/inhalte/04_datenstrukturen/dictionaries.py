@@ -7,6 +7,8 @@ THEMA = {
                    "key", "value", "wert", "zuordnung", "nachschlagen", "json", "set", "menge"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Telefonbuch**: Du suchst nicht auf Seite 437, sondern nach dem Namen – und bekommst die Nummer. Ein Dictionary funktioniert genauso: Statt einer Positionsnummer verwendest du einen Schlüssel (z.B. `"spannung"`) und bekommst den zugehörigen Wert.
 ## Prinzip
 Statt über einen Index (0, 1, 2, …) greift man über einen **Schlüssel** zu, z.B. einen Namen:
 `farbcode["Rot"]` → `2`
@@ -18,6 +20,12 @@ Statt über einen Index (0, 1, 2, …) greift man über einen **Schlüssel** zu,
 - **C#:** `Dictionary<TKey, TValue>`
 ## Set (Menge)
 Wie ein Dictionary, aber nur mit Schlüsseln. Es speichert jeden Wert **nur einmal** und eignet sich gut zum Entfernen von Duplikaten. Python `set`, C++ `std::set`, C# `HashSet<T>`.
+## 🔬 Genauer hingeschaut
+- **Warum so schnell?** Aus dem Schlüssel wird ein Hashwert berechnet, der direkt auf die Speicherstelle zeigt. Das Nachschlagen dauert darum fast gleich lange, egal ob das Dictionary 10 oder 10 Millionen Einträge hat.
+- **Schlüssel müssen unveränderlich sein:** Zahlen, Strings und Tupel gehen, Listen nicht – würde sich der Schlüssel ändern, stimmte sein Hashwert nicht mehr.
+- **Sicher nachschlagen:** `d["x"]` wirft einen Fehler, wenn der Schlüssel fehlt. `d.get("x", 0)` liefert stattdessen einen Standardwert. In C# gibt es dafür `TryGetValue`.
+## 💡 Wusstest du?
+- Seit Python 3.7 behalten Dictionaries die Reihenfolge, in der die Einträge eingefügt wurden. Und das Datenformat **JSON**, in dem SystemLab Benutzerdaten speichert, sieht fast genauso aus wie ein Python-Dictionary.
 """,
 
     "beispiele": [

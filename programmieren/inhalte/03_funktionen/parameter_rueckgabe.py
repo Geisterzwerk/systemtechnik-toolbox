@@ -9,6 +9,8 @@ THEMA = {
                    "overloading", "kwargs", "args", "benannte parameter"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Bestellung im Restaurant**: Du gibst der Küche deine Wünsche (Parameter: „Pizza, scharf, gross“), die Küche arbeitet, und zurück kommt das Essen (Rückgabewert). Ob die Küche deine Original-Bestellung behält oder eine Kopie bekommt, ist der Unterschied zwischen Wert und Referenz.
 ## Parameter vs. Argument
 - **Parameter:** die Variable in der Definition: `def f(x)`
 - **Argument:** der konkrete Wert beim Aufruf: `f(5)`
@@ -24,6 +26,12 @@ Ein Parameter mit Standardwert darf beim Aufruf weggelassen werden. Solche Param
 - **C#:** Tupel `(double, double)` oder `out`-Parameter
 ## Überladen (Overloading)
 C++ und C# erlauben **mehrere Funktionen mit gleichem Namen**, aber unterschiedlichen Parametern. Python nicht. Dort nutzt man Standardwerte.
+## 🔬 Genauer hingeschaut
+- **Die Python-Falle mit Standardwerten:** `def f(liste=[])` erzeugt die Liste nur EINMAL, beim Definieren der Funktion. Jeder Aufruf ohne Argument benutzt dieselbe Liste – sie wächst von Aufruf zu Aufruf. Richtig: `def f(liste=None)` und in der Funktion `if liste is None: liste = []`.
+- **Benannte Argumente:** `widerstand(spannung=12, strom=0.02)` ist lesbarer als `widerstand(12, 0.02)` und schützt vor vertauschten Werten. Python und C# unterstützen das direkt.
+- **Beliebig viele Argumente:** In Python sammelt `*args` zusätzliche Positionsargumente in einem Tupel und `**kwargs` benannte Argumente in einem Dictionary.
+## 💡 Wusstest du?
+- Python ist weder rein „by value“ noch „by reference“: Übergeben wird ein Verweis auf das Objekt. Veränderliche Objekte (Listen) können darum in der Funktion verändert werden, unveränderliche (Zahlen, Strings) nicht.
 """,
 
     "beispiele": [

@@ -7,12 +7,20 @@ THEMA = {
                    "schleife", "loop", "eingabe wiederholen"],
 
     "erklaerung": """
+## Stell dir vor …
+Du **probierst zuerst** ein Stück Kuchen und fragst dann: „Noch eins?“ Das Probieren passiert mindestens einmal – erst danach wird entschieden, ob es weitergeht. Genau so arbeitet die do-while-Schleife: Der Körper läuft einmal, dann wird die Bedingung geprüft.
 ## Prinzip
 Die Bedingung wird **nach** dem Durchlauf geprüft (fussgesteuert). Der Block läuft deshalb **immer mindestens einmal**.
 ## Typischer Einsatz
 Eingaben abfragen, **bis** sie gültig sind. Man muss ja zuerst mindestens einmal fragen.
 ## Python
 Python hat **kein do-while**. Man baut es mit `while True` und `break` am Ende nach.
+## 🔬 Genauer hingeschaut
+- **Fussgesteuert:** Die Prüfung steht am Ende. Darum eignet sich do-while immer dann, wenn man erst etwas tun muss, bevor man prüfen kann – z.B. eine Eingabe lesen und dann kontrollieren, ob sie gültig ist.
+- **Semikolon nicht vergessen:** In C++ und C# endet `do { … } while (bedingung);` mit einem Semikolon – ein häufiger Syntaxfehler.
+- **Gleichwertig umbauen:** Jede do-while-Schleife lässt sich als `while (true) { …; if (!bedingung) break; }` schreiben. So macht man es in Python.
+## 💡 Wusstest du?
+- Python hat bewusst keine do-while-Schleife. Ein Vorschlag dafür (PEP 315) wurde abgelehnt – die Variante mit `while True` und `break` gilt als lesbar genug.
 """,
 
     "bild": "do_while.png",

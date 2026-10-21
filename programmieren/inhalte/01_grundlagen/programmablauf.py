@@ -7,6 +7,8 @@ THEMA = {
                    "programmaufbau", "einstieg", "start", "anfang", "runtime", ".net", "exe"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Kochrezept**: Schritt 1, Schritt 2, Schritt 3 – von oben nach unten. Manchmal steht da „wenn der Teig zu fest ist, Wasser dazu“ (Verzweigung) oder „10 Minuten rühren“ (Wiederholung). Ein Programm wird genauso abgearbeitet – nur sehr schnell und ohne zu fragen, ob ein Schritt Sinn ergibt.
 ## Vom Quellcode zum laufenden Programm
 Ein Computer versteht nur **Maschinencode** (Nullen und Einsen). Der Code, den wir schreiben (Quellcode), muss also übersetzt werden. Dafür gibt es zwei Wege:
 - **Kompilieren (C++):** Ein Compiler übersetzt den ganzen Code VOR dem Start in eine `.exe`. Fehler werden schon beim Kompilieren gefunden. Das Programm ist sehr schnell.
@@ -18,6 +20,12 @@ Ein Computer versteht nur **Maschinencode** (Nullen und Einsen). Der Code, den w
 ## Statement-Ende und Blöcke
 - **Python:** Zeilenende = Befehlsende. Blöcke werden durch **Einrückung** gebildet.
 - **C++ / C#:** Jeder Befehl endet mit `;`. Blöcke stehen in geschweiften Klammern `{ }`.
+## 🔬 Genauer hingeschaut
+- **Drei Wege zum laufenden Programm:** C++ wird vorher vollständig in Maschinencode übersetzt (kompiliert). C# wird in eine Zwischensprache übersetzt, die beim Start von der .NET-Laufzeit in Maschinencode umgewandelt wird (JIT). Python übersetzt den Code in Bytecode und führt diesen in einem Interpreter aus.
+- **Fehler zu verschiedenen Zeiten:** Ein Compiler findet Tippfehler und viele Typfehler, bevor das Programm läuft. In Python fallen manche Fehler erst auf, wenn die betroffene Zeile wirklich ausgeführt wird – darum sind Tests dort besonders wichtig.
+- **Einrückung ist Syntax:** In Python bestimmt die Einrückung, was zu einem Block gehört. In C++ und C# tun das die geschweiften Klammern – Einrückung ist dort nur für Menschen.
+## 💡 Wusstest du?
+- Die Ordner `__pycache__` im SystemLab-Projekt enthalten den Bytecode, den Python beim ersten Import erzeugt. Beim nächsten Start wird er wiederverwendet, solange sich die Quelldatei nicht geändert hat.
 """,
 
     "bild": "programmablauf.png",

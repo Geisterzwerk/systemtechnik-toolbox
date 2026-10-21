@@ -8,6 +8,8 @@ THEMA = {
                    "__", "readonly", "validieren"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Kaffeeautomat**: Aussen gibt es Knöpfe und einen Münzschlitz – das darfst du benutzen. Das Innenleben mit Heizung, Pumpe und Kasse ist verschlossen. So kann niemand aus Versehen die Temperatur verstellen oder Geld herausnehmen. Kapselung macht dasselbe mit Objekten: Nur die vorgesehenen Methoden sind von aussen erreichbar.
 ## Warum kapseln?
 Stell dir einen Motor mit dem Attribut `drehzahl` vor. Wenn jeder direkt `motor.drehzahl = 99999` schreiben kann, gibt es keine Kontrolle. Kapselung heisst:
 - Attribute sind **privat**, also von aussen nicht direkt erreichbar
@@ -23,6 +25,12 @@ Python hat **kein echtes private**. Es gibt nur Konventionen:
 - `_wert` (ein Unterstrich): "intern, bitte nicht von aussen benutzen"
 - `__wert` (zwei Unterstriche): Der Name wird verschleiert (Name Mangling), der Zugriff ist dadurch erschwert
 - `@property` erlaubt Getter und Setter, die sich wie normale Attribute anfühlen
+## 🔬 Genauer hingeschaut
+- **Regeln, die immer gelten:** Kapselung schützt sogenannte Invarianten – z.B. „der Kontostand wird nie negativ“ oder „der Widerstand ist immer grösser als 0“. Weil nur die eigenen Methoden die Werte ändern dürfen, reicht es, die Regel dort zu prüfen.
+- **Properties:** Python (`@property`) und C# (`get`/`set`) erlauben, ein Attribut wie eine Variable zu benutzen und trotzdem beim Setzen zu prüfen. Von aussen sieht es aus wie `r.ohm = 100`, innen läuft eine Prüfung.
+- **Python vertraut dir:** Ein führender Unterstrich (`_wert`) heisst nur „bitte nicht von aussen benutzen“. Zwei Unterstriche (`__wert`) benennen das Attribut intern um – ein echtes Verbot gibt es in Python nicht.
+## 💡 Wusstest du?
+- Das klassische Lehrbeispiel ist das **Bankkonto**: Der Kontostand ist privat, und nur `einzahlen()` und `abheben()` dürfen ihn ändern – mit Prüfung, ob genug Geld da ist.
 """,
 
     "tabelle": {

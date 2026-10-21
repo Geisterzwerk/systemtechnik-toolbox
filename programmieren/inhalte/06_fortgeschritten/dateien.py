@@ -8,6 +8,8 @@ THEMA = {
                    "streamwriter", "readalllines", "pfad", "path", "with", "anhaengen", "append"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Aktenschrank**: Du öffnest eine Schublade, nimmst einen Ordner heraus, liest oder schreibst darin – und am Ende legst du ihn zurück und schliesst die Schublade. Vergisst du das Schliessen, bleibt der Ordner blockiert und andere kommen nicht dran. Dateien funktionieren genauso: öffnen, lesen oder schreiben, schliessen.
 ## Dateimodi
 - **Lesen** (`"r"`): Die Datei muss existieren
 - **Schreiben** (`"w"`): erstellt die Datei neu, **ein bestehender Inhalt wird gelöscht!**
@@ -23,6 +25,12 @@ Eine offene Datei blockiert sie für andere Programme, und Daten landen evtl. ni
 - **JSON:** strukturierte Daten (wie ein Dictionary). Ideal für Einstellungen und Konfigurationen.
 ## Encoding
 Immer `utf-8` angeben, sonst werden Umlaute (ä, ö, ü, °) unter Windows falsch gespeichert.
+## 🔬 Genauer hingeschaut
+- **Pfade sicher bauen:** Windows trennt Ordner mit `\\`, Linux mit `/`. In Python verbindet `pathlib.Path("daten") / "werte.json"` Pfade passend fürs System. Bei Windows-Pfaden im Code hilft ein Raw-String `r"C:\\daten"`, damit `\\d` nicht als Sonderzeichen gelesen wird.
+- **Sicher speichern:** Stürzt ein Programm genau beim Schreiben ab, ist die Datei halb geschrieben und kaputt. Sicherer: zuerst in eine temporäre Datei schreiben und diese dann in einem Schritt umbenennen (`os.replace`). Dann gibt es entweder die alte oder die neue Datei – nie eine halbe.
+- **`w` löscht sofort:** Öffnen mit `"w"` leert die Datei schon beim Öffnen, nicht erst beim Schreiben. Wer anhängen will, nimmt `"a"`.
+## 💡 Wusstest du?
+- Windows beendet Textzeilen mit zwei Zeichen (`\\r\\n`, CRLF), Linux und macOS mit einem (`\\n`, LF). Darum meldet Git manchmal „LF will be replaced by CRLF“ – es gleicht die Zeilenenden an.
 """,
 
     "beispiele": [
