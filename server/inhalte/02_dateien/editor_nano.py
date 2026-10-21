@@ -11,6 +11,8 @@ THEMA = {
                    "konfiguration bearbeiten", "sudoedit", ":wq", ":q!", "aus vim raus"],
 
     "erklaerung": """
+## Stell dir vor …
+**nano** ist wie ein einfacher Notizblock: Aufschlagen, schreiben, speichern – die wichtigsten Befehle stehen unten am Rand. **vim** ist eher ein Profi-Werkzeug mit vielen Modi: sehr mächtig, aber wer es nicht kennt, findet nicht einmal den Ausgang.
 ## nano – der einfache Editor
 `nano datei` öffnet die Datei. Unten stehen die wichtigsten Kürzel – **^** bedeutet **Ctrl**, **M-** bedeutet **Alt**.
 - **Ctrl + O**, Enter – speichern („Write Out“)
@@ -28,6 +30,12 @@ Manche Befehle (z.B. `crontab -e` beim ersten Mal, `git commit`) öffnen **vim**
 - **:wq** + Enter → speichern und beenden
 - **:q!** + Enter → beenden **ohne** Speichern (der Notausgang)
 Standard-Editor dauerhaft auf nano stellen: `sudo update-alternatives --config editor` bzw. `select-editor`.
+## 🔬 Genauer hingeschaut
+- **Die Zeichen unten lesen:** `^` bedeutet Ctrl, `M-` bedeutet Alt. `^O` ist also Ctrl+O (speichern), `^X` Ctrl+X (beenden).
+- **Zeilennummern:** `nano -l datei` zeigt Zeilennummern an – praktisch, wenn eine Fehlermeldung sagt „Fehler in Zeile 42“. Mit Ctrl+_ springt man direkt zu einer Zeile.
+- **Für sudo-Rechte gibt es `visudo`:** Die sudo-Konfiguration nie direkt bearbeiten. `visudo` prüft die Syntax vor dem Speichern – ein Fehler dort könnte sonst alle Admin-Rechte sperren.
+## 💡 Wusstest du?
+- Die Frage „How do I exit Vim?“ gehört zu den meistaufgerufenen Fragen auf Stack Overflow – sie wurde millionenfach angesehen. Die Antwort: `Esc`, dann `:q!` und Enter.
 """,
 
     "befehle": [

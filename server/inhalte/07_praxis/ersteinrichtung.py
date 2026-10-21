@@ -12,6 +12,8 @@ THEMA = {
                    "proxmox vm", "qemu-guest-agent"],
 
     "erklaerung": """
+## Stell dir vor …
+Beim **Einzug in eine neue Wohnung** wechselst du zuerst die Schlösser, bevor du die Möbel hineinstellst – wer weiss, wer noch einen Schlüssel hat. Bei einem neuen Server ist es dasselbe: Erst Zugänge absichern und aktualisieren, dann Dienste installieren.
 ## Die Reihenfolge ist wichtig
 Erst **Zugang sichern** (Benutzer, Schlüssel), dann **zumachen** (SSH härten, Firewall), dann **einrichten**. Wer die Firewall vor dem SSH-Schlüssel einschaltet oder den Passwort-Login abschaltet, bevor der Schlüssel funktioniert, sperrt sich aus.
 ## Die Checkliste
@@ -26,6 +28,12 @@ Erst **Zugang sichern** (Benutzer, Schlüssel), dann **zumachen** (SSH härten, 
 - ☐ 9. Bei Proxmox-VM: **qemu-guest-agent** installieren
 - ☐ 10. **Backup** einrichten und **Snapshot** des sauberen Grundzustands
 - ☐ 11. Alles dokumentieren: IP, Zweck, Benutzer, offene Ports
+## 🔬 Genauer hingeschaut
+- **Name und Zeit:** Einen sprechenden Hostnamen setzen (`hostnamectl set-hostname`) und die richtige Zeitzone (`timedatectl set-timezone Europe/Zurich`). Eine korrekte Uhr ist wichtig für Logs, Zertifikate und Cronjobs.
+- **Alles aufschreiben:** Jede Änderung mit Datum notieren – welches Paket, welche Datei, welche Einstellung. Wer den Server in einem Jahr neu aufsetzen muss, ist dafür dankbar.
+- **Wiederholbar machen:** Wer mehrere Server gleich einrichten will, schreibt die Schritte als Skript oder verwendet Werkzeuge wie Ansible („Infrastruktur als Code“).
+## 💡 Wusstest du?
+- Ein frisch installierter Server ist selten auf dem neuesten Stand: Das Installationsabbild ist oft Monate alt. Darum ist `apt update && apt upgrade` immer einer der allerersten Schritte.
 """,
 
     "beispiele": [

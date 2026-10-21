@@ -12,6 +12,8 @@ THEMA = {
                    "relativ", "home", "tilde"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Baum, der auf dem Kopf steht**: Ganz oben ist die Wurzel `/`, daraus wachsen Äste (Ordner), daran wieder kleinere Äste und Blätter (Dateien). Es gibt nur diesen einen Baum – auch eine zweite Festplatte oder ein USB-Stick wird als Ast irgendwo angehängt, nicht als eigener Baum.
 ## Alles beginnt bei /
 Linux hat **keine Laufwerksbuchstaben**. Es gibt einen einzigen Baum, der bei **/** (Root, „Wurzel“) beginnt. Weitere Festplatten und USB-Sticks werden in einen Ordner **eingehängt** (gemountet), z.B. `/mnt/daten`.
 ## Alles ist eine Datei
@@ -24,6 +26,12 @@ Einstellungen sind Textdateien (meist in `/etc`), Festplatten erscheinen als Dat
 - **Konfiguration ändern?** → `/etc`
 - **Etwas geht nicht?** → Logs in `/var/log` (bzw. `journalctl`)
 - **Speicher voll?** → meist `/var` (Logs, Docker, Datenbanken) oder `/home`
+## 🔬 Genauer hingeschaut
+- **Ordner, die gar keine Dateien enthalten:** `/proc` und `/sys` sind virtuell – der Kernel erzeugt ihren Inhalt beim Lesen. `cat /proc/cpuinfo` zeigt den Prozessor, `cat /proc/meminfo` den Speicher.
+- **Ein Standard für alle:** Wo was liegt, beschreibt der Filesystem Hierarchy Standard (FHS). Darum findet man Konfigurationen auf fast jedem Linux in `/etc` und Logs in `/var/log`.
+- **`/tmp` ist flüchtig:** Was dort liegt, kann beim Neustart oder nach einiger Zeit automatisch gelöscht werden – nie etwas Wichtiges dort ablegen.
+## 💡 Wusstest du?
+- Linux kennt keine Laufwerksbuchstaben wie C: oder D:. Jedes Laufwerk wird an einer Stelle im einen grossen Baum „eingehängt“ (mount).
 """,
 
     "tabellen": [

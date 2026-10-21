@@ -11,6 +11,8 @@ THEMA = {
                    "wc", "zeilen zählen", "diff", "vergleichen", "file", "stat"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **dickes Buch**: Manchmal willst du nur die ersten Seiten sehen (`head`), manchmal nur die letzten (`tail`), manchmal in Ruhe darin blättern und etwas suchen (`less`). Und manchmal kippst du den ganzen Inhalt auf einmal auf den Tisch (`cat`) – bei einem kurzen Text praktisch, bei einem dicken Buch ein Chaos.
 ## Welcher Befehl wofür?
 - **`cat`** – gibt die ganze Datei aus. Gut für kurze Dateien, bei langen rauscht alles durch.
 - **`less`** – seitenweise lesen, suchen, blättern. **Standard für alles, was länger ist.** Verändert nichts.
@@ -18,6 +20,12 @@ THEMA = {
 - **`tail -f`** – „follow“: zeigt neue Zeilen **live**, sobald sie geschrieben werden. Perfekt, um ein Log zu beobachten, während man einen Dienst neu startet.
 ## Lesen statt Bearbeiten
 Zum **Anschauen** immer `less` oder `cat` verwenden, nicht `nano`. So kann man eine Konfiguration nicht aus Versehen verändern.
+## 🔬 Genauer hingeschaut
+- **In less suchen:** `/wort` sucht vorwärts, `n` springt zum nächsten Treffer, `G` ans Ende, `g` an den Anfang, `q` beendet. Dieselben Tasten funktionieren in Man-Pages.
+- **Logs live mitlesen:** `tail -f /var/log/datei` zeigt laufend neue Zeilen, bis man mit Ctrl+C abbricht.
+- **Binärdateien:** `cat` auf eine Programmdatei oder ein Bild gibt wirre Zeichen aus und kann das Terminal durcheinanderbringen. Der Befehl `reset` stellt es wieder her.
+## 💡 Wusstest du?
+- `less` ist der Nachfolger von `more` – daher der Spruch „less is more“. Im Gegensatz zu `more` kann `less` auch rückwärts blättern.
 """,
 
     "befehle": [

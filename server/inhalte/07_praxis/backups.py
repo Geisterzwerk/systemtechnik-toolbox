@@ -12,6 +12,8 @@ THEMA = {
                    "offsite", "ransomware", "proxmox backup"],
 
     "erklaerung": """
+## Stell dir vor …
+Du hast einen **Ersatzschlüssel** für deine Wohnung. Liegt er in der Wohnung selbst, nützt er nichts, wenn du ausgesperrt bist. Liegt er bei den Nachbarn und bei deinen Eltern, bist du sicher. Backups sind dieser Ersatzschlüssel – und sie müssen an einem Ort liegen, der vom selben Unglück nicht getroffen wird.
 ## Die 3-2-1-Regel
 - **3** Kopien der Daten (Original + 2 Backups)
 - auf **2** verschiedenen Medien (z.B. Server-Platte + NAS)
@@ -26,6 +28,12 @@ Ein Proxmox-Snapshot liegt auf **derselben** Platte wie die VM. Stirbt die Platt
 - **Nicht nötig:** `/proc`, `/sys`, `/dev`, `/tmp`, `/run` und Programme (die installiert man neu)
 ## Wiederherstellen testen
 Mindestens einmal pro Quartal: eine Datei, einen Ordner **und** eine Datenbank aus dem Backup zurückholen – am besten in einer Test-VM. Viele merken erst im Ernstfall, dass das Backup seit Monaten leer war.
+## 🔬 Genauer hingeschaut
+- **Gegen Erpressungstrojaner:** Ransomware verschlüsselt alles, was sie erreichen kann – auch Backups auf einem verbundenen Laufwerk. Mindestens eine Kopie sollte darum offline oder unveränderbar sein.
+- **Datenbanken richtig sichern:** Die Dateien einer laufenden Datenbank einfach zu kopieren kann ein inkonsistentes Backup ergeben. Besser einen Export des Datenbank-Programms verwenden (z.B. `pg_dump`, `mysqldump`).
+- **Auswärtige Backups verschlüsseln:** Liegt ein Backup bei einem fremden Anbieter, sollte es verschlüsselt sein – mit einem Schlüssel, der nicht nur auf dem gesicherten Server liegt.
+## 💡 Wusstest du?
+- Unter Admins heisst es: „Ein Backup, das nie wiederhergestellt wurde, ist kein Backup – sondern eine Hoffnung.“ Erst ein erfolgreicher Test beweist, dass es funktioniert.
 """,
 
     "befehle": [

@@ -12,6 +12,8 @@ THEMA = {
                    "eigener dienst", "service datei"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Hotel hat Angestellte, die **im Hintergrund** arbeiten: Der Hauswart heizt, die Wäscherei wäscht, die Rezeption nimmt Anrufe an – ohne dass ein Gast sie darum bitten muss. Dienste sind diese Angestellten des Servers, und `systemctl` ist die Personalabteilung, die sie startet, stoppt und überwacht.
 ## Was ist ein Dienst?
 Ein **Dienst (Service, Daemon)** ist ein Programm, das im Hintergrund läuft – ohne dass jemand angemeldet ist: SSH-Server, Webserver, Datenbank, Firewall. Auf Ubuntu verwaltet **systemd** alle Dienste, bedient wird es mit **`systemctl`**.
 ## Laufen jetzt vs. beim Booten
@@ -25,6 +27,12 @@ Das sind zwei **unabhängige** Dinge:
 Bei Diensten, die man selbst gerade benutzt (z.B. **ssh**), ist **reload** der sichere Weg.
 ## Status lesen
 `systemctl status nginx` zeigt: **Active: active (running)** = läuft · **inactive (dead)** = gestoppt · **failed** = abgestürzt. Darunter stehen die letzten Log-Zeilen – oft steht der Fehler direkt da.
+## 🔬 Genauer hingeschaut
+- **Einstellungen sauber ändern:** Statt die mitgelieferte Unit-Datei zu bearbeiten, legt `sudo systemctl edit dienst` eine Ergänzung an, die bei Updates erhalten bleibt. Nach Änderungen an Unit-Dateien braucht es `sudo systemctl daemon-reload`.
+- **Automatisch neu starten:** Mit `Restart=on-failure` in der Unit-Datei startet systemd einen abgestürzten Dienst selbst neu.
+- **Was ist alles kaputt?** `systemctl --failed` listet alle Dienste, die nicht laufen, obwohl sie sollten.
+## 💡 Wusstest du?
+- Hintergrundprogramme heissen unter Unix **Daemons** (z.B. `sshd`, das d am Ende). Der Begriff stammt aus den 1960er-Jahren und spielt auf einen „Dämon“ aus einem Gedankenexperiment der Physik an, der unsichtbar im Hintergrund arbeitet.
 """,
 
     "befehle": [

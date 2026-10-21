@@ -12,6 +12,8 @@ THEMA = {
                    "was ist ein server", "terminal", "konsole", "platzhalter", "glossar", "begriffe", "start"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Server ist wie eine **Restaurantküche ohne Gastraum**: Dort wird rund um die Uhr gearbeitet, aber niemand sitzt davor. Du gibst deine Bestellungen durch ein kleines Fenster herein – das Terminal – und bekommst die Antwort als Text zurück. Bildschirm, Maus und bunte Fenster braucht die Küche nicht.
 ## Was ist ein Server?
 Ein **Server** ist ein Computer, der Dienste für andere bereitstellt: eine Webseite, Dateien, eine Datenbank, eine Hausautomation. Meist hat er **keinen Bildschirm** – man bedient ihn über das Netzwerk von seinem eigenen PC aus.
 Auf den meisten Servern läuft **Linux** (z.B. Ubuntu oder Debian). Statt mit der Maus arbeitet man mit **Befehlen**, die man im **Terminal** eintippt.
@@ -46,6 +48,11 @@ Der Text vor dem Befehl (z.B. `benutzer@srv01:~$`) ist der **Prompt** – den ti
 2. Kategorie **Konsole & SSH**: Terminal, Verbinden, Hilfe finden.
 3. Kategorie **Dateien & Navigation**: navigieren, anzeigen, bearbeiten.
 4. Erst danach Benutzer, Rechte, Dienste und Sicherheit.
+## 🔬 Genauer hingeschaut
+- **Ohne grafische Oberfläche:** Server laufen meist „headless“, also ohne Desktop. Das spart Arbeitsspeicher und Rechenzeit und bietet Angreifern weniger Software, in der Fehler stecken könnten.
+- **LTS-Versionen:** Für Server nimmt man bei Ubuntu die **LTS**-Versionen (Long Term Support, z.B. 24.04). Sie erscheinen alle zwei Jahre im April und bekommen mindestens fünf Jahre lang Sicherheitsupdates.
+## 💡 Wusstest du?
+- Seit November 2017 laufen **alle** 500 schnellsten Supercomputer der Welt mit Linux – und auch der grösste Teil der Webserver im Internet.
 """,
 
     "befehle": [

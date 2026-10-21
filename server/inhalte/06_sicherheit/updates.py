@@ -12,6 +12,8 @@ THEMA = {
                    "release upgrade", "ubuntu pro", "esm", "livepatch", "support ende"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Schlüsseldienst warnt: Von deinem Türschloss sind **Nachschlüssel im Umlauf**. Du kannst hoffen, dass niemand vorbeikommt – oder das Schloss austauschen. Sicherheitsupdates sind dieser Schlosstausch. Sobald eine Lücke bekannt ist, suchen Angreifer gezielt nach Servern, die sie noch nicht geschlossen haben.
 ## Warum Updates Sicherheit sind
 Sobald eine Lücke veröffentlicht ist, suchen Bots **innerhalb von Stunden** nach verwundbaren Servern. Ein Update ist oft der einzige Schutz. Deshalb: **Sicherheitsupdates automatisch**, den Rest regelmässig von Hand.
 ## unattended-upgrades
@@ -20,6 +22,12 @@ Auf Ubuntu Server ist **unattended-upgrades** vorinstalliert und installiert tä
 Kernel-Updates wirken erst nach einem Neustart. Ubuntu zeigt beim Login `*** System restart required ***`. **needrestart** meldet nach `apt upgrade`, welche Dienste neu gestartet werden sollten.
 ## Release-Upgrade (z.B. 22.04 → 24.04)
 Ein Wechsel der Ubuntu-Version (`do-release-upgrade`) ist ein grosser Eingriff: **vorher Backup/Snapshot**, in **tmux**, und am besten erst, wenn die neue Version ein paar Monate alt ist (ab x.04.1). LTS-Versionen haben 5 Jahre Standard-Support (mit Ubuntu Pro bis 10+ Jahre).
+## 🔬 Genauer hingeschaut
+- **Welche Dienste müssen neu starten?** Nach einem Update läuft ein Dienst oft noch mit der alten Programmversion im Speicher. Ubuntu meldet das mit **needrestart**; erst der Neustart des Dienstes macht das Update wirksam.
+- **Kernel ohne Neustart:** Mit Livepatch lassen sich bei Ubuntu wichtige Kernel-Sicherheitskorrekturen ohne Neustart einspielen. Ein regelmässiger Neustart bleibt trotzdem sinnvoll.
+- **LTS-Rhythmus:** Ubuntu-LTS-Versionen erscheinen alle zwei Jahre (z.B. 22.04, 24.04) und erhalten fünf Jahre Standard-Updates. Danach muss man auf die nächste Version wechseln.
+## 💡 Wusstest du?
+- Die Lücke **Heartbleed** in OpenSSL (2014) erlaubte, geheime Daten aus dem Speicher von Servern auszulesen. Betroffen war ein grosser Teil der verschlüsselten Webserver – geschützt war, wer schnell aktualisierte.
 """,
 
     "befehle": [

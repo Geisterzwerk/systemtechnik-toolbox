@@ -11,6 +11,8 @@ THEMA = {
                    "dokumentation", "was macht", "optionen"],
 
     "erklaerung": """
+## Stell dir vor …
+Im **Handschuhfach jedes Autos** liegt die Bedienungsanleitung. Niemand liest sie von vorne bis hinten – aber wenn eine Warnlampe leuchtet, schaut man genau dort nach. Linux hat zu fast jedem Befehl so eine Anleitung eingebaut, direkt im Terminal.
 ## Drei Wege zur Hilfe
 - **`befehl --help`** – kurze Übersicht aller Optionen, direkt in der Konsole. Der schnellste Weg.
 - **`man befehl`** – das ausführliche Handbuch (Manual Page). Blättern mit Leertaste, suchen mit `/wort`, beenden mit **q**.
@@ -22,6 +24,11 @@ Du weisst, **was** du willst, aber nicht **wie** der Befehl heisst? `apropos sti
 - **DESCRIPTION:** was der Befehl macht, alle Optionen
 - **EXAMPLES:** (ganz unten, nicht immer vorhanden) – oft der hilfreichste Teil: `G` springt ans Ende
 - Die Zahl in Klammern ist der Abschnitt: `passwd(1)` = Befehl, `passwd(5)` = Aufbau der Datei /etc/passwd → `man 5 passwd`
+## 🔬 Genauer hingeschaut
+- **Man-Pages haben Abschnitte:** 1 = Befehle für alle, 5 = Dateiformate, 8 = Befehle für Admins. Dasselbe Wort kann in mehreren Abschnitten vorkommen: `man crontab` erklärt den Befehl, `man 5 crontab` das Format der Datei.
+- **Eingebaute Befehle:** Einige Befehle wie `cd` gehören direkt zur Shell und haben keine eigene Man-Page. Für sie gibt es `help cd`.
+## 💡 Wusstest du?
+- Die Man-Pages gibt es seit der allerersten Unix-Version von 1971 – das „Unix Programmer's Manual“ war von Anfang an Teil des Systems.
 """,
 
     "befehle": [

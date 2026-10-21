@@ -11,6 +11,8 @@ THEMA = {
                    "fehlermeldung", "protokoll", "logrotate", "boot log", "journal grösse", "vacuum"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Schiffslogbuch**: Darin steht, was wann passiert ist – Kurswechsel, Wetter, Zwischenfälle. Wenn später etwas schiefgeht, schaut man genau dort nach. Logs sind das Logbuch des Servers: Jeder Dienst schreibt hinein, was er tut und was schiefläuft.
 ## Zwei Orte für Logs
 - **systemd-Journal** – alle Dienste, Kernel und Bootvorgänge, gelesen mit **`journalctl`**. Kann filtern nach Dienst, Zeit, Wichtigkeit.
 - **Textdateien in `/var/log`** – klassisch, werden von vielen Programmen zusätzlich geschrieben (`syslog`, `auth.log`, Webserver-Logs).
@@ -25,6 +27,12 @@ THEMA = {
 0 emerg · 1 alert · 2 crit · **3 err** · 4 warning · 5 notice · 6 info · 7 debug. `-p err` zeigt 0 bis 3.
 ## Logs werden automatisch aufgeräumt
 **logrotate** komprimiert alte Logs (`syslog.2.gz`) und löscht sehr alte. Das Journal begrenzt sich selbst auf einen Anteil der Festplatte.
+## 🔬 Genauer hingeschaut
+- **Was war vor dem Absturz?** `journalctl -b -1` zeigt die Meldungen des **vorherigen** Starts – ideal, wenn der Server unerwartet neu gestartet hat. `journalctl --list-boots` listet alle gespeicherten Starts.
+- **Zeitfenster eingrenzen:** `journalctl --since "10 min ago"` oder `--since "2026-10-21 08:00" --until "09:00"` statt sich durch Tausende Zeilen zu scrollen.
+- **Zeitzone prüfen:** Stimmt die Zeitzone des Servers nicht, passen die Zeiten im Log nicht zu dem, was man erlebt hat. `timedatectl` zeigt sie an.
+## 💡 Wusstest du?
+- Das Wort „Log“ kommt aus der Seefahrt: Mit einem Holzstück (log) an einer Leine mass man die Geschwindigkeit des Schiffs und trug sie ins Logbuch ein.
 """,
 
     "befehle": [

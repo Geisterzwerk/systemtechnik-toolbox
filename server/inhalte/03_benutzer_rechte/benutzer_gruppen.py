@@ -12,6 +12,8 @@ THEMA = {
                    "/etc/group", "sperren", "lock", "dienstkonto", "chage"],
 
     "erklaerung": """
+## Stell dir vor …
+In einer Firma hat jede Person einen **Ausweis** (Benutzer) und gehört zu Abteilungen (Gruppen). Türen öffnen sich je nach Ausweis oder Abteilung. Linux funktioniert genauso: Jede Datei gehört einem Benutzer und einer Gruppe, und davon hängt ab, wer was darf.
 ## Benutzer
 Jeder Benutzer hat einen **Namen**, eine **Nummer (UID)**, ein **Home-Verzeichnis** und eine **Shell**. Neben echten Menschen gibt es viele **Systembenutzer** für Dienste (`www-data` für den Webserver, `mysql` …) – die können sich nicht einloggen und haben nur die Rechte, die der Dienst braucht.
 ## Gruppen
@@ -23,6 +25,12 @@ Eine Gruppe fasst Benutzer zusammen, damit man Rechte nicht jedem einzeln geben 
 - `/etc/passwd` – alle Benutzer (Name, UID, Home, Shell) – für alle lesbar
 - `/etc/shadow` – Passwort-Hashes – **nur root** darf lesen
 - `/etc/group` – alle Gruppen und ihre Mitglieder
+## 🔬 Genauer hingeschaut
+- **Für Linux zählen Nummern:** Intern arbeitet Linux mit Benutzer-IDs (UID). root hat immer UID 0. Auf Ubuntu und Debian beginnen normale Benutzer bei 1000, darunter liegen Systembenutzer für Dienste.
+- **Passwörter stehen nicht in `/etc/passwd`:** Dort steht nur ein `x`. Die Passwort-Hashes liegen in `/etc/shadow`, das nur root lesen darf.
+- **Neue Gruppe wirkt erst nach neuem Login:** Wer mit `usermod -aG` zu einer Gruppe hinzugefügt wird, muss sich ab- und wieder anmelden, bevor die Rechte gelten.
+## 💡 Wusstest du?
+- Viele Dienste laufen unter eigenen Benutzern ohne Login (z.B. `www-data` für Webserver). Wird so ein Dienst gehackt, hat der Angreifer nur dessen beschränkte Rechte – nicht die von root.
 """,
 
     "befehle": [

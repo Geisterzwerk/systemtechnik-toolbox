@@ -12,6 +12,8 @@ THEMA = {
                    "nice", "nohup", "zombie", "hängt"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **grosse Küche** mit vielen Köchen: Jeder Koch (Prozess) hat eine Nummer (PID) und eine Aufgabe. Der Küchenchef (Kernel) teilt Herdplatten und Zeit ein. Hängt ein Koch fest, bittet man ihn zuerst höflich aufzuhören – und erst wenn das nichts hilft, wird er hinausgetragen.
 ## Prozess und PID
 Jedes laufende Programm ist ein **Prozess** mit einer eindeutigen Nummer, der **PID**. Mit der PID kann man den Prozess gezielt ansprechen.
 ## htop – der Task-Manager der Konsole
@@ -22,6 +24,12 @@ Jedes laufende Programm ist ein **Prozess** mit einer eindeutigen Nummer, der **
 - `kill PID` schickt **SIGTERM (15)**: „Bitte beende dich“. Das Programm kann aufräumen (Dateien speichern, Verbindungen schliessen).
 - `kill -9 PID` schickt **SIGKILL**: sofortiger Abbruch durch den Kernel, kein Aufräumen → Datenverlust möglich. **Nur als letztes Mittel.**
 - Dienste nie mit kill beenden, sondern mit `systemctl stop` – sonst startet systemd sie evtl. sofort neu.
+## 🔬 Genauer hingeschaut
+- **Prozess Nummer 1:** Der erste Prozess nach dem Start ist auf Ubuntu **systemd** (PID 1). Er startet alle anderen Dienste und ist der „Vorfahre“ aller Prozesse.
+- **Zombies:** Ein beendeter Prozess, dessen Elternprozess das Ende noch nicht abgeholt hat, erscheint in `ps` mit Status Z. Er braucht keinen Speicher, nur einen Eintrag – viele Zombies deuten aber auf einen Fehler im Elternprogramm hin.
+- **Priorität:** Der nice-Wert reicht von −20 (höchste Priorität) bis 19 (niedrigste). `nice -n 19 befehl` startet z.B. ein Backup so, dass es andere Dienste kaum bremst.
+## 💡 Wusstest du?
+- Geht der Arbeitsspeicher komplett aus, beendet der Kernel selbst einen Prozess, um das System zu retten – den **OOM-Killer** (Out Of Memory). Im Log steht dann „Out of memory: Killed process …“.
 """,
 
     "befehle": [

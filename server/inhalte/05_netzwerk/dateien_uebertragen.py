@@ -12,6 +12,8 @@ THEMA = {
                    "--delete", "--dry-run", "checksumme", "sha256sum"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Arten umzuziehen: Bei **scp** packst du jedes Mal alles ein und fährst alles hinüber. Bei **rsync** schaust du zuerst, was in der neuen Wohnung schon steht, und bringst nur das, was fehlt oder sich geändert hat. Beim ersten Mal ist es gleich viel Arbeit – ab dem zweiten Mal ist rsync viel schneller.
 ## scp – einfaches Kopieren über SSH
 `scp quelle ziel` – wie `cp`, aber eine Seite liegt auf einem anderen Rechner: `benutzer@server:/pfad`. Funktioniert auch in der Windows-PowerShell. Nutzt SSH – also auch deine SSH-Schlüssel.
 ## rsync – das bessere Werkzeug
@@ -23,6 +25,11 @@ THEMA = {
 - `rsync -a quelle ziel/` – kopiert den **Ordner** quelle nach ziel → `ziel/quelle/…`
 ## Grafisch (Windows)
 **WinSCP** oder **FileZilla** (Protokoll SFTP, Port 22) – benutzen ebenfalls SSH.
+## 🔬 Genauer hingeschaut
+- **Erst üben:** `rsync -avn quelle/ ziel/` (n = dry run) zeigt nur, was passieren würde. Besonders wichtig mit `--delete`, das im Ziel alles löscht, was in der Quelle fehlt.
+- **Abgebrochen? Weitermachen:** `rsync -avP` zeigt den Fortschritt und kann unterbrochene Übertragungen fortsetzen, statt von vorne zu beginnen.
+## 💡 Wusstest du?
+- rsync überträgt bei geänderten Dateien nicht die ganze Datei neu, sondern nur die geänderten Teile. Das Verfahren dafür wurde 1996 im Rahmen einer Doktorarbeit entwickelt.
 """,
 
     "befehle": [

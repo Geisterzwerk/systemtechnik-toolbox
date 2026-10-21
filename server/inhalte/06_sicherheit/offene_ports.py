@@ -12,6 +12,8 @@ THEMA = {
                    "datenbank offen", "vpn", "wireguard", "reverse proxy", "shodan"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Hotel mit nummerierten Zimmertüren**: Hinter jeder Nummer wohnt ein bestimmter Dienst – hinter 22 SSH, hinter 443 der Webserver. Ein Besucher von aussen klopft an eine Nummer. Ist niemand drin oder ist der Flur abgesperrt, kommt er nicht weiter. Jede Tür, hinter der jemand öffnet, ist eine mögliche Einladung.
 ## Jeder offene Port ist eine Tür
 Ein Dienst, der auf einem Port lauscht **und** von aussen erreichbar ist, kann angegriffen werden – mit Passwort-Raten, bekannten Sicherheitslücken oder Fehlkonfigurationen. Suchmaschinen wie Shodan listen offene Datenbanken, Proxmox-Oberflächen und Webcams weltweit auf. **Weniger offene Ports = weniger Angriffsfläche.**
 ## Drei Stellen entscheiden, ob ein Port erreichbar ist
@@ -27,6 +29,12 @@ Docker schreibt **eigene Firewall-Regeln** vor die von ufw. `docker run -p 5432:
 - **VPN** (WireGuard, Tailscale): nur ein UDP-Port offen, alles andere nur im VPN erreichbar – die beste Lösung für SSH, Proxmox, Datenbanken, Admin-Oberflächen
 - **Reverse Proxy** (nginx, Caddy, Traefik) mit HTTPS für Web-Anwendungen – nur 80/443 offen
 - **SSH-Tunnel** für einzelne Zugriffe (siehe Beispiel)
+## 🔬 Genauer hingeschaut
+- **Privilegierte Ports:** Ports unter 1024 dürfen nur Prozesse mit Root-Rechten öffnen. Darum starten Webserver als root, öffnen Port 80/443 und geben die Rechte danach ab.
+- **Worauf lauscht ein Dienst?** In `ss -tulpn` heisst `0.0.0.0:5432` „von überall erreichbar“, `127.0.0.1:5432` „nur vom Server selbst“. Datenbanken und Admin-Oberflächen gehören fast immer auf 127.0.0.1.
+- **Von aussen prüfen:** Was wirklich offen ist, sieht man nur von aussen, z.B. mit `nmap` von einem anderen Rechner. Das nur bei eigenen Servern tun – fremde Server zu scannen kann rechtliche Folgen haben.
+## 💡 Wusstest du?
+- Automatische Scanner durchsuchen ständig das gesamte Internet nach offenen Ports. Ein neuer Server mit öffentlicher IP bekommt oft schon nach wenigen Minuten die ersten Anmeldeversuche.
 """,
 
     "befehle": [

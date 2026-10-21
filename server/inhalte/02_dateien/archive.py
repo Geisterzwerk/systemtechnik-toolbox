@@ -11,6 +11,8 @@ THEMA = {
                    "komprimieren", "zstd", "xz", "backup datei"],
 
     "erklaerung": """
+## Stell dir vor …
+Beim **Umzug** packst du viele Sachen in einen Karton (das ist `tar`: viele Dateien werden zu einer), und Kleider presst du in einen Vakuumbeutel, damit sie weniger Platz brauchen (das ist die Kompression, z.B. gzip). Darum heissen viele Archive `.tar.gz`: erst eingepackt, dann zusammengepresst.
 ## tar – der Linux-Standard
 `tar` packt viele Dateien in **eine** Datei (Archiv) und behält dabei Rechte und Besitzer. Mit `z` wird zusätzlich mit gzip komprimiert → Endung **.tar.gz** (oder .tgz).
 ## Die Optionen merken
@@ -19,6 +21,12 @@ THEMA = {
 - Merksatz: **c**zvf = „**c**reate **z**e **v**ile **f**iles“, **x**zvf = „e**x**tract …“
 ## zip
 Für den Austausch mit Windows ist `zip` praktischer. Muss auf Ubuntu Server meist erst installiert werden: `sudo apt install zip unzip`.
+## 🔬 Genauer hingeschaut
+- **Welche Kompression?** `.tar.gz` ist der Klassiker und überall lesbar. `.tar.xz` packt kleiner, braucht aber länger. `.tar.zst` (zstd) ist sehr schnell bei guter Kompression.
+- **Erst anschauen, dann auspacken:** `tar -tf archiv.tar.gz` listet den Inhalt, ohne etwas zu entpacken. So sieht man, ob alles in einem Ordner liegt oder ob sich hunderte Dateien direkt ins aktuelle Verzeichnis ergiessen würden.
+- **Rechte bleiben erhalten:** tar speichert Besitzer und Rechte mit. Beim Entpacken als root werden sie wiederhergestellt – wichtig bei Backups von Systemdateien.
+## 💡 Wusstest du?
+- **tar** steht für „tape archive“: Das Programm wurde ursprünglich geschrieben, um Dateien auf Magnetbänder zu sichern.
 """,
 
     "befehle": [

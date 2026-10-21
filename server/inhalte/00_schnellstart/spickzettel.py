@@ -14,11 +14,18 @@ THEMA = {
                    "linux", "ubuntu", "server", "konsole", "terminal", "bash"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Spickzettel** ist kein Lehrbuch: Er erklärt nichts, sondern erinnert dich an das, was du schon einmal verstanden hast. Genau so ist diese Seite gedacht – zum schnellen Nachschlagen. Die Erklärungen stehen auf den Themenseiten.
 ## So liest du die Befehle
 - Wörter in **spitzen Klammern** oder deutsche Platzhalter wie `datei`, `ordner`, `dienst`, `name` durch deine eigenen Werte ersetzen.
 - `sudo` davor = als Administrator ausführen (fragt nach **deinem** Passwort, nicht nach dem von root).
 - Rot mit ⚠ markierte Befehle sind **gefährlich** – erst denken, dann Enter.
 - Jeder Befehl hat eine eigene Seite mit Details – einfach oben in die Suche tippen (z.B. `chmod`, `ufw`, `rsync`).
+## 🔬 Genauer hingeschaut
+- **Eigene Abkürzungen:** Lange Befehle, die man oft braucht, kann man als **Alias** in der Datei `~/.bashrc` speichern, z.B. `alias ll='ls -alh'`. Nach `source ~/.bashrc` (oder einer neuen Anmeldung) steht `ll` zur Verfügung.
+- **Die eigene Geschichte durchsuchen:** `history | grep apt` zeigt alle früheren Befehle mit „apt“ – oft schneller als jeder Spickzettel.
+## 💡 Wusstest du?
+- `!!` steht in der Bash für den letzten Befehl. Hat man `sudo` vergessen, genügt `sudo !!` – der vorherige Befehl wird mit Admin-Rechten wiederholt.
 """,
 
     "befehle": [

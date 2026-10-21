@@ -13,6 +13,8 @@ THEMA = {
                    "automatisieren", "shellcheck"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Einkaufszettel**: Statt dir jedes Mal zu merken, was du alles kaufen musst, schreibst du es einmal auf und arbeitest den Zettel ab. Ein Bash-Skript ist der Einkaufszettel für den Server: Befehle, die du sonst immer wieder von Hand tippst, stehen in einer Datei und laufen auf Kommando der Reihe nach ab.
 ## Aufbau eines Skripts
 - **1. Zeile: Shebang** `#!/bin/bash` – sagt, welches Programm das Skript ausführt
 - **Sicherheitsgurt:** `set -euo pipefail` – bricht bei Fehlern ab, statt blind weiterzumachen
@@ -27,6 +29,12 @@ THEMA = {
 `[ -f datei ]` Datei existiert · `[ -d ordner ]` Ordner existiert · `[ -z "$VAR" ]` Variable leer · `[ "$A" = "$B" ]` Texte gleich · `[ "$X" -gt 5 ]` Zahl grösser (`-eq -ne -lt -le -ge`)
 ## Vergleich zum Programmieren
 Bash ist für das **Verketten von Befehlen** gemacht, nicht für Berechnungen oder grosse Programme. Faustregel: Ab ca. 100 Zeilen, Datenstrukturen oder Rechnerei → **Python** nehmen (Tab „Programmieren“).
+## 🔬 Genauer hingeschaut
+- **Sicher abbrechen:** `set -euo pipefail` am Anfang eines Skripts sorgt dafür, dass es bei einem Fehler stoppt (`-e`), unbekannte Variablen als Fehler gelten (`-u`) und Fehler in Pipes nicht verschluckt werden. Ohne das läuft ein Skript nach einem Fehler einfach weiter.
+- **Variablen immer in Anführungszeichen:** `rm "$ordner"/*` statt `rm $ordner/*`. Enthält die Variable ein Leerzeichen oder ist sie leer, kann die Version ohne Anführungszeichen etwas völlig anderes löschen.
+- **Prüfwerkzeug:** Das Programm `shellcheck` (über apt installierbar) findet typische Fehler in Bash-Skripten, bevor sie Schaden anrichten.
+## 💡 Wusstest du?
+- Die erste Zeile `#!/bin/bash` heisst **Shebang**. Sie sagt dem System, mit welchem Programm die Datei ausgeführt werden soll – genauso funktioniert `#!/usr/bin/env python3` für Python-Skripte.
 """,
 
     "beispiele": [

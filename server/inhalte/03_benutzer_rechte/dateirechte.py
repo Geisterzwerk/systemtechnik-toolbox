@@ -12,6 +12,8 @@ THEMA = {
                    "setuid", "permission denied", "oktal"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Haus mit drei Arten von Schlüsseln**: Der Besitzer hat einen, die Familie (Gruppe) einen anderen, und Gäste (alle anderen) vielleicht gar keinen. Jeder Schlüssel kann erlauben, hineinzuschauen (lesen), etwas zu verändern (schreiben) oder etwas in Gang zu setzen (ausführen).
 ## Drei Rechte für drei Personengruppen
 `ls -l` zeigt z.B. `-rwxr-x---`. Nach dem ersten Zeichen (Typ) kommen **3 × 3 Zeichen**:
 - **u** (user) = Besitzer · **g** (group) = Gruppe · **o** (others) = alle anderen
@@ -29,6 +31,11 @@ Jedes Recht hat einen Wert: **r = 4, w = 2, x = 1**. Pro Personengruppe addieren
 `chown benutzer:gruppe datei` – typisch nach dem Hochladen von Webdateien: `sudo chown -R www-data:www-data /var/www/seite`.
 ## umask – Standardrechte für neue Dateien
 Neue Dateien bekommen auf Ubuntu meist **644** (Ordner **755**). Das legt die `umask` fest (Standard 022).
+## 🔬 Genauer hingeschaut
+- **Sonderrechte:** Das **setuid**-Bit lässt ein Programm mit den Rechten seines Besitzers laufen – so kann `passwd` als normaler Benutzer trotzdem die Passwortdatei ändern. Das **Sticky Bit** auf `/tmp` sorgt dafür, dass jeder dort Dateien anlegen, aber nur seine eigenen löschen darf.
+- **Feiner als drei Gruppen:** Reichen Besitzer/Gruppe/Andere nicht, gibt es Zugriffslisten (ACL) mit `setfacl` und `getfacl`. Ein `+` am Ende der Rechte in `ls -l` zeigt, dass eine ACL gesetzt ist.
+## 💡 Wusstest du?
+- `chmod 777` („alle dürfen alles“) löst fast jedes Rechteproblem – und schafft dabei ein Sicherheitsproblem. Fast immer gibt es eine engere, richtige Lösung.
 """,
 
     "befehle": [

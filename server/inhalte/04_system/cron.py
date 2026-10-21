@@ -11,6 +11,8 @@ THEMA = {
                    "list-timers", "täglich", "nachts", "@reboot", "anacron", "cron.d", "cron.daily"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Wecker mit Stundenplan**: „Jeden Tag um 3 Uhr Backup machen“, „jeden Montag Logs aufräumen“. Du stellst ihn einmal ein, und er erinnert den Server zuverlässig – auch wenn du schläfst oder in den Ferien bist.
 ## crontab – ein Stundenplan für Befehle
 Jeder Benutzer hat eine eigene **crontab** (`crontab -e`). Jede Zeile = ein Auftrag:
 `Minute  Stunde  Tag  Monat  Wochentag  Befehl`
@@ -23,6 +25,12 @@ Root-Aufgaben: `sudo crontab -e` (laufen als root).
 - **Zeitzone:** Cron benutzt die Zeitzone des Systems – vorher `timedatectl` prüfen.
 ## systemd-Timer – die moderne Alternative
 Timer sind aufwändiger einzurichten (zwei Dateien), haben aber Vorteile: Log im Journal, `Persistent=true` holt verpasste Läufe nach (Server war aus), Abhängigkeiten. `systemctl list-timers` zeigt alle – Ubuntu nutzt sie selbst (apt, logrotate).
+## 🔬 Genauer hingeschaut
+- **Ausgabe nicht verlieren:** Was ein Cronjob ausgibt, geht verloren oder wird per lokaler Mail verschickt, die niemand liest. Darum die Ausgabe in eine Logdatei umleiten: `… >> /var/log/meinjob.log 2>&1`.
+- **Überlappung verhindern:** Dauert ein Job länger als sein Abstand, startet der nächste, bevor der erste fertig ist. `flock -n /tmp/job.lock befehl` sorgt dafür, dass immer nur einer läuft.
+- **Erst von Hand testen:** Einen Befehl immer zuerst manuell ausführen. Läuft er im Cron nicht, liegt es meist an der anderen Umgebung (PATH, Arbeitsverzeichnis, Benutzer).
+## 💡 Wusstest du?
+- Der Name **cron** kommt vom griechischen Wort chronos für „Zeit“.
 """,
 
     "befehle": [

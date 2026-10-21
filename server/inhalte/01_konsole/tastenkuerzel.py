@@ -11,6 +11,8 @@ THEMA = {
                    "ctrl+c", "abbrechen", "ctrl+z", "hintergrund", "fg", "bg", "jobs", "sudo !!"],
 
     "erklaerung": """
+## Stell dir vor …
+Wer eine Stadt gut kennt, nimmt **Abkürzungen** durch Seitengassen und ist doppelt so schnell. Tastenkürzel sind die Seitengassen der Konsole: Statt einen langen Befehl neu zu tippen oder mit den Pfeiltasten zu suchen, kommst du mit zwei Tasten ans Ziel.
 ## Die drei wichtigsten Tasten
 - **Tab:** vervollständigt Befehle, Pfade und Dateinamen. Passiert nichts, gibt es mehrere Möglichkeiten → **2× Tab** zeigt sie an. Verhindert Tippfehler in Pfaden!
 - **Ctrl + C:** bricht den laufenden Befehl ab (**nicht** Kopieren wie unter Windows!).
@@ -25,6 +27,11 @@ Bash merkt sich die letzten Befehle in `~/.bash_history`. Mit `history` siehst d
 - **Ctrl + Z** hält einen laufenden Befehl an (z.B. nano) – er ist **nicht** beendet!
 - `bg` lässt ihn im Hintergrund weiterlaufen, `fg` holt ihn zurück, `jobs` zeigt alle.
 - `befehl &` startet direkt im Hintergrund. Achtung: Beim Abmelden wird er beendet → dafür **tmux** nehmen.
+## 🔬 Genauer hingeschaut
+- **Was Ctrl+C wirklich tut:** Es sendet dem laufenden Programm das Signal SIGINT („bitte unterbrechen“). Die meisten Programme beenden sich dann. **Ctrl+D** dagegen bedeutet „Ende der Eingabe“ – in einer leeren Zeile meldet es dich ab.
+- **In der Zeile springen:** Ctrl+A springt an den Zeilenanfang, Ctrl+E ans Ende, Ctrl+U löscht alles links vom Cursor, Ctrl+L leert den Bildschirm.
+## 💡 Wusstest du?
+- Reagiert das Terminal plötzlich auf nichts mehr, hat man vielleicht aus Versehen **Ctrl+S** gedrückt – das hält die Ausgabe an (ein Erbe alter Fernschreiber). **Ctrl+Q** lässt sie weiterlaufen.
 """,
 
     "befehle": [

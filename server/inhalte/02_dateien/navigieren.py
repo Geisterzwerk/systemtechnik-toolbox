@@ -11,6 +11,8 @@ THEMA = {
                    "punkt datei", "ls -la", "ls -lh", "pfad", "home", "tilde"],
 
     "erklaerung": """
+## Stell dir vor …
+Du gehst durch ein **grosses Gebäude**: Zuerst fragst du dich „Wo bin ich?“ (`pwd`), dann schaust du dich um „Was ist hier?“ (`ls`), und dann gehst du durch eine Tür „Wohin?“ (`cd`). Mehr braucht es nicht, um sich auf einem Server zurechtzufinden.
 ## Die drei Grundbefehle
 - **`pwd`** (print working directory) – zeigt, wo du gerade bist.
 - **`ls`** (list) – zeigt, was im Ordner liegt.
@@ -23,6 +25,12 @@ THEMA = {
 - **Sep 29 10:12** – letzte Änderung
 ## Versteckte Dateien
 Dateien, deren Name mit **Punkt** beginnt (`.bashrc`, `.ssh`), sind versteckt. `ls` zeigt sie nicht – `ls -a` schon. Viele Einstellungen im Home-Verzeichnis sind solche Punkt-Dateien.
+## 🔬 Genauer hingeschaut
+- **Zurück, wo ich war:** `cd -` springt in das vorherige Verzeichnis. `cd` ohne Ziel bringt dich nach Hause (`~`).
+- **Tab spart Tipparbeit:** Ein paar Buchstaben tippen und Tab drücken vervollständigt Pfade und Befehle. Zweimal Tab zeigt alle Möglichkeiten. Das verhindert auch Tippfehler.
+- **Grössen lesbar:** `ls -lh` zeigt Dateigrössen in K, M und G statt in Byte.
+## 💡 Wusstest du?
+- Pfade mit Leerzeichen brauchen Anführungszeichen: `cd "Meine Dateien"`. Darum verwenden viele Linux-Admins in Dateinamen lieber `_` oder `-` statt Leerzeichen.
 """,
 
     "befehle": [

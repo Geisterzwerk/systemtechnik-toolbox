@@ -11,6 +11,8 @@ THEMA = {
                    "kommandozeile", "exit code", "rückgabewert", "gross klein", "leerzeichen", "anführungszeichen"],
 
     "erklaerung": """
+## Stell dir vor …
+Das **Terminal** ist das Telefon, die **Shell** ist die Person am anderen Ende, die zuhört und deine Befehle ausführt. Du kannst das Telefon wechseln (anderes Terminal-Programm) oder mit einer anderen Person sprechen (andere Shell) – die Unterhaltung funktioniert ähnlich, aber jede Person hat ihre Eigenheiten.
 ## Terminal, Konsole, Shell – was ist was?
 - **Terminal / Konsole:** das Fenster, in dem man tippt (Windows Terminal, PuTTY, die Proxmox-Konsole, der Monitor am Server).
 - **Shell:** das Programm, das deine Eingabe liest und ausführt. Auf Ubuntu ist das **Bash** (Bourne Again Shell).
@@ -31,6 +33,11 @@ THEMA = {
 - `befehl1 ; befehl2` – nacheinander, egal ob Erfolg
 - `befehl1 && befehl2` – befehl2 **nur**, wenn befehl1 geklappt hat (typisch: `sudo apt update && sudo apt upgrade`)
 - `befehl1 || befehl2` – befehl2 **nur**, wenn befehl1 fehlgeschlagen ist
+## 🔬 Genauer hingeschaut
+- **Jeder Befehl meldet Erfolg oder Fehler:** Nach jedem Befehl steht in `$?` ein Rückgabewert – 0 heisst Erfolg, alles andere Fehler. `&&` führt den nächsten Befehl nur bei 0 aus, `||` nur bei einem Fehler.
+- **Einfache und doppelte Anführungszeichen:** In `"…"` ersetzt die Shell Variablen (`"Hallo $USER"` → „Hallo admin“). In `'…'` bleibt alles genau so, wie es dasteht.
+## 💡 Wusstest du?
+- **Bash** steht für „Bourne Again SHell“ – ein Wortspiel mit dem Namen ihrer Vorgängerin, der Bourne-Shell, und „born again“ (wiedergeboren). Sie erschien 1989.
 """,
 
     "befehle": [

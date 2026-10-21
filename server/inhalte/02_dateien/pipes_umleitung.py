@@ -11,6 +11,8 @@ THEMA = {
                    "2>&1", "/dev/null", "tee", "sudo tee", "xargs", "sort", "uniq", "cut", "awk", "sed"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Fliessband in einer Fabrik**: Die erste Maschine schneidet, die zweite bohrt, die dritte lackiert. Jede kann nur eine Sache, aber zusammen entsteht ein fertiges Produkt. Die Pipe `|` ist dieses Fliessband: Die Ausgabe eines Befehls wird direkt die Eingabe des nächsten.
 ## Drei Datenströme
 Jedes Programm hat drei „Kanäle“:
 - **stdin (0)** – Eingabe (normal: Tastatur)
@@ -26,6 +28,12 @@ Jedes Programm hat drei „Kanäle“:
 - `> /dev/null` – wegwerfen („das schwarze Loch“)
 ## Die sudo-Falle
 `sudo echo "text" > /etc/datei` **funktioniert nicht**: sudo gilt nur für `echo`, die Umleitung `>` macht deine Shell – ohne Admin-Rechte. Lösung: **`tee`**, das mit sudo läuft: `echo "text" | sudo tee /etc/datei` (bzw. `tee -a` zum Anhängen).
+## 🔬 Genauer hingeschaut
+- **Reihenfolge bei `2>&1`:** `befehl > log.txt 2>&1` schreibt Ausgabe UND Fehler in die Datei. `befehl 2>&1 > log.txt` schreibt nur die Ausgabe in die Datei – die Fehler landen weiter auf dem Bildschirm, weil sie vorher umgeleitet wurden.
+- **Das schwarze Loch:** `/dev/null` verschluckt alles. `befehl > /dev/null 2>&1` läuft komplett still.
+- **Mitschreiben und anzeigen:** `befehl | tee log.txt` zeigt die Ausgabe an und speichert sie gleichzeitig.
+## 💡 Wusstest du?
+- Die Pipe wurde 1973 in Unix eingeführt. Daraus entstand die Unix-Philosophie: „Schreibe Programme, die eine Sache gut machen, und die zusammenarbeiten.“
 """,
 
     "befehle": [

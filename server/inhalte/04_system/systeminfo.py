@@ -12,6 +12,8 @@ THEMA = {
                    "swap", "cpu", "lscpu", "reboot", "neustart", "shutdown", "herunterfahren", "poweroff"],
 
     "erklaerung": """
+## Stell dir vor …
+Beim Kauf eines Autos schaust du zuerst in den **Fahrzeugausweis**: Marke, Modell, Motor, Jahrgang. Bei einem neuen Server machst du dasselbe: Welche Linux-Version? Wie viele Kerne, wie viel Speicher? Wie lange läuft er schon? Diese Befehle sind sein Fahrzeugausweis.
 ## Den Server kennenlernen
 Bevor man etwas ändert, sollte man wissen, womit man es zu tun hat: Ubuntu-Version, Kernel, RAM, CPU, Laufzeit. Die Befehle unten zeigen das alles in Sekunden.
 ## Arbeitsspeicher richtig lesen
@@ -20,6 +22,11 @@ Bevor man etwas ändert, sollte man wissen, womit man es zu tun hat: Ubuntu-Vers
 Richtige Zeit ist wichtig für Logs, Zertifikate, Cron und 2FA. Ubuntu synchronisiert automatisch per NTP (`systemd-timesyncd`), die **Zeitzone** muss man aber meist selbst setzen: `Europe/Zurich`.
 ## Neustart und Herunterfahren
 `sudo reboot` bzw. `sudo shutdown -h now`. Per SSH bricht die Verbindung sofort ab – nach einem Neustart einfach 1–2 Minuten warten und neu verbinden.
+## 🔬 Genauer hingeschaut
+- **Welche Version genau?** `cat /etc/os-release` zeigt die Distribution und Version, `uname -r` die Kernel-Version. Beides braucht man oft, wenn man eine Anleitung oder Hilfe sucht.
+- **Hardware im Überblick:** `lscpu` zeigt den Prozessor, `lsblk` die Laufwerke und Partitionen als Baum, `free -h` den Speicher.
+## 💡 Wusstest du?
+- Der Linux-Kernel wurde **1991** von einem finnischen Studenten als Hobbyprojekt angekündigt – „nur ein Hobby, nichts Grosses und Professionelles“. Heute läuft er auf Milliarden Geräten, von Android-Handys bis zu Supercomputern.
 """,
 
     "befehle": [

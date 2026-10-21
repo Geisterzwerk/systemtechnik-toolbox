@@ -12,6 +12,8 @@ THEMA = {
                    "known_hosts", "fingerprint", "ssh config", "port 22", "tmux"],
 
     "erklaerung": """
+## Stell dir vor …
+Du musst einem Freund über eine **belebte Strasse** etwas zurufen, und alle können mithören. SSH baut dir stattdessen einen **verschlossenen Tunnel** zum Server: Was hindurchgeht, kann unterwegs niemand lesen. Bei der Anmeldung mit Schlüssel ist es wie ein Vorhängeschloss (öffentlicher Schlüssel) auf dem Server, das nur dein persönlicher Schlüssel (privater Schlüssel) öffnet.
 ## Was ist SSH?
 **SSH (Secure Shell)** ist eine **verschlüsselte** Verbindung zu einer Konsole auf einem anderen Rechner – Standard-Port **22**. Alles, was du tippst, läuft verschlüsselt übers Netz. Windows 10/11 hat den SSH-Client schon eingebaut: einfach PowerShell oder Windows Terminal öffnen.
 ## Die erste Verbindung
@@ -27,6 +29,12 @@ THEMA = {
 - 4. **Erst wenn das klappt**, Passwort-Login auf dem Server abschalten
 ## Verbindung abgebrochen?
 Bricht SSH ab, wird alles beendet, was in der Sitzung lief (z.B. ein langes Update!). Für lange Arbeiten **tmux** benutzen: `tmux` starten, arbeiten, bei Abbruch neu verbinden und mit `tmux attach` weitermachen.
+## 🔬 Genauer hingeschaut
+- **Die Frage bei der ersten Verbindung:** SSH zeigt den **Fingerabdruck** des Servers und fragt, ob man ihm vertraut. Er wird in `~/.ssh/known_hosts` gespeichert. Ändert er sich später unerwartet, warnt SSH laut – es könnte jemand dazwischen sitzen (Man-in-the-Middle).
+- **Abkürzungen in `~/.ssh/config`:** Mit einem Eintrag `Host spielwiese`, `HostName 192.168.1.50`, `User admin` genügt künftig `ssh spielwiese`.
+- **Welcher Schlüsseltyp?** Für neue Schlüssel empfiehlt sich heute `ssh-keygen -t ed25519` – kurz, schnell und sicher.
+## 💡 Wusstest du?
+- SSH wurde 1995 von einem finnischen Forscher entwickelt, nachdem an seiner Universität Passwörter beim unverschlüsselten Anmelden mitgeschnitten worden waren.
 """,
 
     "befehle": [

@@ -12,6 +12,8 @@ THEMA = {
                    "netzwerkkarte", "ens18", "eth0", "subnetz", "cidr", "resolvectl"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Haus braucht eine **Adresse** (IP-Adresse), damit Post ankommt. Für Briefe in andere Quartiere gibt es eine **Poststelle** am Quartiersrand (Gateway). Und weil sich niemand Adressen als Zahlen merken will, gibt es ein **Telefonbuch**, das Namen in Adressen übersetzt (DNS).
 ## Netzwerkkarte, IP, Gateway, DNS
 - **Interface:** die Netzwerkkarte, z.B. `ens18` (Proxmox-VM), `enp3s0`, `eth0`
 - **IP-Adresse / Präfix:** z.B. `192.168.1.50/24` → /24 = Subnetzmaske 255.255.255.0
@@ -25,6 +27,12 @@ Ubuntu Server konfiguriert das Netzwerk über **YAML-Dateien in `/etc/netplan/`*
 - Die Datei sollte Rechte **600** haben (netplan warnt sonst).
 ## netplan try – der Rettungsschirm
 **`sudo netplan try`** wendet die neue Konfiguration an und wartet **120 Sekunden** auf eine Bestätigung (Enter). Kommt keine – weil du dich ausgesperrt hast –, wird automatisch die alte Konfiguration zurückgeholt. Per SSH **immer `try` statt `apply`**.
+## 🔬 Genauer hingeschaut
+- **Private Adressbereiche:** `10.x.x.x`, `172.16.x.x` bis `172.31.x.x` und `192.168.x.x` sind für lokale Netze reserviert und werden im Internet nicht weitergeleitet. Heimnetze verwenden meist `192.168.…`.
+- **Was heisst /24?** Die Zahl nach dem Schrägstrich sagt, wie viele Bits zum Netz gehören. `/24` entspricht der Maske `255.255.255.0` – 256 Adressen, davon 254 für Geräte nutzbar.
+- **Feste Adresse oder Reservierung:** Statt die IP auf dem Server fest einzutragen, kann man sie auch im Router per DHCP-Reservierung fest an die Netzwerkkarte binden. Dann bleibt die Konfiguration an einer Stelle.
+## 💡 Wusstest du?
+- IPv4 kennt nur rund 4.3 Milliarden Adressen – zu wenig für alle Geräte der Welt. Darum gibt es **IPv6** mit 128 Bit langen Adressen, genug für jedes Sandkorn der Erde vielfach.
 """,
 
     "befehle": [

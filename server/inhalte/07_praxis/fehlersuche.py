@@ -12,6 +12,8 @@ THEMA = {
                    "ausgesperrt", "rettungsmodus", "recovery", "emergency mode"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Ärztin** rät nicht einfach drauflos. Sie fragt nach den Symptomen, misst Fieber, hört ab – und erst dann stellt sie eine Diagnose. Gute Fehlersuche auf einem Server läuft genauso: erst Fakten sammeln (Status, Logs, Speicher, Netzwerk), dann eine Vermutung prüfen, dann gezielt behandeln.
 ## Die Grundregel
 **Erst messen, dann ändern.** Nicht fünf Dinge gleichzeitig ausprobieren, sondern Schritt für Schritt eingrenzen – und **eine** Änderung nach der anderen machen. Jede Änderung notieren.
 ## Die 5-Minuten-Checkliste
@@ -27,6 +29,12 @@ THEMA = {
 - **Physischer Server:** Bildschirm + Tastatur.
 - **Bootet nicht (fstab-Fehler):** Emergency Mode → root-Passwort bzw. Enter → `nano /etc/fstab` korrigieren (evtl. vorher `mount -o remount,rw /`).
 - **Passwort vergessen:** Im GRUB-Menü den Recovery Mode wählen → „root“ → `passwd benutzer`.
+## 🔬 Genauer hingeschaut
+- **Was hat sich zuletzt geändert?** Die meisten Probleme beginnen nach einer Änderung: einem Update, einer neuen Konfiguration, einem vollen Laufwerk. `history`, die Logs und die eigenen Notizen sind darum die erste Spur.
+- **Eine Änderung nach der anderen:** Wer drei Dinge gleichzeitig ändert, weiss am Ende nicht, welches geholfen hat – oder welches das nächste Problem verursacht.
+- **Die Fehlermeldung genau lesen:** Oft steht die Lösung schon darin: „Permission denied“ (Rechte), „No such file“ (Pfad), „Address already in use“ (Port belegt). Die genaue Meldung ist auch der beste Suchbegriff.
+## 💡 Wusstest du?
+- **Quietscheentchen-Debugging:** Wer ein Problem einer Gummiente (oder einem Kollegen) Schritt für Schritt erklärt, findet den Fehler oft selbst – weil man beim Erklären nichts überspringen kann.
 """,
 
     "befehle": [

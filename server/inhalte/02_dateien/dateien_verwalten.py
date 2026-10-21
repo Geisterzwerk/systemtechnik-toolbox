@@ -12,6 +12,8 @@ THEMA = {
                    "wildcard", "platzhalter", "stern", "papierkorb", "backup kopie"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Büro ohne Papierkorb, aber mit Schredder**: Ablegen, kopieren und verschieben ist kein Problem. Aber was du wegwirfst, geht direkt in den Schredder – es gibt kein „Rückgängig“. Darum lohnt es sich, vor dem Löschen einen Moment länger hinzuschauen.
 ## Anlegen
 - `mkdir ordner` legt einen Ordner an, `mkdir -p a/b/c` auch alle Zwischenordner.
 - `touch datei` legt eine leere Datei an (oder aktualisiert den Zeitstempel einer bestehenden).
@@ -29,6 +31,12 @@ THEMA = {
 - Die **Shell** ersetzt die Platzhalter, bevor der Befehl startet – `echo *.log` zeigt vorher, was betroffen ist.
 ## Links
 Ein **symbolischer Link** (`ln -s`) ist eine Verknüpfung auf eine andere Datei oder einen Ordner. Typisch bei nginx: `/etc/nginx/sites-enabled/` enthält nur Links auf `/etc/nginx/sites-available/`.
+## 🔬 Genauer hingeschaut
+- **Verschieben ist oft nur Umbenennen:** Innerhalb desselben Dateisystems ändert `mv` nur den Eintrag – das geht sofort, auch bei riesigen Dateien. Über Dateisystemgrenzen hinweg wird dagegen kopiert und dann gelöscht.
+- **Die Shell ersetzt Platzhalter:** `rm *.log` – das `*` wird von der Shell schon vor dem Befehl in eine Liste von Dateinamen verwandelt. Mit `echo rm *.log` sieht man vorher, was tatsächlich gelöscht würde.
+- **Alles mitkopieren:** `cp -a` kopiert rekursiv und behält Rechte, Besitzer und Zeitstempel – gut für Backups von Konfigurationsordnern.
+## 💡 Wusstest du?
+- GNU `rm` weigert sich standardmässig, `rm -rf /` auszuführen (Option `--preserve-root`) – eine Schutzmassnahme, nachdem dieser Fehler zu oft passiert ist.
 """,
 
     "befehle": [

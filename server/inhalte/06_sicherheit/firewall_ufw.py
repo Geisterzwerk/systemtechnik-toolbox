@@ -12,6 +12,8 @@ THEMA = {
                    "default deny", "portfreigabe", "subnetz", "ipv6"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Türsteher mit Gästeliste**: Wer auf der Liste steht, kommt herein, alle anderen bleiben draussen – ohne Diskussion. Die Firewall ist dieser Türsteher. Wichtig ist nur, dass du dich selbst auf die Liste setzt, bevor du die Tür zumachst.
 ## Das Prinzip: Standardmässig alles zu
 Eine gute Firewall-Konfiguration ist eine **Positivliste**: Eingehend ist **alles verboten**, und man erlaubt gezielt nur, was gebraucht wird (z.B. SSH, HTTP/HTTPS). Ausgehend darf der Server normal ins Internet (Updates).
 ## ufw = uncomplicated firewall
@@ -24,6 +26,12 @@ Auf Ubuntu installiert, aber **ausgeschaltet**. ufw ist eine einfache Bedienung 
 - 5. In einer **neuen** SSH-Sitzung testen
 ## So eng wie möglich
 Statt „Port 22 für die ganze Welt“ besser nur aus dem eigenen Netz: `sudo ufw allow from 192.168.1.0/24 to any port 22 proto tcp`. Mit `limit` statt `allow` werden IPs mit zu vielen Verbindungsversuchen kurz gesperrt (Schutz gegen Passwort-Raten).
+## 🔬 Genauer hingeschaut
+- **ufw ist ein Übersetzer:** ufw selbst filtert nichts. Es übersetzt einfache Regeln in die Regeln der Kernel-Firewall (iptables bzw. nftables), die die eigentliche Arbeit macht.
+- **Anmeldeversuche bremsen:** `sudo ufw limit ssh` erlaubt SSH, sperrt aber eine Adresse vorübergehend, die in kurzer Zeit zu viele Verbindungen aufbaut – eine einfache Bremse gegen Passwort-Raten.
+- **IPv6 nicht vergessen:** Hat der Server eine IPv6-Adresse, müssen die Regeln auch dort gelten. Bei ufw steht dafür `IPV6=yes` in `/etc/default/ufw` (unter Ubuntu Standard).
+## 💡 Wusstest du?
+- Bei vielen Cloud-Anbietern gibt es zusätzlich eine Firewall **vor** dem Server, im Webportal. Ist ein Port dort zu, nützt eine offene ufw-Regel nichts – und umgekehrt.
 """,
 
     "befehle": [

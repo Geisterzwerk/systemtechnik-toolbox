@@ -12,6 +12,8 @@ THEMA = {
                    "lvm", "ncdu", "inode", "no space left", "usb"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Lagerhaus** (Festplatte) wird in Hallen aufgeteilt (Partitionen). Jede Halle bekommt ein Ordnungssystem mit Regalen (Dateisystem) und wird über eine Tür an das grosse Gebäude angeschlossen (mount). Ist eine Halle voll, kann dort nichts mehr abgelegt werden – egal wie viel in den anderen frei ist.
 ## Wie viel Platz ist frei?
 - **`df -h`** (disk free) – freier Platz **pro Laufwerk/Partition**
 - **`du -sh ordner`** (disk usage) – wie viel ein **Ordner** belegt
@@ -24,6 +26,11 @@ Ubuntu Server installiert oft **LVM** (logische Volumes, z.B. `/dev/mapper/ubunt
 Eine Partition wird in einen **leeren Ordner** eingehängt: `sudo mount /dev/sdb1 /mnt/daten`. Das gilt nur bis zum Neustart. **Dauerhaft** → Eintrag in **`/etc/fstab`**.
 ## fstab – immer mit UUID
 Gerätenamen wie `/dev/sdb` können sich beim Neustart ändern. Deshalb in der fstab die **UUID** verwenden (`sudo blkid`).
+## 🔬 Genauer hingeschaut
+- **Gelöscht, aber noch belegt:** Löscht man eine Datei, die ein Programm noch offen hat (z.B. ein Log), bleibt der Platz belegt, bis das Programm sie schliesst. `df` zeigt dann „voll“, `du` findet aber nichts. `sudo lsof +L1` listet solche Dateien – ein Neustart des Dienstes gibt den Platz frei.
+- **Platz da, aber trotzdem voll:** Jede Datei braucht einen Verwaltungseintrag (Inode). Bei Millionen winziger Dateien können die Inodes ausgehen, obwohl noch Gigabytes frei sind. `df -i` zeigt das.
+## 💡 Wusstest du?
+- Die Namen verraten die Technik: `/dev/sda`, `sdb` … sind SATA- oder USB-Laufwerke, `/dev/nvme0n1` ist eine NVMe-SSD, und `/dev/vda` eine virtuelle Platte in einer VM.
 """,
 
     "befehle": [

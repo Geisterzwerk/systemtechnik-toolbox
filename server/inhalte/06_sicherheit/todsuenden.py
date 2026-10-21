@@ -13,6 +13,8 @@ THEMA = {
                    "root login", "curl bash", "aussperren", "best practice"],
 
     "erklaerung": """
+## Stell dir vor …
+In jeder Werkstatt hängen **Sicherheitsregeln** an der Wand: Schutzbrille tragen, nie in die laufende Säge greifen. Sie wirken übertrieben – bis man sieht, was ohne sie passiert. Diese Seite ist die Regeltafel für Server: die Fehler, die man genau einmal macht.
 ## Warum diese Seite?
 Ein Server im Internet wird **innerhalb von Minuten** nach dem Einschalten von Bots gescannt und angegriffen. Die meisten Einbrüche passieren nicht durch geniale Hacker, sondern durch **eine** der Todsünden unten. Und die meisten zerstörten Server hat der eigene Admin mit **einem** Befehl kaputt gemacht.
 ## A – Sich selbst aussperren
@@ -39,6 +41,12 @@ Ein Server im Internet wird **innerhalb von Minuten** nach dem Einschalten von B
 - **Kein Backup** – oder ein Backup, dessen Wiederherstellung nie getestet wurde.
 - **Backup auf demselben Server/derselben Platte** – Ransomware und Plattendefekt nehmen beides mit.
 - **Als root arbeiten** statt mit sudo.
+## 🔬 Genauer hingeschaut
+- **Erst schauen, dann löschen:** Vor `rm` mit Platzhaltern denselben Ausdruck mit `ls` oder `echo` ausführen. Viele Befehle haben einen Probelauf (`--dry-run`, `-n`), der zeigt, was passieren würde.
+- **Nie fremde Skripte blind ausführen:** `curl … | sudo bash` führt Code aus dem Internet mit Root-Rechten aus, ohne dass man ihn gesehen hat. Erst herunterladen, lesen, dann ausführen.
+- **Snapshot vor grossen Änderungen:** Bei virtuellen Servern kostet ein Snapshot vor einem Upgrade oder einer Netzwerkänderung Sekunden – und erspart im Notfall Stunden.
+## 💡 Wusstest du?
+- 2017 löschte ein Administrator bei GitLab aus Versehen das Datenverzeichnis der produktiven Datenbank. Mehrere Backup-Verfahren stellten sich dabei als nicht funktionsfähig heraus – Stunden an Daten gingen verloren. Die Firma veröffentlichte den Vorfall offen als Lehrstück.
 """,
 
     "beispiele": [

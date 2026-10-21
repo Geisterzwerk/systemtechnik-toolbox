@@ -12,6 +12,8 @@ THEMA = {
                    "sudo gruppe", "sudo -l"],
 
     "erklaerung": """
+## Stell dir vor …
+In einem Hotel gibt es einen **Generalschlüssel**, der alle Türen öffnet. Den trägt niemand den ganzen Tag herum – man holt ihn an der Rezeption, öffnet die eine Tür und gibt ihn zurück. `sudo` ist genau das: Admin-Rechte nur für einen einzelnen Befehl, und jede Ausleihe wird notiert.
 ## root – der allmächtige Benutzer
 **root** (Benutzer-ID 0) darf auf einem Linux-System **alles**: jede Datei löschen, jeden Prozess beenden, jede Einstellung ändern. Es gibt keine Sicherheitsabfrage. Auf Ubuntu ist der root-Login deshalb **standardmässig gesperrt**.
 ## sudo – Admin-Rechte nur für einen Befehl
@@ -27,6 +29,12 @@ THEMA = {
 **Regel:** Normal arbeiten, `sudo` nur dort, wo es nötig ist.
 ## Wann braucht es sudo?
 Wenn man etwas **ausserhalb des eigenen Home-Verzeichnisses** ändert: Pakete installieren, Dateien in `/etc` bearbeiten, Dienste steuern, Logs in `/var/log` lesen, Ports unter 1024 öffnen.
+## 🔬 Genauer hingeschaut
+- **sudo merkt sich dich kurz:** Nach der Passworteingabe fragt sudo eine Weile nicht erneut (bei Ubuntu standardmässig 15 Minuten). `sudo -k` beendet diese Frist sofort.
+- **Alles wird protokolliert:** Jeder sudo-Befehl landet im Log (`journalctl` bzw. `/var/log/auth.log`). So lässt sich nachvollziehen, wer wann was als Admin gemacht hat.
+- **Root-Shell sparsam:** `sudo -i` öffnet eine Shell als root. Praktisch für viele Admin-Schritte nacheinander – aber jeder Tippfehler hat dann volle Wirkung. Danach mit `exit` sofort verlassen.
+## 💡 Wusstest du?
+- Ein bekannter Comic (xkcd 149) zeigt, wie jemand „Mach mir ein Sandwich“ verweigert bekommt – und mit „sudo mach mir ein Sandwich“ sofort Erfolg hat.
 """,
 
     "befehle": [

@@ -12,6 +12,8 @@ THEMA = {
                    "repository", "quellen", "sources", "held", "lock"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **App-Store mit geprüften Lieferanten**: Statt Programme irgendwo im Internet herunterzuladen, holst du sie aus einer bekannten Quelle, die sie geprüft und unterschrieben hat. apt kümmert sich ausserdem darum, dass alles mitkommt, was das Programm braucht.
 ## Wie funktioniert apt?
 Ubuntu holt Software aus **Paketquellen (Repositories)** – geprüften Servern von Ubuntu. `apt` lädt die Pakete herunter, installiert sie **mit allen Abhängigkeiten** und hält sie später aktuell. Kein „Setup.exe aus dem Internet“!
 ## update ist nicht upgrade!
@@ -25,6 +27,12 @@ Darum immer zusammen: `sudo apt update && sudo apt upgrade`
 - `autoremove` – räumt Pakete weg, die nur als Abhängigkeit installiert wurden und keiner mehr braucht (z.B. alte Kernel)
 ## Neustart nötig?
 Nach Kernel- oder Bibliotheks-Updates meldet Ubuntu `*** System restart required ***`. Die Datei `/var/run/reboot-required` existiert dann.
+## 🔬 Genauer hingeschaut
+- **Unterschriebene Pakete:** Die Paketlisten der Quellen sind digital signiert. apt prüft die Signatur und verweigert Pakete, deren Herkunft nicht stimmt – so kann niemand unterwegs manipulierte Software unterschieben.
+- **Fremde Quellen sind Vertrauenssache:** Jede zusätzliche Paketquelle (z.B. ein PPA) darf Software mit Root-Rechten installieren. Darum nur Quellen hinzufügen, denen man wirklich vertraut.
+- **Aufräumen:** `sudo apt autoremove` entfernt Pakete, die nur als Abhängigkeit installiert wurden und nicht mehr gebraucht werden.
+## 💡 Wusstest du?
+- apt stammt aus **Debian**, einer der ältesten Linux-Distributionen (seit 1993). Ubuntu baut auf Debian auf und übernimmt darum dasselbe Paketsystem.
 """,
 
     "befehle": [

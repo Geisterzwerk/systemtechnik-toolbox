@@ -11,6 +11,8 @@ THEMA = {
                    "datei finden", "grosse dateien", "regex", "rekursiv", "-exec"],
 
     "erklaerung": """
+## Stell dir vor …
+In einer **Bibliothek** kannst du im Katalog nach Titel und Standort suchen – das ist `find`, es findet Dateien nach Name, Grösse oder Datum. Oder du suchst einen Satz **in** den Büchern – das ist `grep`, es durchsucht den Inhalt von Dateien.
 ## find – Dateien finden
 `find wo was` – sucht **Dateien und Ordner** nach Name, Typ, Grösse, Alter, Besitzer …
 - `find /etc -name "*.conf"` – nach Namen (Anführungszeichen nicht vergessen!)
@@ -22,6 +24,11 @@ THEMA = {
 - `-E` erweiterte reguläre Ausdrücke: `grep -E "error|fail"`
 ## Wo liegt ein Programm?
 `which nginx` zeigt den Pfad zum Programm, `type befehl` sagt, ob es ein Programm, Alias oder eingebauter Befehl ist.
+## 🔬 Genauer hingeschaut
+- **Nützliche grep-Optionen:** `-r` durchsucht Ordner rekursiv, `-i` ignoriert Gross-/Kleinschreibung, `-n` zeigt die Zeilennummer, `-l` nur die Dateinamen.
+- **find mit Bedingungen:** `find /var/log -mtime -1` findet Dateien, die in den letzten 24 h geändert wurden, `find / -size +500M` grosse Dateien. Mit `-exec` lässt sich auf jedem Treffer ein Befehl ausführen – vorher immer ohne `-exec` prüfen, was gefunden wird.
+## 💡 Wusstest du?
+- Der Name **grep** kommt aus dem alten Editor ed: Der Befehl `g/re/p` hiess „global nach einem regulären Ausdruck suchen und ausgeben (print)“.
 """,
 
     "befehle": [

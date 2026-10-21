@@ -12,6 +12,8 @@ THEMA = {
                    "verbindung", "timeout", "connection refused"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Brief kommt nicht an. Du prüfst **von innen nach aussen**: Ist er im eigenen Briefkasten (Netzwerkkarte)? Hat ihn die Post im Quartier (Gateway)? Kennt die Post die Adresse (DNS)? Ist der Empfänger zu Hause (Zielserver)? Netzwerkfehler sucht man genauso – Schritt für Schritt, statt zu raten.
 ## Von innen nach aussen prüfen
 Netzwerkprobleme findet man am schnellsten, wenn man **Schicht für Schicht** vorgeht:
 - 1. **Eigene IP da?** `ip a`
@@ -30,6 +32,12 @@ Wo es zum ersten Mal scheitert, liegt das Problem.
 Zeigt alle Ports, auf denen etwas lauscht. Wichtig ist die Spalte **Local Address**:
 - `127.0.0.1:3306` – nur lokal erreichbar ✅ (Datenbank soll so sein)
 - `0.0.0.0:80` bzw. `*:80` bzw. `[::]:80` – von **allen** Netzwerken erreichbar (nur wenn gewollt!)
+## 🔬 Genauer hingeschaut
+- **Kein Ping heisst nicht „aus“:** Viele Server und Firewalls beantworten Ping absichtlich nicht. Ob ein Dienst läuft, zeigt ein Test auf seinen Port zuverlässiger, z.B. `curl -v https://ziel` oder `nc -zv ziel 443`.
+- **DNS gezielt prüfen:** `resolvectl query beispiel.ch` oder `dig beispiel.ch` zeigt, welche IP-Adresse ein Name liefert. Funktioniert die IP, aber der Name nicht, liegt der Fehler beim DNS.
+- **Wo bleibt es hängen?** `traceroute ziel` (ggf. installieren) zeigt jede Station auf dem Weg und wo die Verbindung abbricht.
+## 💡 Wusstest du?
+- Unter Admins kursiert der Spruch „It's always DNS“: Erstaunlich viele rätselhafte Netzwerkprobleme stellen sich am Ende als Fehler bei der Namensauflösung heraus.
 """,
 
     "befehle": [

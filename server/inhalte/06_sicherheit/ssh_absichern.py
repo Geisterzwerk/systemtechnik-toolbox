@@ -12,6 +12,8 @@ THEMA = {
                    "ssh.socket", "cloud-init", "sshd -t", "2fa"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Haustür mit einem **Zahlenschloss** kann jeder durchprobieren, bis er die Kombination findet. Eine Tür mit einem **guten Schlüssel** öffnet nur, wer den Schlüssel hat. SSH absichern heisst: Zahlenschloss (Passwort) abschaffen, nur noch Schlüssel zulassen, und den Generalschlüssel (root) gar nicht erst an die Tür lassen.
 ## Das Ziel
 Nur **bestimmte Benutzer**, nur mit **SSH-Schlüssel**, **kein root**, und wer es mit falschen Passwörtern probiert, wird **automatisch gesperrt**.
 ## Wo steht die Konfiguration?
@@ -29,6 +31,12 @@ Nur **bestimmte Benutzer**, nur mit **SSH-Schlüssel**, **kein root**, und wer e
 Ein anderer Port als 22 reduziert den Lärm im Log (weniger Bots), ist aber **keine echte Sicherheit**. Wichtiger sind Schlüssel + fail2ban. Auf **Ubuntu 24.04** läuft SSH über `ssh.socket` – nach einer Port-Änderung braucht es `sudo systemctl daemon-reload` und `sudo systemctl restart ssh.socket`.
 ## fail2ban
 Liest die Logs und sperrt IPs per Firewall, die sich zu oft falsch anmelden. Auf Ubuntu ist die SSH-Überwachung nach der Installation schon aktiv. Eigene Einstellungen in **`/etc/fail2ban/jail.local`** (nie `jail.conf` bearbeiten – wird bei Updates überschrieben).
+## 🔬 Genauer hingeschaut
+- **Konfiguration testen, bevor neu geladen wird:** `sudo sshd -t` prüft die Konfiguration auf Fehler. Gibt es keine Ausgabe, ist sie gültig – erst dann `systemctl reload ssh`.
+- **Nur bestimmte Benutzer:** `AllowUsers admin` in der Konfiguration erlaubt nur genau diesen Benutzern die Anmeldung über SSH – alle anderen sind ausgesperrt, selbst wenn sie gültige Zugangsdaten hätten.
+- **Zwei Faktoren:** Für besonders wichtige Server lässt sich SSH zusätzlich mit einem Einmal-Code (z.B. TOTP-App) oder einem Hardware-Schlüssel absichern.
+## 💡 Wusstest du?
+- Ein Blick mit `journalctl -u ssh` auf einem öffentlich erreichbaren Server zeigt oft Hunderte fehlgeschlagene Anmeldeversuche pro Tag – von Bots, die Standardpasswörter durchprobieren.
 """,
 
     "befehle": [
