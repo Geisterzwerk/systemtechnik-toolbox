@@ -70,6 +70,7 @@ class Schaltplan:
 
     def __init__(self, c, w, h, spalten, zeilen, rand=0.7):
         self.c = c
+        self.breite, self.hoehe = w, h                        # Pixel - für Modelle, die frei zeichnen (Diagramme)
         self.dunkel = ist_dunkel(c)
         # rand: zusätzlicher Platz links UND rechts (für Beschriftungen, die über den Plan hinausgehen)
         self.u = min(w / (spalten + 2 * rand), h / zeilen)    # Pixel pro Raster-Einheit

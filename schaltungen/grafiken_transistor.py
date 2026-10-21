@@ -10,7 +10,7 @@
 #   KonstantstromSchaltung   Transistor + Z-Diode oder JFET + R_S, Kennlinie I über R_Last
 #
 # Die Schalter-Simulatoren (NPN/PNP, N-/P-MOSFET) gibt es schon:
-#   bauteile/grafiken/schalter_simulator.py  -> werden auf den Seiten per ID wiederverwendet.
+#   bauteile/grafiken/halbleiter_modell.py   -> werden auf den Seiten per ID wiederverwendet.
 #
 # Rechnung: schaltungen/verstaerker_mathe.py, bauteile/rechner/transistor_mathe.py, mosfet_mathe.py
 # WER RUFT DAS AUF?  schaltungen/rechner.py (Registrierung, z.B. "schaltung_emitter")

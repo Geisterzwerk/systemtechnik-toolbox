@@ -1,5 +1,5 @@
 # Seite "RC-Glied laden und entladen"  -> Vorlage: schaltungen/inhalte/_vorlage.py
-# Die Lernansicht "rc_ladekurve" gibt es schon (bauteile/grafiken/kurven.py) - hier nur wiederverwendet.
+# Die Lernansicht "rc_ladekurve" gibt es schon (bauteile/grafiken/kurven_modell.py) - hier nur wiederverwendet.
 
 THEMA = {
     "titel": "RC-Glied: Laden und Entladen",

@@ -54,7 +54,8 @@ _MODULE = [
 
 # Grafik-Module OHNE tkinter (SchaltungsModell): Diese zeichnet auch die Webversion als SVG.
 # Neues Modul mit SchaltungsModell-Klassen? Hier eintragen (nie ein Modul, das customtkinter lädt!).
-MODULE_OHNE_FENSTER = ("schaltungen.", "messtechnik.grafiken_signale")
+MODULE_OHNE_FENSTER = ("schaltungen.", "messtechnik.grafiken", "bauteile.grafiken.kurven_modell",
+                       "bauteile.grafiken.halbleiter_modell")
 
 _REGISTRY = {}
 _SPERRE = threading.Lock()                    # nur ein Thread baut die Liste auf (Webversion)

@@ -9,7 +9,7 @@
 #   AntiAliasingSchaltung   RC-Tiefpass vor dem ADC: Abtastpunkte und Alias-Signal
 #
 # Laden/Entladen und RL ein/aus gibt es schon als Lernansicht:
-#   bauteile/grafiken/kurven.py ("rc_ladekurve", "rl_kurve") -> werden auf den Seiten per ID wiederverwendet.
+#   bauteile/grafiken/kurven_modell.py ("rc_ladekurve", "rl_kurve") -> werden auf den Seiten per ID wiederverwendet.
 #
 # Rechnung: schaltungen/rc_mathe.py
 # WER RUFT DAS AUF?  schaltungen/rechner.py (Registrierung, z.B. "schaltung_rc_filter")

@@ -18,7 +18,7 @@
 #                              -> der MOSFET wird heiss (P = U_DS · I)
 #   K (Steilheit) ist hier fest - echte Werte stehen als Kennlinienfeld im Datenblatt.
 #
-# WER RUFT DAS AUF?  bauteile/grafiken/schalter_simulator.py (MosfetSchalter)
+# WER RUFT DAS AUF?  bauteile/grafiken/halbleiter_modell.py (MosfetSchalter)
 # =============================================================================
 
 K_STEILHEIT = 1.0          # A/V², typische Grössenordnung für kleine Leistungs-MOSFETs

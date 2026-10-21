@@ -9,8 +9,8 @@
 #   achse_y(c, x, y_oben, y_unten, v_min, v_max, typ, schrift, farbe, rechts=False)
 #                               -> schreibt v_max, 0 (falls dazwischen) und v_min an eine senkrechte Achse
 #
-# WER RUFT DAS AUF?  bauteile/grafiken/schaltplan.py (diagramm), trafo_animation.py, kurven.py,
-#                    halbleiter_grafiken.py, schalter_simulator.py, messtechnik/grafiken.py ...
+# WER RUFT DAS AUF?  bauteile/grafiken/schaltplan.py (diagramm), trafo_animation.py, kurven_modell.py,
+#                    halbleiter_modell.py, messtechnik/grafiken.py ...
 # =============================================================================
 
 import math

@@ -1,7 +1,7 @@
 # =============================================================================
 # messtechnik/grafiken.py
 # -----------------------------------------------------------------------------
-# INTERAKTIVE GRAFIK: Abtasttheorem und Aliasing.
+# INTERAKTIVE GRAFIK: Abtasttheorem und Aliasing - MODELL OHNE FENSTER (Desktop-App UND Web).
 #
 #   blau    = echtes Signal (Sinus mit Frequenz f)
 #   Punkte  = Abtastwerte (alle 1/fs Sekunden)
@@ -10,133 +10,89 @@
 # Ist fs > 2·f, passt die orange Kurve zum echten Signal. Sonst entsteht eine
 # FALSCHE, tiefere Frequenz (Alias) – genau das verhindert ein Anti-Aliasing-Filter.
 #
-# Gezeichnet wird nur bei Grössenänderung oder Reglerbewegung (keine Animation).
-# Eigene Namen beginnen mit ag_ (keine Kollision mit tkinter).
+# Die Alias-Frequenz rechnet schaltungen/rc_mathe.py alias_frequenz() (mit Vorzeichen).
+# WER RUFT DAS AUF?  messtechnik/rechner.py ("abtastung") über GrafikVerweis
 # =============================================================================
 
 import math
 
-import customtkinter as ctk
+import config                                                            # -> config.py
+from bauteile.einheiten import formatieren                               # -> bauteile/einheiten.py
+from bauteile.grafiken.schaltplan import SchaltungsModell, farbe_waehlen  # -> bauteile/grafiken/schaltplan.py
+from schaltungen.rc_mathe import alias_frequenz                          # -> schaltungen/rc_mathe.py
 
-import config                                               # -> config.py
-from bauteile.rechner.basis import WertRegler               # -> bauteile/rechner/basis.py
-from core.layout import Karte, ResponsiveCanvas, WrapLabel  # -> core/layout.py
-from schaltungen.rc_mathe import alias_frequenz              # -> schaltungen/rc_mathe.py (mit Vorzeichen)
-
-BLAU = "#3B82F6"
-ORANGE = "#F59E0B"
-GRUEN = "#22C55E"
-ROT = "#EF4444"
+BLAU, ORANGE, GRUEN, ROT = "#3B82F6", "#F59E0B", "#22C55E", "#EF4444"
+MAX_PUNKTE = 4000                        # Kurve höchstens so fein (sehr hohe Frequenzen -> sonst riesig)
+MAX_ABTASTWERTE = 400                    # Abtastpunkte höchstens so viele zeichnen
 
 
-def _farbe(paar):
-    return paar[1] if ctk.get_appearance_mode() == "Dark" else paar[0]
+class AbtastGrafik(SchaltungsModell):
+    TITEL = "📉 Abtasttheorem & Aliasing (interaktiv)"
+    UNTERTITEL = "Signalfrequenz erhöhen: ab fs/2 sieht der Wandler eine falsche Frequenz"
+    REGLER = [("f", "Signalfrequenz f", "frequenz", 1.0, 45.0, 3.0, {"einheit": "Hz", "grenzen": (0.1, 200), "schritte": 88}),
+              ("fs", "Abtastrate fs", "frequenz", 4.0, 60.0, 20.0, {"einheit": "Hz", "grenzen": (1, 400), "schritte": 112})]
+    SEITENVERHAELTNIS = 0.42
+    MAX_HOEHE = 340
+    ERKLAERUNG = ("Was zeigt die Grafik?  Der AD-Wandler kennt nur die grünen Abtastwerte. Liegt die Signalfrequenz "
+                  "unter der halben Abtastrate (Nyquist-Frequenz fs/2), lässt sich das Signal eindeutig rekonstruieren. "
+                  "Darüber passen die Punkte auch zu einer tieferen Frequenz – der Wandler sieht dann ein falsches "
+                  "Signal (Alias). Darum steht vor jedem AD-Wandler ein Tiefpass (Anti-Aliasing-Filter).")
 
+    def sk_rechnen(self, w, v):
+        f, fs = w["f"], w["fs"]
+        if f <= 0 or fs <= 0:
+            raise ValueError("Frequenzen müssen grösser als 0 sein")
+        dauer = 1.0 if fs <= MAX_ABTASTWERTE else MAX_ABTASTWERTE / fs     # sonst nur ein Ausschnitt
+        return {"f": f, "fs": fs, "fa": alias_frequenz(f, fs), "dauer": dauer}
 
-class AbtastGrafik(Karte):
-
-    def __init__(self, master):
-        super().__init__(master, titel="📉 Abtasttheorem & Aliasing (interaktiv)",
-                         untertitel="Signalfrequenz erhöhen: ab fs/2 sieht der Wandler eine falsche Frequenz")
-        b = self.body
-        self.ag_groesse = (0, 0)
-        self.ag_canvas = None
-        self.ag_regler = {}
-
-        regler = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        regler.grid(row=1, column=0, sticky="ew", pady=(6, 0))
-        regler.grid_columnconfigure(0, weight=1)
-        # Slider + Zahlenfeld + Einheit -> bauteile/rechner/basis.py WertRegler
-        self.ag_regler = {
-            "f": WertRegler(regler, "Signalfrequenz f", "frequenz", 1, 45, 3, einheit="Hz", grenzen=(0.1, 200),
-                            schritte=88, bei_aenderung=self.ag_neu, text_breite=130),
-            "fs": WertRegler(regler, "Abtastrate fs", "frequenz", 4, 60, 20, einheit="Hz", grenzen=(1, 400),
-                             schritte=112, bei_aenderung=self.ag_neu, text_breite=130),
-        }
-        for zeile, eintrag in enumerate(self.ag_regler.values()):
-            eintrag.grid(row=zeile, column=0, sticky="ew")
-
-        self.ag_canvas = ResponsiveCanvas(b, self._ag_zeichnen, seitenverhaeltnis=0.42, max_hoehe=340)
-        self.ag_canvas.grid(row=0, column=0, sticky="ew")
-        self.ag_info = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"), text_color=config.FARBEN["akzent"])
-        self.ag_info.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        self.ag_neu()
-
-    def _ag_werte(self):
-        return self.ag_regler["f"].wert(), self.ag_regler["fs"].wert()
-
-    def ag_neu(self):
-        if len(self.ag_regler) < 2:
-            return
-        f, fs = self._ag_werte()
-        fa = abs(alias_frequenz(f, fs))
-        zeilen = [f"Nyquist-Frequenz fs/2 = {fs / 2:.1f} Hz   ·   Signal f = {f:.1f} Hz"]
+    def sk_info(self, w, e, v):
+        f, fs, fa = e["f"], e["fs"], abs(e["fa"])
+        zeilen = [f"Nyquist-Frequenz fs/2 = {formatieren(fs / 2, 'frequenz')}   ·   Signal f = {formatieren(f, 'frequenz')}"]
         if f < fs / 2 - 1e-9:
             zeilen.append(f"✅ f < fs/2 → korrekt erfasst ({fs / f:.1f} Abtastwerte pro Periode)")
-            farbe = config.FARBEN["akzent"]
-        elif abs(f - fs / 2) < 1e-9:
+            return zeilen, config.FARBEN["akzent"]
+        if abs(f - fs / 2) < 1e-9:
             zeilen.append("⚠ Genau fs/2: je nach Phase sieht man die volle Amplitude – oder nur Nullen")
-            farbe = ("#B45309", ORANGE)
-        else:
-            zeilen.append(f"❌ ALIASING: Der Wandler sieht {fa:.1f} Hz statt {f:.1f} Hz!")
-            farbe = ("#B91C1C", ROT)
-        self.ag_info.configure(text="\n".join(zeilen), text_color=farbe)
-        w, h = self.ag_groesse
-        if self.ag_canvas is not None and w > 1:
-            self.ag_canvas.delete("all")
-            self._ag_zeichnen(self.ag_canvas, w, h)
+            return zeilen, ("#B45309", ORANGE)
+        zeilen.append(f"❌ ALIASING: Der Wandler sieht {formatieren(fa, 'frequenz')} statt {formatieren(f, 'frequenz')}!")
+        return zeilen, ("#B91C1C", ROT)
 
-    def _ag_zeichnen(self, c, w, h):
-        self.ag_groesse = (w, h)
-        if len(self.ag_regler) < 2:
-            return
-        f, fs = self._ag_werte()
-        fa = alias_frequenz(f, fs)
-        text = _farbe(config.FARBEN["text_leise"])
-        linie = _farbe(config.FARBEN["rahmen"])
+    def sk_zeichnen(self, p, w, e, v):
+        c, wb, h = p.c, p.breite, p.hoehe
+        f, fs, fa, dauer = e["f"], e["fs"], e["fa"], e["dauer"]
+        text = farbe_waehlen(config.FARBEN["text_leise"], p.dunkel)
+        linie = farbe_waehlen(config.FARBEN["rahmen"], p.dunkel)
         schrift = (config.SCHRIFT, max(8, int(h / 24)))
-        links, rechts, oben, unten = 0.07 * w, 0.98 * w, 0.10 * h, 0.86 * h
-        dauer = 1.0                                             # 1 Sekunde anzeigen
+        links, rechts, oben, unten = 0.07 * wb, 0.98 * wb, 0.10 * h, 0.86 * h
 
         def x(t):
             return links + (rechts - links) * t / dauer
 
-        def y(v):
-            return (oben + unten) / 2 - (unten - oben) / 2 * 0.9 * v
+        def y(wert):
+            return (oben + unten) / 2 - (unten - oben) / 2 * 0.9 * wert
 
         c.create_line(links, y(0), rechts, y(0), fill=linie)
         for k in range(1, 10):
-            c.create_line(x(k / 10), oben, x(k / 10), unten, fill=linie, dash=(2, 4))
-        for k in range(0, 11, 2):                               # Zeitachse in s (0 … 1 s)
-            c.create_text(x(k / 10), unten + 0.07 * h, text="0" if k == 0 else f"{k / 10:g} s", fill=text, font=schrift,
-                          anchor="w" if k == 0 else "e" if k == 10 else "center")
-        for wert, beschriftung in ((1, "+û"), (0, "0"), (-1, "−û")):   # Amplitude (Scheitelwert û)
+            c.create_line(x(dauer * k / 10), oben, x(dauer * k / 10), unten, fill=linie, dash=(2, 4))
+        for k in range(0, 11, 2):
+            c.create_text(x(dauer * k / 10), unten + 0.07 * h, text="0" if k == 0 else formatieren(dauer * k / 10, "zeit", 3),
+                          fill=text, font=schrift, anchor="w" if k == 0 else "e" if k == 10 else "center")
+        for wert, beschriftung in ((1, "+û"), (0, "0"), (-1, "−û")):    # Amplitude (Scheitelwert û)
             c.create_text(links - 4, y(wert), text=beschriftung, anchor="e", fill=text, font=schrift)
 
-        # echtes Signal (fein aufgelöst)
-        punkte = []
-        schritte = max(200, int(f * 40))
-        for i in range(schritte + 1):
-            t = dauer * i / schritte
-            punkte += [x(t), y(math.sin(2 * math.pi * f * t))]
-        c.create_line(*punkte, fill=BLAU, width=2)
-
-        # Rekonstruktion (was der Wandler sieht)
-        punkte = []
-        for i in range(401):
-            t = dauer * i / 400
-            punkte += [x(t), y(math.sin(2 * math.pi * fa * t))]
-        c.create_line(*punkte, fill=ORANGE, width=3, dash=(8, 4))
-
-        # Abtastpunkte
-        n = int(dauer * fs)
-        for k in range(n + 1):
+        schritte = min(MAX_PUNKTE, max(200, int(f * dauer * 40)))         # echtes Signal
+        c.create_line(*[k for i in range(schritte + 1)
+                        for k in (x(dauer * i / schritte), y(math.sin(2 * math.pi * f * dauer * i / schritte)))],
+                      fill=BLAU, width=2)
+        c.create_line(*[k for i in range(401)                              # Rekonstruktion
+                        for k in (x(dauer * i / 400), y(math.sin(2 * math.pi * fa * dauer * i / 400)))],
+                      fill=ORANGE, width=3, dash=(8, 4))
+        for k in range(int(dauer * fs) + 1):                                # Abtastpunkte
             t = k / fs
             px, py = x(t), y(math.sin(2 * math.pi * f * t))
             c.create_line(px, y(0), px, py, fill=GRUEN)
             c.create_oval(px - 4, py - 4, px + 4, py + 4, fill=GRUEN, outline="")
-
         c.create_text(links + 4, oben - 0.05 * h, anchor="w", fill=BLAU, font=schrift, text="— echtes Signal")
-        c.create_text(links + 0.2 * w, oben - 0.05 * h, anchor="w", fill=GRUEN, font=schrift, text="● Abtastwerte")
-        c.create_text(links + 0.4 * w, oben - 0.05 * h, anchor="w", fill=ORANGE, font=schrift,
+        c.create_text(links + 0.2 * wb, oben - 0.05 * h, anchor="w", fill=GRUEN, font=schrift, text="● Abtastwerte")
+        c.create_text(links + 0.4 * wb, oben - 0.05 * h, anchor="w", fill=ORANGE, font=schrift,
                       text="- - was der Wandler sieht")

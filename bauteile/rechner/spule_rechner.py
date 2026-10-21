@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 # Alle RECHNER für die Seite "Spule".
 #
-#   rl_kurve           INTERAKTIV: Strom beim Ein-/Ausschalten (bauteile/grafiken/kurven.py)
+#   rl_kurve           INTERAKTIV: Strom beim Ein-/Ausschalten (bauteile/grafiken/kurven_modell.py)
 #   blindwiderstand_l  XL bei Frequenz f
 #   rl_zeit            τ = L/R, Endstrom, Strom nach Zeit t
 #   abschaltspitze     Induktionsspannung U = L · ΔI / Δt (warum es eine Freilaufdiode braucht)
@@ -143,7 +143,7 @@ reihe_parallel_l = FormelDaten(
 
 
 RECHNER = {
-    "rl_kurve": GrafikVerweis("bauteile.grafiken.kurven", "KurvenKarte", modus="RL"),
+    "rl_kurve": GrafikVerweis("bauteile.grafiken.kurven_modell", "RlKurve"),
     "blindwiderstand_l": blindwiderstand_l,
     "rl_zeit": rl_zeit,
     "abschaltspitze": abschaltspitze,

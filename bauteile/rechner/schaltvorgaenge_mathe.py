@@ -12,7 +12,7 @@
 #   Spule:       u_L > 0  = Spannung bremst einen steigenden Strom (Einschalten)
 #                u_L < 0  = Spannung kehrt um und treibt den Strom weiter (Ausschalten)
 #
-# WER RUFT DAS AUF?  bauteile/grafiken/kurven.py (Lernansicht RC / RL)
+# WER RUFT DAS AUF?  bauteile/grafiken/kurven_modell.py (Lernansicht RC / RL)
 # =============================================================================
 
 import math

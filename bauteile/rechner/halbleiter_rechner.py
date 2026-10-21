@@ -3,10 +3,10 @@
 # -----------------------------------------------------------------------------
 # RECHNER für Diode, Z-Diode, LED, Bipolartransistor und MOSFET (Etappe 3).
 #
-#   diode_kennlinie       INTERAKTIV: Kennlinie + Arbeitsgerade (grafiken/halbleiter_grafiken.py)
+#   diode_kennlinie       INTERAKTIV: Kennlinie + Arbeitsgerade (grafiken/halbleiter_modell.py)
 #   zdiode_kennlinie      wie oben, startet mit der Z-Diode (volle Kennlinie, −Uz)
-#   transistor_simulator  INTERAKTIV: Bipolartransistor als Schalter (NPN / PNP)  -> grafiken/schalter_simulator.py
-#   mosfet_simulator      INTERAKTIV: MOSFET als Schalter (N- / P-Kanal)          -> grafiken/schalter_simulator.py
+#   transistor_simulator  INTERAKTIV: Bipolartransistor als Schalter (NPN / PNP)  -> grafiken/halbleiter_modell.py
+#   mosfet_simulator      INTERAKTIV: MOSFET als Schalter (N- / P-Kanal)          -> grafiken/halbleiter_modell.py
 #   diode_temperatur      Uf bei anderer Temperatur (−2 mV/K)
 #   diode_verlust         Verlustleistung und Sperrschichttemperatur
 #   gleichrichter         Einweg / Brücke / Mittelpunkt mit Ladeelko
@@ -350,10 +350,10 @@ kuehlkoerper = FormelDaten(
 # REGISTRIERUNG
 # =============================================================================
 RECHNER = {
-    "diode_kennlinie": GrafikVerweis("bauteile.grafiken.halbleiter_grafiken", "DiodenKennlinie"),
-    "zdiode_kennlinie": GrafikVerweis("bauteile.grafiken.halbleiter_grafiken", "DiodenKennlinie", start_typ="Z-Diode 5.1 V"),
-    "transistor_simulator": GrafikVerweis("bauteile.grafiken.schalter_simulator", "BjtSchalter"),
-    "mosfet_simulator": GrafikVerweis("bauteile.grafiken.schalter_simulator", "MosfetSchalter"),
+    "diode_kennlinie": GrafikVerweis("bauteile.grafiken.halbleiter_modell", "DiodenKennlinie"),
+    "zdiode_kennlinie": GrafikVerweis("bauteile.grafiken.halbleiter_modell", "ZDiodenKennlinie"),
+    "transistor_simulator": GrafikVerweis("bauteile.grafiken.halbleiter_modell", "BjtSchalter"),
+    "mosfet_simulator": GrafikVerweis("bauteile.grafiken.halbleiter_modell", "MosfetSchalter"),
     "diode_temperatur": diode_temperatur,
     "diode_verlust": diode_verlust,
     "gleichrichter": gleichrichter,

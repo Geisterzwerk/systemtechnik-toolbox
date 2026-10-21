@@ -1,5 +1,5 @@
 # Seite "RL-Glied ein- und ausschalten"  -> Vorlage: schaltungen/inhalte/_vorlage.py
-# Lernansicht "rl_kurve" (bauteile/grafiken/kurven.py) und Schaltplan "schaltung_freilauf"
+# Lernansicht "rl_kurve" (bauteile/grafiken/kurven_modell.py) und Schaltplan "schaltung_freilauf"
 # (schaltungen/grafiken_dioden.py) gibt es schon - hier nur wiederverwendet.
 
 THEMA = {

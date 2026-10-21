@@ -4,7 +4,7 @@
 # Alle RECHNER für die Seite "Kondensator".
 #
 #   rc_ladekurve       INTERAKTIV: Lade-/Entladekurve mit Schieberegler
-#                      (steht in bauteile/grafiken/kurven.py, hier nur registriert)
+#                      (steht in bauteile/grafiken/kurven_modell.py, hier nur registriert)
 #   rc_zeit            Wie lange dauert es bis zu Spannung X / Prozent Y?
 #   rc_filter          Grenzfrequenz RC-Tief-/Hochpass (2 von 3 Werten)
 #   blindwiderstand_c  Xc bei Frequenz f, Strom bei Spannung U
@@ -207,7 +207,7 @@ kondensator_code = FormelDaten(
 # REGISTRIERUNG
 # =============================================================================
 RECHNER = {
-    "rc_ladekurve": GrafikVerweis("bauteile.grafiken.kurven", "KurvenKarte", modus="RC"),
+    "rc_ladekurve": GrafikVerweis("bauteile.grafiken.kurven_modell", "RcKurve"),
     "rc_zeit": rc_zeit,
     "rc_filter": rc_filter,
     "blindwiderstand_c": blindwiderstand_c,
