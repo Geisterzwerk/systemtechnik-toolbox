@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_zweierkomplement"],
 
     "erklaerung": """
+## Stell dir vor …
+Dreh einen vierstelligen **Kilometerzähler** von 0000 einen Schritt zurück: Er zeigt 9999. Man könnte sagen, 9999 „bedeutet“ hier −1. Genau so funktioniert das Zweierkomplement mit Bits: Ein Schritt unter 0000 0000 ergibt 1111 1111 – und das wird als −1 gelesen. Der Vorteil: Plus und Minus rechnet dasselbe Addierwerk.
 ## Grundlagen
 Im **Zweierkomplement** hat das MSB die negative Wertigkeit `−2^(n−1)`, alle anderen Bits zählen normal positiv.
 - Wertebereich mit n Bit: `−2^(n−1) … 2^(n−1) − 1` (8 Bit: −128 … +127), unsigned `0 … 2^n − 1` (0 … 255).
@@ -42,6 +44,12 @@ Ob ein Muster signed oder unsigned ist, steht nicht im Muster. `1111 1011` ist u
 - C-Datentypen: `int8_t` (−128 … 127), `uint8_t` (0 … 255), `int16_t`, `uint32_t` … Ein Überlauf bei unsigned rechnet modulo 2^n weiter (z.B. Zähler 255 + 1 = 0).
 - ADC-Werte von Sensoren (z.B. Temperatur 0xFFF0 bei 16 Bit) erst als signed deuten, dann skalieren.
 - In Assembler/Statusregistern: Bedingte Sprünge prüfen C für unsigned- und V für signed-Vergleiche.
+## 🔬 Genauer hingeschaut
+- **Ein Addierwerk für alles:** Die Hardware weiss nicht, ob eine Zahl signed oder unsigned ist – sie addiert einfach Bits. Erst das Programm entscheidet, wie das Ergebnis zu lesen ist und ob es das Carry- oder das Overflow-Flag prüft.
+- **Unsymmetrischer Bereich:** Mit 8 Bit gehen −128 … +127. −128 hat kein positives Gegenstück: Bildet man davon −x, kommt wieder −128 heraus.
+- **Je nach Sprache verschieden:** In Python werden ganze Zahlen einfach grösser – es gibt keinen Überlauf. In C ist der Überlauf bei vorzeichenbehafteten Zahlen nicht definiert, bei vorzeichenlosen läuft er im Kreis.
+## 💡 Wusstest du?
+- 1996 zerstörte sich die erste **Ariane 5** kurz nach dem Start: Ein Wert wurde von einer 64-Bit-Gleitkommazahl in eine 16-Bit-Ganzzahl umgewandelt, war dafür zu gross, und der Fehler legte die Steuerung lahm.
 """,
 
     "tipps": [

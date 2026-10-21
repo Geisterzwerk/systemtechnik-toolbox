@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_schieberegister"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Eimerkette** beim Löschen eines Brandes: Bei jedem Kommando reicht jede Person ihren Eimer an die nächste weiter. Nach acht Kommandos ist der erste Eimer bei der achten Person. Das Schieberegister ist diese Kette – der Takt ist das Kommando, die Bits sind die Eimer.
 ## Grundlagen
 Ein Schieberegister besteht aus n D-Flipflops am selben Takt; jede Stufe übernimmt bei der Flanke den Wert der vorigen.
 - **SIPO** (seriell rein, parallel raus, 74HC595): aus einer Datenleitung werden n Ausgänge.
@@ -39,6 +41,12 @@ Ringzähler: beim Start genau EINE 1 setzen (Reset auf 0001), sonst läuft er fa
 - SPI ist im Kern ein Schieberegister in Master und Slave, die ihre Inhalte austauschen.
 - Mit XOR-Rückkopplung (LFSR) entstehen Pseudozufallsfolgen und CRC-Prüfsummen.
 - Schieben um eine Stelle nach links = × 2 (wie `x << 1` im Code).
+## 🔬 Genauer hingeschaut
+- **Schieben und Übernehmen getrennt:** Der 74HC595 hat hinter dem Schieberegister ein zweites Register (Latch). Die Bits werden zuerst in Ruhe hineingeschoben, und erst ein Puls am Übernahme-Eingang zeigt alle gleichzeitig an. So flackern die Ausgänge beim Schieben nicht.
+- **Kaskadieren:** Der serielle Ausgang eines Registers geht an den Eingang des nächsten. Mit drei Leitungen lassen sich so beliebig viele Ausgänge steuern – nur dauert das Schieben entsprechend länger.
+- **LFSR:** Ein Schieberegister, dessen Eingang aus einer XOR-Verknüpfung einzelner Stufen kommt, erzeugt lange, scheinbar zufällige Bitfolgen. Das nutzt man für Pseudozufallszahlen, Verschlüsselung und Prüfsummen.
+## 💡 Wusstest du?
+- Die Prüfsumme (CRC), mit der Ethernet und viele andere Protokolle Übertragungsfehler erkennen, lässt sich mit genau so einem rückgekoppelten Schieberegister berechnen.
 """,
 
     "tipps": [

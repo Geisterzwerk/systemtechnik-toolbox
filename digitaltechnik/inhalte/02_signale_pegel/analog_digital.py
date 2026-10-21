@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["abtastung"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Uhr mit Zeigern** zeigt die Zeit stufenlos – der Zeiger kann irgendwo zwischen zwei Strichen stehen. Eine **Digitaluhr** zeigt nur ganze Minuten, und die Anzeige springt einmal pro Minute. Analog heisst: jeder Wert, jederzeit. Digital heisst: nur bestimmte Werte, zu bestimmten Zeitpunkten.
 ## Grundlagen
 - **Analoges Signal**: kann jeden Wert annehmen (wertkontinuierlich) und zu jedem Zeitpunkt (zeitkontinuierlich) – z.B. Mikrofon, Thermoelement.
 - **Digitales Signal**: nur endlich viele Werte (wertdiskret) zu festen Zeitpunkten (zeitdiskret). Das **Binärsignal** kennt nur zwei Zustände: LOW (0) und HIGH (1).
@@ -37,6 +39,12 @@ Temperatursensor 0 … 3.3 V, gewünscht 1 mV Auflösung:
 - Ein digitaler Pin ist ein 1-Bit-„ADC“ mit Schaltschwellen (U_IL, U_IH) – siehe Logikpegel.
 - Digitale Leitungen sind trotzdem analog: Flanken, Reflexionen, Übersprechen – bei schnellen Signalen (MHz) wichtig.
 - Abtastung und Aliasing ausführlich: Bereich Messtechnik → „AD-Wandler“ und Schaltungen → „Anti-Aliasing-Tiefpass“.
+## 🔬 Genauer hingeschaut
+- **Digital ist physikalisch auch analog:** Auf der Leitung liegt eine echte Spannung mit Flanken, Rauschen und Überschwingern. „Digital“ bedeutet nur, dass der Empfänger mit Schwellen entscheidet, ob es 0 oder 1 ist.
+- **Warum digital so robust ist:** Solange eine Störung kleiner ist als der Abstand zur Schwelle, wird das Signal perfekt wiederhergestellt. Darum kann man digitale Daten beliebig oft kopieren und weiterleiten, ohne dass sie schlechter werden – bei einer analogen Kopie kommt jedes Mal etwas Rauschen dazu.
+- **Der Preis:** Beim Digitalisieren gehen Zwischenwerte und alles zwischen den Abtastzeitpunkten verloren. Wie viel man sich leisten kann, bestimmen Auflösung und Abtastrate.
+## 💡 Wusstest du?
+- Der **Morsecode** aus den 1830er-/1840er-Jahren ist eine der ersten digitalen Übertragungen: Es gibt nur Strom an oder aus, und die Bedeutung steckt in kurz, lang und Pause.
 """,
 
     "tipps": [

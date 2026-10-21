@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_gatter"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Tür mit **zwei Schlössern**, die beide offen sein müssen – das ist UND. Eine Tür mit zwei Eingängen, von denen einer reicht – das ist ODER. Ein Schild „Eintritt verboten“ dreht alles um – das ist NICHT. Aus solchen einfachen Regeln besteht jeder Computer, nur milliardenfach.
 ## Grundlagen
 Ein Gatter verknüpft binäre Eingänge zu einem Ausgang. Die **Wahrheitstabelle** listet für jede Eingangsbelegung den Ausgang (n Eingänge → `2^n` Zeilen).
 - **NOT** (Inverter): `Y = ¬A`
@@ -45,6 +47,12 @@ Nur mit NAND:
 - Unbenutzte Eingänge an GND oder U_B legen, nie offen lassen (CMOS).
 - Abblockkondensator 100 nF an jedes IC.
 - Laufzeit (t_pd ≈ 5 … 20 ns bei 74HC) summiert sich über mehrere Gatterstufen.
+## 🔬 Genauer hingeschaut
+- **NAND kann alles:** Mit NAND-Gattern allein lässt sich jede andere Logikfunktion bauen (NOT = NAND mit verbundenen Eingängen, AND = NAND + NOT …). Dasselbe gilt für NOR. Darum nennt man sie **universelle Gatter**.
+- **In CMOS:** Ein NAND-Gatter mit zwei Eingängen braucht nur vier Transistoren, ein AND sechs (NAND + Inverter). NAND und NOR sind deshalb in Chips die eigentlichen Grundbausteine.
+- **Gatter sind nicht unendlich schnell:** Jedes Gatter hat eine Laufzeit (bei 74HC einige ns). Bei vielen Gattern hintereinander addiert sie sich und bestimmt, wie schnell eine Schaltung getaktet werden kann.
+## 💡 Wusstest du?
+- Der Bordcomputer der Apollo-Mondmissionen bestand aus rund 2800 integrierten Schaltkreisen, die jeweils zwei NOR-Gatter enthielten – er war also fast nur aus NOR-Gattern gebaut.
 """,
 
     "tipps": [

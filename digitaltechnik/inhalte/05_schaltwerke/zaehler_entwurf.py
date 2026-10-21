@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["werkzeug_kv"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Verkehrsampel** kennt nur wenige Zustände: Rot, Rot-Gelb, Grün, Gelb. Bei jedem Takt (Zeitablauf oder Taster) wechselt sie nach einer festen Regel in den nächsten Zustand. Einen Zähler oder Automaten zu entwerfen heisst: diese Zustände aufschreiben, die Regeln festlegen und daraus die Logik für die Flipflops ableiten.
 ## Grundlagen
 Ein synchrones Schaltwerk = **Zustandsregister** (n D-Flipflops am gemeinsamen Takt) + **Übergangslogik** (Schaltnetz, das aus dem aktuellen Zustand und den Eingängen den nächsten Zustand berechnet) + ggf. **Ausgangslogik**.
 - **Moore-Automat**: Ausgänge hängen nur vom Zustand ab.
@@ -49,6 +51,12 @@ Gray-Zähler 0, 1, 3, 2: `D1 = Q0`, `D0 = ¬Q1` – nur zwei Leitungen, keine Ga
 - In VHDL/Verilog schreibt man den Automaten als `case`-Anweisung, das Synthesewerkzeug erzeugt Register und Logik – das Prinzip (Zustand, Übergang, Ausgang) bleibt gleich.
 - Typische Automaten: Ampelsteuerung, Sequenzerkennung (z.B. „101“ im Bitstrom), Protokolle (UART-Empfänger), Tastenentprellung mit Zustandsautomat.
 - Der KV-Rechner unten hilft beim Minimieren jeder einzelnen Ansteuerfunktion.
+## 🔬 Genauer hingeschaut
+- **Unbenutzte Zustände abfangen:** Ein Zähler mit 3 Flipflops hat 8 mögliche Zustände. Nutzt er nur 6, müssen auch die 2 übrigen in den normalen Ablauf zurückführen. Sonst kann er nach einer Störung oder beim Einschalten in einer Schleife hängen bleiben.
+- **One-Hot-Codierung:** Statt die Zustände binär zu nummerieren, bekommt jeder Zustand sein eigenes Flipflop – immer genau eines ist 1. Das braucht mehr Flipflops, aber weniger Logik und ist in FPGAs oft schneller.
+- **Moore oder Mealy?** Mealy-Ausgänge reagieren sofort auf Eingänge, können aber kurze Störimpulse weitergeben. Moore-Ausgänge ändern sich nur mit dem Takt – sauberer, dafür einen Takt später.
+## 💡 Wusstest du?
+- Ein **Getränkeautomat** ist ein klassisches Beispiel für einen Automaten: Die Zustände sind „0 Fr. eingeworfen“, „1 Fr.“, „2 Fr.“ …, die Eingänge sind Münzen und Tasten, und die Ausgänge sind „Getränk ausgeben“ und „Rückgeld“.
 """,
 
     "tipps": [

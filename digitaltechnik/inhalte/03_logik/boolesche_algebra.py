@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_ausdruck"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei **Lichtschalter in Reihe**: Die Lampe brennt nur, wenn Schalter A UND Schalter B eingeschaltet sind. Zwei Schalter **parallel**: Die Lampe brennt, wenn A ODER B eingeschaltet ist. Die boolesche Algebra ist die Mathematik dahinter – nur mit 0 und 1 statt mit Schaltern.
 ## Grundlagen
 Schreibweise in der Toolbox: `¬A` (NICHT), `A·B` (UND), `A + B` (ODER), `A ⊕ B` (XOR). Rangfolge: NICHT vor UND vor ODER.
 
@@ -44,6 +46,12 @@ De Morgan:
 - De Morgan erklärt, warum ein NAND mit negierten Eingängen ein OR ist – wichtig, wenn nur NAND-Bausteine vorhanden sind.
 - Aktiv-LOW-Signale (z.B. `¬CS`, `¬RESET`): „Chip aktiv, wenn ¬CS1 ODER ¬CS2 LOW“ lässt sich mit De Morgan als AND der High-aktiven Signale schreiben.
 - In Programmen (if-Bedingungen) gilt dasselbe: `!(a && b) == (!a || !b)`.
+## 🔬 Genauer hingeschaut
+- **Dualitätsprinzip:** Jede Regel gilt auch in einer zweiten Form, wenn man UND und ODER sowie 0 und 1 vertauscht. Aus `A · 1 = A` wird `A + 0 = A`, aus `A · 0 = 0` wird `A + 1 = 1`. So muss man nur die Hälfte der Regeln lernen.
+- **Vereinfachen spart Hardware:** Jeder Term, den man wegkürzt, ist ein Gatter weniger, weniger Verzögerung und weniger Fehlerquellen. Das Kürzen von Hand funktioniert gut für wenige Variablen, für mehr gibt es KV-Diagramme und Software.
+- **Auch im Programm:** In Bedingungen wie `if not (a and b)` hilft De Morgan, sie lesbarer zu machen: `if not a or not b`.
+## 💡 Wusstest du?
+- George Boole veröffentlichte seine Logik-Algebra **1854**. Dass man damit Relaisschaltungen berechnen kann, zeigte Claude Shannon **1937** in seiner Masterarbeit – eine der Grundlagen der Digitaltechnik.
 """,
 
     "tipps": [

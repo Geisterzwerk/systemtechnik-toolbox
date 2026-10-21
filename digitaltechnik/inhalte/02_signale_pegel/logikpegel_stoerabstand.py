@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_logikpegel"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Leute rufen sich über einen Platz zu. Abgemacht ist: **laut = Ja**, **leise = Nein**. Der Rufer muss deutlich laut oder deutlich leise sein, der Hörer muss Ja ab „ziemlich laut“ erkennen. Der Unterschied zwischen dem, was der Rufer garantiert, und dem, was der Hörer braucht, ist die **Reserve gegen Lärm** – der Störabstand.
 ## Grundlagen
 Jede Logikfamilie garantiert im Datenblatt vier Grenzwerte:
 - Ausgang: HIGH mindestens **U_OH,min**, LOW höchstens **U_OL,max** (bei einem bestimmten Laststrom!)
@@ -46,6 +48,12 @@ Arduino Uno (5 V) treibt ESP32-Eingang:
 - CMOS-Schwellen hängen von der Versorgung ab (z.B. 0.3 · U_B / 0.7 · U_B) – bei 3.3 V andere Werte als bei 5 V.
 - Offene CMOS-Eingänge nie offen lassen: Pull-up/-down, sonst undefiniert und Querstrom.
 - Unter Last sinkt U_OH (Datenblatt-Tabelle beachten): Ein µC-Pin, der eine LED treibt, liefert vielleicht nur noch 2.5 V.
+## 🔬 Genauer hingeschaut
+- **Die verbotene Zone:** Zwischen V_IL und V_IH ist nicht festgelegt, ob ein Eingang 0 oder 1 erkennt. Langsame Flanken verweilen dort lange – der Eingang kann mehrfach schalten. Darum haben viele Eingänge eine Schmitt-Trigger-Hysterese.
+- **TTL-Pegel als gemeinsame Sprache:** V_IL ≤ 0.8 V und V_IH ≥ 2.0 V. Viele 3.3-V-Bausteine verwenden diese Grenzen ebenfalls (LVTTL) – darum verstehen sie sich mit 5-V-TTL-Eingängen.
+- **Masseversatz zählt mit:** Liegen Sender und Empfänger nicht auf derselben Masse (lange Leitung, grosse Ströme), verschiebt sich der Pegel um den Spannungsabfall auf der Masseleitung und frisst vom Störabstand.
+## 💡 Wusstest du?
+- Schnelle Schnittstellen wie USB, HDMI oder LVDS arbeiten **differenziell**: Sie vergleichen zwei Leitungen miteinander. Bei LVDS genügen so rund 350 mV Signalhub, weil Störungen beide Leitungen gleich treffen und sich herausheben.
 """,
 
     "tipps": [

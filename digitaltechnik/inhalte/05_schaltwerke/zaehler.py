@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_zaehler"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Strichliste**, bei der du nach jedem vierten Strich einen Querstrich machst und neu anfängst: Du zählst in Gruppen und gibst die volle Gruppe an die nächste Stelle weiter. Ein Binärzähler zählt genauso – nur sind seine Gruppen nur zwei gross: Jedes Flipflop kippt, und wenn es von 1 auf 0 fällt, gibt es dem nächsten einen Stoss.
 ## Grundlagen
 Ein n-Bit-Zähler aus n Flipflops durchläuft `2^n` Zustände (Modulo `2^n`). Bit Q0 hat die halbe Taktfrequenz, jedes weitere wieder die Hälfte.
 - **Asynchron (Ripple)**: nur das erste Flipflop am Takt, jedes weitere am Ausgang des vorigen (T-Flipflops).
@@ -42,6 +44,12 @@ Dekadenzähler (m = 10):
 - 74HC393: 2 × 4-Bit-Ripple-Zähler; 74HC161/163: 4-Bit-Synchronzähler mit Laden (163 synchrones Rücksetzen).
 - In µC: Timer/Counter-Peripherie zählt Takte (Zeitmessung, PWM, Ereignisse) – ein synchroner Zähler mit Vergleichsregister.
 - Messgeräte: Frequenzzähler zählen Impulse während einer genauen Torzeit.
+## 🔬 Genauer hingeschaut
+- **Zwischenzustände beim Ripple-Zähler:** Weil die Flipflops nacheinander kippen, zeigt ein asynchroner Zähler beim Umschalten kurz falsche Werte (von 0111 nach 1000 z.B. kurz 0110, 0100, 0000). Wer den Zähler in diesem Moment ausliest oder decodiert, bekommt Unsinn. Synchrone Zähler haben das Problem nicht.
+- **Zähler im Mikrocontroller:** Timer/Counter-Einheiten sind Zähler mit einem einstellbaren **Vorteiler** (Prescaler). Aus 16 MHz und einem Vorteiler von 64 wird ein Zähltakt von 250 kHz.
+- **Frequenzteiler:** Jede Stufe eines Binärzählers halbiert die Frequenz. Nach n Stufen ist der Takt durch `2^n` geteilt.
+## 💡 Wusstest du?
+- Uhrenquarze schwingen fast immer mit **32'768 Hz**. Das ist genau 2^15 – nach 15 Teilerstufen bleibt exakt 1 Hz übrig, der Sekundentakt.
 """,
 
     "tipps": [

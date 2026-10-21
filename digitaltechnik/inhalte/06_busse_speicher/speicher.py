@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["werkzeug_speicher"],
 
     "erklaerung": """
+## Stell dir vor …
+Speicher sind wie **Schliessfächer mit Nummern**: Die Adresse ist die Fachnummer, die Daten liegen im Fach. Manche Fächer sind wie Notizzettel – schnell beschrieben, aber nach dem Ausschalten leer (RAM). Andere sind wie in Stein gemeisselt – sie behalten den Inhalt, lassen sich aber nur langsam oder selten neu beschreiben (Flash, ROM).
 ## Grundlagen
 **Flüchtig** (Inhalt weg ohne Spannung):
 - **SRAM**: je Bit ein Flipflop (6 Transistoren), schnell, kein Auffrischen, teuer pro Bit → Register, Cache, µC-Arbeitsspeicher
@@ -56,6 +58,12 @@ Kapazität eines 2-Mbit-EEPROMs mit 8 Datenbits: 2 Mibit / 8 = 256 Ki Wörter �
 - K, M, G heissen bei Speichern traditionell 1024, 1024², 1024³ (genau: Ki, Mi, Gi).
 - Flash/EEPROM sind nicht unbegrenzt beschreibbar: Werte nicht in jeder Schleife speichern, sondern nur bei Änderung (Wear Leveling bei Flash).
 - Viele moderne Speicher (EEPROM 24LCxx, SPI-Flash 25Qxx) hängen seriell an I²C oder SPI statt an einem parallelen Bus – das spart Pins, ist aber langsamer.
+## 🔬 Genauer hingeschaut
+- **Speicherhierarchie:** Je schneller ein Speicher, desto kleiner und teurer ist er. Darum gibt es Stufen: Register (wenige Bytes, sofort), Cache (KB bis MB), Arbeitsspeicher (GB), SSD/Festplatte (TB). Der Prozessor hält die gerade gebrauchten Daten möglichst weit oben.
+- **Wear Leveling:** Flash verträgt nur eine begrenzte Zahl Löschzyklen. SSDs und Speicherkarten verteilen Schreibzugriffe deshalb gleichmässig über alle Blöcke, damit nicht ein Block vorzeitig verschleisst.
+- **Im Mikrocontroller:** Wer Einstellungen bei jedem Programmdurchlauf ins EEPROM schreibt, hat es nach 100'000 Durchläufen verbraucht – das können wenige Minuten sein. Nur schreiben, wenn sich ein Wert wirklich geändert hat.
+## 💡 Wusstest du?
+- Bis in die 1970er-Jahre speicherten Computer Bits in winzigen magnetischen **Ferritkernen**. Von diesem Kernspeicher (englisch core) kommt bis heute der Begriff „Core Dump“ für einen Speicherauszug nach einem Absturz.
 """,
 
     "tipps": [

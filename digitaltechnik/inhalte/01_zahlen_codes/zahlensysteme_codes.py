@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_zahlensystem"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Kilometerzähler** im Auto: Jedes Rädchen hat die Ziffern 0 bis 9. Dreht das rechte Rädchen von 9 auf 0, schiebt es das nächste eins weiter. Ein Binärzähler funktioniert genauso – nur hat jedes Rädchen bloss zwei Ziffern, 0 und 1. Darum braucht er mehr Rädchen für dieselbe Zahl.
 ## Grundlagen
 Alle üblichen Zahlensysteme sind **Stellenwertsysteme**: Jede Stelle hat die Wertigkeit `Basis^Stelle` (rechts Stelle 0).
 - **Dezimal** (Basis 10): Ziffern 0 … 9
@@ -43,6 +45,12 @@ Alle üblichen Zahlensysteme sind **Stellenwertsysteme**: Jede Stelle hat die We
 - In C/C++/Python: `0b1100`, `0xC8`; in VHDL `x"C8"`; in Datenblättern auch `C8h`.
 - Speicher und Adressen: 1 KiB = 1024 Byte = 0x400, 64 KiB = 0x10000 (16 Adressbits).
 - Programmier-Sicht (Datentypen, Bit-Operatoren im Code): Bereich Programmieren → „Zahlensysteme, Bits & Bytes“.
+## 🔬 Genauer hingeschaut
+- **Warum Hex so beliebt ist:** Ein Byte ist genau zwei Hex-Ziffern. Speicheradressen, Farbwerte (`#FF8800` = Rot 255, Grün 136, Blau 0) und MAC-Adressen werden darum hexadezimal geschrieben.
+- **Kilo ist nicht immer 1000:** Die Norm unterscheidet kB (1000 Byte) und **KiB** (Kibibyte, 1024 Byte), MB und MiB usw. Darum zeigt das Betriebssystem bei einer „1-TB“-Festplatte oft nur rund 931 „GB“ an – es rechnet mit 1024er-Schritten.
+- **Wie viele Werte?** Mit n Bit lassen sich `2^n` verschiedene Werte darstellen: 8 Bit = 256, 16 Bit = 65'536, 32 Bit ≈ 4.3 Milliarden.
+## 💡 Wusstest du?
+- Das Binärsystem wurde von Gottfried Wilhelm Leibniz **1703** ausführlich beschrieben – mehr als 200 Jahre vor dem ersten Computer.
 """,
 
     "tipps": [

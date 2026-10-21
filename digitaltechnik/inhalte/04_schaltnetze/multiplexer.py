@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_mux"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Weiche bei der Eisenbahn** mit mehreren Gleisen: Ein Stellwerk bestimmt, welches Gleis mit dem Hauptgleis verbunden ist. Der Multiplexer ist diese Weiche für Signale: Die Auswahleingänge stellen die Weiche, und genau ein Eingang kommt zum Ausgang durch.
 ## Grundlagen
 - **Multiplexer (MUX)** `2^k : 1`: k Auswahleingänge (Select) wählen einen von `2^k` Dateneingängen. 4:1: `Y = ¬S1·¬S0·D0 + ¬S1·S0·D1 + S1·¬S0·D2 + S1·S0·D3`.
 - **Demultiplexer (DEMUX)** `1 : 2^k`: ein Eingang wird auf den gewählten Ausgang gelegt, alle anderen sind inaktiv. Ein DEMUX ist im Kern ein Decoder mit Daten-Eingang.
@@ -35,6 +37,12 @@ Logikfunktion mit MUX:
 - Zeitmultiplex bei 7-Segment-Anzeigen: Stellen nacheinander einschalten, Segmentleitungen gemeinsam.
 - In FPGAs sind LUTs (Lookup-Tables) im Grunde Multiplexer, deren Dateneingänge die Wahrheitstabelle enthalten.
 - Bei µC-Pins: „Alternate Function Multiplexer“ wählt, welches Peripheriemodul den Pin benutzt.
+## 🔬 Genauer hingeschaut
+- **Analoge Multiplexer:** Bausteine wie der CD4051 schalten nicht nur Bits, sondern echte Spannungen – in beide Richtungen. So kann ein einziger ADC viele Sensoren nacheinander messen.
+- **Zeitmultiplex:** Mehrere Signale teilen sich eine Leitung, indem sie sich zeitlich abwechseln. So wurden früher Telefongespräche über eine Leitung gebündelt, und so arbeiten viele Busse.
+- **Anzeigen multiplexen:** Mehrstellige 7-Segment-Anzeigen oder LED-Matrizen werden Stelle für Stelle sehr schnell nacheinander eingeschaltet. Das spart viele Leitungen.
+## 💡 Wusstest du?
+- Bei einer gemultiplexten Anzeige leuchtet immer nur eine Stelle gleichzeitig. Weil das Auge träge ist, sieht man trotzdem alle Stellen – erst eine Kamera mit kurzer Belichtungszeit verrät den Trick.
 """,
 
     "tipps": [

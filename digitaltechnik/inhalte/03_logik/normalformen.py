@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_ausdruck"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Türsteher mit einer Gästeliste**: Er kann eine Liste aller Leute haben, die hinein dürfen (DNF – alle 1-Zeilen), oder eine Liste aller, die nicht hinein dürfen (KNF – alle 0-Zeilen). Beide Listen beschreiben denselben Club. Sinnvoll ist meist die kürzere Liste.
 ## Grundlagen
 - **Minterm**: UND-Verknüpfung ALLER Variablen (negiert oder nicht), die genau in EINER Zeile der Tabelle 1 ist. Die Zeilennummer (Belegung als Binärzahl) ist die Minterm-Nummer: Zeile 5 = `101` → `A·¬B·C`.
 - **Maxterm**: ODER-Verknüpfung aller Variablen, die genau in EINER Zeile 0 ist: Zeile 5 → `(¬A + B + ¬C)`.
@@ -40,6 +42,12 @@ Tabelle mit Y = 1 in den Zeilen 1, 3, 6, 7 (Variablen A, B, C):
 - DNF passt zu AND-OR-Schaltungen (bzw. NAND-NAND), KNF zu OR-AND (bzw. NOR-NOR).
 - Programmierbare Logik (PAL/GAL, CPLD) ist intern genau eine Summe von Produkten.
 - In VHDL/Verilog schreibt man die Funktion direkt hin – das Synthesewerkzeug minimiert selbst. Für Prüfungen und Fehlersuche muss man es trotzdem können.
+## 🔬 Genauer hingeschaut
+- **Welche Form wählen?** Hat die Wahrheitstabelle wenige Einsen, ist die DNF kurz. Hat sie wenige Nullen, ist die KNF kürzer. Beide sind gleichwertig und lassen sich ineinander umrechnen.
+- **Direkt in Hardware:** Programmierbare Logikbausteine (PLA, PAL, GAL) haben eine UND-Ebene gefolgt von einer ODER-Ebene – sie bilden genau die DNF (Summe von Produkten) ab.
+- **Nur der Anfang:** Eine Normalform ist meist nicht die kürzeste Darstellung. Sie ist aber eindeutig und ein sicherer Startpunkt zum Vereinfachen.
+## 💡 Wusstest du?
+- In **FPGAs** wird Logik oft gar nicht als Gatter gebaut, sondern in kleinen Speichertabellen (LUT, Look-up Table): Die Wahrheitstabelle wird direkt gespeichert, und die Eingänge wählen die passende Zeile aus.
 """,
 
     "tipps": [

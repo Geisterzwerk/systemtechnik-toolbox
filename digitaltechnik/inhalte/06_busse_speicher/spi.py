@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_spi"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei **Förderbänder**, die im Kreis laufen: Bei jedem Takt schiebt der Master ein Bit zum Slave und bekommt gleichzeitig eines zurück. Nach 8 Takten haben beide ihre Bytes **ausgetauscht**. SPI liest und schreibt darum immer gleichzeitig – auch wenn einen nur eine Richtung interessiert.
 ## Grundlagen
 SPI verbindet einen **Master** (meist der µC) mit einem oder mehreren **Slaves** (Sensoren, ADC, Displays, Flash, SD-Karte):
 - **SCLK**: Takt, immer vom Master
@@ -48,6 +50,12 @@ Das Werkzeug unten im Modus 0 mit MOSI = 0xA5, MISO = 0x3C:
 - SD-Karten, TFT-Displays und SPI-Flash brauchen hohe Takte → kurze Leitungen, gemeinsame Masse, ggf. Serienwiderstände (22 … 47 Ω) gegen Überschwinger.
 - SPI ist für Leitungen auf der Platine gedacht (einige cm bis wenige dm), nicht für lange Kabel.
 - Quad-SPI (QSPI) nutzt 4 Datenleitungen für schnelle Flash-Speicher.
+## 🔬 Genauer hingeschaut
+- **Lesen heisst senden:** Will der Master nur Daten vom Slave, muss er trotzdem Takte erzeugen – also Füllbytes (oft 0x00 oder 0xFF) senden. Darum sieht man in SPI-Programmen oft `transfer(0x00)` zum Lesen.
+- **Kein Protokoll im Bus:** SPI legt nur fest, wie Bits übertragen werden – nicht, was sie bedeuten. Befehle, Registeradressen und Datenlänge stehen im Datenblatt des jeweiligen Bausteins.
+- **Schnell, aber kurz:** SPI schafft oft Dutzende MHz, weil die Leitungen aktiv getrieben werden. Dafür ist es für kurze Strecken auf der Leiterplatte gedacht.
+## 💡 Wusstest du?
+- SD-Karten lassen sich im **SPI-Modus** ansprechen – darum kann schon ein kleiner Mikrocontroller ohne spezielle Schnittstelle Daten auf eine Speicherkarte schreiben.
 """,
 
     "tipps": [

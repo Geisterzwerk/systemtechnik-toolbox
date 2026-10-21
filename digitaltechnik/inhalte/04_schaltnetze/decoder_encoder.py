@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_decoder"],
 
     "erklaerung": """
+## Stell dir vor …
+Die **Rezeption eines Hotels**: Du sagst eine Zimmernummer, und genau in diesem einen Zimmer klingelt das Telefon. Das ist ein Decoder – aus einer Nummer wird genau ein aktiver Ausgang. Der Encoder ist das Gegenteil: Die Rezeption sieht, welches Zimmertelefon klingelt, und schreibt die Nummer auf.
 ## Grundlagen
 - **Decoder** `n : 2^n`: Aus einer n-Bit-Zahl wird genau EIN aktiver Ausgang (1-aus-n). Der 74HC138 (3:8) hat Ausgänge, die aktiv LOW sind (`¬Y0 … ¬Y7`), und drei Freigabe-Eingänge.
 - **Encoder** `2^n : n`: umgekehrt – welcher Eingang aktiv ist, wird als Binärzahl ausgegeben. Ein **Prioritäts-Encoder** (74HC148) gibt den HÖCHSTEN aktiven Eingang aus und meldet mit GS, ob überhaupt einer aktiv ist.
@@ -40,6 +42,12 @@ Ziffer 7 auf einer Anzeige mit gemeinsamer Kathode: a, b, c = HIGH, d … g = LO
 - 74HC138 mit Freigaben `E1`, `¬E2`, `¬E3`: Mehrere Decoder lassen sich zu 4:16 und mehr kaskadieren.
 - Tastaturen und Interrupt-Controller nutzen Prioritäts-Encoder: Bei mehreren gedrückten Tasten gewinnt die höchste.
 - Mehrstellige 7-Segment-Anzeigen werden gemultiplext (eine Stelle nach der anderen, > 100 Hz) – spart Leitungen, braucht aber höhere Spitzenströme.
+## 🔬 Genauer hingeschaut
+- **Adressdecodierung:** In Computern bestimmen die oberen Adressbits per Decoder, welcher Speicherbaustein angesprochen wird (Chip Select). So teilen sich viele Bausteine denselben Datenbus, und immer ist nur einer aktiv.
+- **Prioritätsencoder für Interrupts:** Melden sich mehrere Quellen gleichzeitig, gibt der Prioritätsencoder die Nummer der wichtigsten aus. Interrupt-Controller arbeiten nach diesem Prinzip.
+- **Aktiv-LOW:** Viele Decoder-ICs haben invertierte Ausgänge (der gewählte Ausgang ist LOW). Das passt direkt zu Chip-Select-Eingängen, die ebenfalls aktiv LOW sind.
+## 💡 Wusstest du?
+- Eine Computertastatur liest ihre Tasten als Matrix aus Zeilen und Spalten. Ein Decoder (oder der Mikrocontroller) aktiviert eine Zeile nach der anderen, und aus der Spalte ergibt sich, welche Taste gedrückt ist.
 """,
 
     "tipps": [

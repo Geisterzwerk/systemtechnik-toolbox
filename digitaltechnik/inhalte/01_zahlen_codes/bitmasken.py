@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_bitmaske"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Reihe von **acht Lichtschaltern** an der Wand – jeder ist ein Bit. Eine Bitmaske ist eine **Schablone**, die du darüberlegst: Sie hat nur dort Löcher, wo du etwas tun willst. Durch die Löcher kannst du Schalter einschalten, ausschalten oder umlegen, ohne die anderen zu berühren.
 ## Grundlagen
 In Registern eines Mikrocontrollers hat jedes Bit eine eigene Aufgabe (Pin-Richtung, Ausgangspegel, Interrupt-Freigabe, Statusflag). Eine **Maske** enthält genau an den Stellen eine 1, die man bearbeiten will.
 - **setzen** `x |= m` (OR: 1 setzt, 0 lässt)
@@ -42,6 +44,13 @@ Prüfen, ob Bit 7 gesetzt ist:
 - STM32/ESP32: oft eigene Set/Reset-Register (BSRR, W1TS/W1TC) – schreiben ohne vorheriges Lesen, damit kein Interrupt dazwischen funkt (atomar).
 - Read-Modify-Write auf Ports kann bei Open-Drain- oder belasteten Pins den falschen Zustand zurücklesen → Ausgangsregister (PORT/LAT) statt Eingangsregister (PIN) verändern.
 - Programmier-Sicht (Operatoren in Python/C++/C#): Bereich Programmieren → „Zahlensysteme, Bits & Bytes“.
+## 🔬 Genauer hingeschaut
+- **Lesen, ändern, schreiben:** `PORT |= m` liest zuerst das Register, ändert ein Bit und schreibt alles zurück. Unterbricht ein Interrupt genau dazwischen und ändert dasselbe Register, geht seine Änderung verloren. Viele Mikrocontroller haben deshalb eigene **Setz- und Löschregister**, die nur die Bits mit einer 1 verändern.
+- **Schieben mit Vorzeichen:** `>>` bei negativen Zahlen füllt in vielen Sprachen links mit 1 auf (arithmetisches Schieben), damit das Vorzeichen bleibt. In Python ist `-8 >> 1` darum `-4`.
+- **Masken lesbar machen:** Statt `0x20` schreibt man besser `1 << 5` oder einen Namen wie `LED_BIT` – dann sieht man sofort, welches Bit gemeint ist.
+## 💡 Wusstest du?
+- Linux-Dateirechte sind Bitmasken: r = 4, w = 2, x = 1. `chmod 754` heisst rwx für den Besitzer, r-x für die Gruppe, r-- für alle anderen.
+- Auch eine **Subnetzmaske** wie 255.255.255.0 ist eine Bitmaske: Die 1-Bits markieren den Netzwerkteil der IP-Adresse.
 """,
 
     "tipps": [

@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["werkzeug_addierer"],
 
     "erklaerung": """
+## Stell dir vor …
+Erinnerst du dich ans **schriftliche Addieren** in der Schule? Du rechnest Stelle für Stelle von rechts nach links, und wird eine Stelle grösser als 9, schreibst du einen kleinen Übertrag zur nächsten Stelle. Ein Addierer macht genau das – nur ist bei Binärzahlen schon 1 + 1 ein Übertrag.
 ## Grundlagen
 - **Halbaddierer** (2 Eingänge A, B): Summe `S = A ⊕ B`, Übertrag `C = A·B`. Er kann keinen Übertrag von der vorigen Stelle aufnehmen.
 - **Volladdierer** (A, B, C_ein): `S = A ⊕ B ⊕ C_ein`, `C_aus = A·B + C_ein·(A ⊕ B)` – aus zwei Halbaddierern und einem OR.
@@ -37,6 +39,12 @@ Subtraktion 3 − 5: `0011 + 1010 + 1 = 1110` = −2, C = 0 (geborgt).
 - 74HC283: 4-Bit-Volladdierer mit schnellem Übertrag; mehrere kaskadierbar.
 - In µC und FPGAs steckt das Addierwerk in der ALU bzw. in speziellen Carry-Ketten – im VHDL/Verilog schreibt man einfach `a + b`.
 - 16 Bit Ripple-Carry mit 10 ns pro Stufe: 160 ns → höchstens ≈ 6 MHz Takt; mit Lookahead deutlich schneller.
+## 🔬 Genauer hingeschaut
+- **Der Übertrag ist der Flaschenhals:** Beim Ripple-Carry-Addierer muss der Übertrag im schlimmsten Fall durch alle Stufen laufen (z.B. 0111…1 + 1). Die Rechenzeit wächst mit der Bitbreite. Carry-Lookahead rechnet die Überträge vorab und wird damit viel schneller – kostet aber mehr Gatter.
+- **Flags entstehen gleich mit:** Aus dem Addierwerk fallen Carry (Übertrag aus der letzten Stufe), Overflow (Vorzeichenfehler), Zero (Ergebnis 0) und Negative (MSB) heraus. Prozessoren werten genau diese Flags für Vergleiche und Sprünge aus.
+- **Vergleichen heisst subtrahieren:** Ein Prozessor prüft `A < B` meist, indem er `A − B` rechnet und nur die Flags ansieht.
+## 💡 Wusstest du?
+- 1937 baute George Stibitz in den Bell Labs einen binären Addierer aus Relais auf seinem Küchentisch – das „Model K“, nach dem englischen Wort für Küche (kitchen).
 """,
 
     "tipps": [

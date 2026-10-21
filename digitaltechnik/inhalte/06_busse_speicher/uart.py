@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_uart"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Leute verabreden ein **Tempo**, z.B. ein Klopfzeichen pro Sekunde, und haben keine gemeinsame Uhr. Wenn einer „Achtung!“ klopft (Startbit), startet der andere seine Stoppuhr und horcht dann jede Sekunde genau in der Mitte hin. Solange beide ungefähr gleich schnell zählen, kommt jedes Zeichen richtig an.
 ## Grundlagen
 UART (Universal Asynchronous Receiver Transmitter) überträgt Zeichen Bit für Bit über **eine Leitung je Richtung** (TX → RX, gekreuzt) und GND. Es gibt **keine Taktleitung** – beide Seiten vereinbaren vorher:
 - **Baudrate** (Symbole pro Sekunde, bei UART = Bit/s): 9600, 115200 …  `t_bit = 1 / Baudrate`
@@ -53,6 +55,12 @@ Baudraten-Teiler, µC mit 16 MHz:
 - TX und RX kreuzen; RTS/CTS (Hardware-Handshake) nur, wenn beide Seiten es nutzen.
 - Industrie: RS-485 mit Modbus RTU; zwischen den Telegrammen mindestens 3.5 Zeichen Pause.
 - Der Werkzeug-Rahmen unten zeigt TTL und RS-232 untereinander; die roten Punkte sind die Abtastzeitpunkte.
+## 🔬 Genauer hingeschaut
+- **Wie genau muss die Baudrate sein?** Der Empfänger synchronisiert sich nur am Startbit und tastet danach jedes Bit in der Mitte ab. Bis zum letzten Bit eines Rahmens (10 Bit bei 8N1) darf die Abweichung höchstens etwa ein halbes Bit betragen. Daraus ergibt sich als Faustregel: Sender und Empfänger zusammen höchstens etwa ±5 % daneben, jede Seite besser unter ±2 %.
+- **Mehrfach abtasten:** Viele UART-Empfänger tasten jedes Bit 16-mal ab und entscheiden in der Mitte per Mehrheit. So stören kurze Spikes weniger.
+- **Flusskontrolle:** Mit zusätzlichen Leitungen (RTS/CTS) kann ein Empfänger dem Sender sagen „bitte warten“, wenn sein Puffer voll ist.
+## 💡 Wusstest du?
+- In alten Mikrocontroller-Schaltungen findet man oft Quarze mit „krummen“ **11.0592 MHz**. Diese Frequenz lässt sich ohne Rest auf alle üblichen Baudraten herunterteilen – so stimmt die Baudrate genau.
 """,
 
     "tipps": [

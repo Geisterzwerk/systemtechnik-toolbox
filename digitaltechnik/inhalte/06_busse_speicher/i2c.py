@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["werkzeug_i2c"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Klassenzimmer**: Die Lehrerin ruft einen Namen (die Adresse), und nur dieses Kind antwortet – alle anderen hören still zu. Alle teilen sich dieselbe Luft (zwei Leitungen), und weil nur die Lehrerin den Takt vorgibt, reden nie zwei gleichzeitig durcheinander.
 ## Grundlagen
 I²C verbindet viele Bausteine über **zwei Leitungen**: **SDA** (Daten) und **SCL** (Takt), dazu GND.
 - Beide Leitungen sind **Open Drain** mit je einem **Pull-up**: Jeder Teilnehmer darf nur nach LOW ziehen, HIGH macht der Widerstand. So gibt es keinen Kurzschluss, wenn zwei gleichzeitig senden.
@@ -56,6 +58,12 @@ Pull-up bei 3.3 V, 200 pF, Fast-mode:
 - Hängt SDA dauerhaft LOW (Slave mitten im Byte zurückgesetzt): 9 Takte auf SCL senden, dann STOP.
 - **Clock Stretching**: Ein langsamer Slave hält SCL LOW, bis er bereit ist – der Master muss das unterstützen.
 - Für lange Leitungen oder viele Teilnehmer: Bus-Puffer (z.B. P82B715, PCA9600); 3.3 V ↔ 5 V mit Pegelwandler (z.B. MOSFET BSS138).
+## 🔬 Genauer hingeschaut
+- **Adressraum:** Mit 7-Bit-Adressen gibt es 128 Möglichkeiten, einige davon sind reserviert. Viele Sensoren haben eine feste Adresse mit ein oder zwei wählbaren Bits – darum kann man oft nur zwei oder vier gleiche Sensoren an einen Bus hängen.
+- **Geschwindigkeiten:** Standard 100 kHz, Fast Mode 400 kHz, Fast Mode Plus 1 MHz. Die Buskapazität (Leitungen + Teilnehmer) darf im Standard- und Fast-Mode höchstens 400 pF betragen – sonst werden die Flanken mit den Pull-ups zu langsam.
+- **Hängender Bus:** Wird ein Master mitten in einer Übertragung zurückgesetzt, kann ein Slave SDA festhalten. Abhilfe: SCL bis zu neunmal takten, bis der Slave SDA freigibt, dann ein STOP senden.
+## 💡 Wusstest du?
+- I²C wurde 1982 von Philips entwickelt. Auch über HDMI- und DisplayPort-Kabel liest die Grafikkarte per I²C die Daten des Bildschirms aus (EDID: Name, Auflösungen).
 """,
 
     "tipps": [

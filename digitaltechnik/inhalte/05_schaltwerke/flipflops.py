@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_flipflop"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Fotograf** mit Blitz: Egal, wie sich die Leute vorher bewegen – im Moment des Blitzes (Taktflanke) wird festgehalten, wie sie gerade stehen, und das Bild bleibt, bis der nächste Blitz kommt. Ein D-Flipflop macht genau das mit einem Bit. Ein Latch dagegen ist wie ein Spiegel: Solange er „offen“ ist, zeigt er jede Bewegung live.
 ## Grundlagen
 Schaltnetze vergessen sofort – **Schaltwerke** haben einen Zustand (Speicher). Das kleinste Speicherelement ist das Flipflop (1 Bit).
 - **RS-Latch** (z.B. aus zwei NOR): S setzt, R setzt zurück, `S = R = 0` speichert, `S = R = 1` ist verboten. `Q⁺ = S + ¬R·Q`
@@ -45,6 +47,12 @@ T-Flipflop mit T = 1 an einem 1-kHz-Takt: Q = 500 Hz, Tastgrad exakt 50 %.
 - In µC und FPGAs sind praktisch alle Register D-Flipflops; JK und T baut man daraus bei Bedarf mit Logik.
 - Ein RS-Latch aus zwei NAND entprellt einen Wechsler-Taster perfekt.
 - Taster oder Signale aus einer anderen Taktdomäne nie direkt in ein synchrones Schaltwerk führen – Synchronisierer verwenden.
+## 🔬 Genauer hingeschaut
+- **Metastabilität:** Ändert sich D genau in der verbotenen Zeit um die Taktflanke (Setup/Hold verletzt), kann das Flipflop kurz zwischen 0 und 1 „hängen“. Bei Signalen von aussen, die nicht zum Takt passen (Taster, andere Taktbereiche), schaltet man deshalb **zwei Flipflops hintereinander** (Synchronisierer) – das zweite sieht fast sicher einen stabilen Wert.
+- **Taktversatz:** Kommt der Takt nicht überall gleichzeitig an, können Flipflops falsche Werte übernehmen. In Chips wird das Taktnetz darum sorgfältig gleich lang verteilt.
+- **Register:** Mehrere D-Flipflops mit gemeinsamem Takt bilden ein Register, z.B. 8 Bit. Jedes Register in einem Prozessor ist im Kern so aufgebaut.
+## 💡 Wusstest du?
+- Die Flipflop-Schaltung wurde **1918** von William Eccles und Frank Jordan erfunden – damals mit zwei Elektronenröhren.
 """,
 
     "tipps": [

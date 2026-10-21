@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["werkzeug_ausgang"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Tür, die du **ziehen und stossen** kannst, bewegst du in beide Richtungen selbst – das ist Push-Pull. Eine Tür mit **Schliessfeder**, die du nur aufziehen kannst, fällt von selbst zu, wenn du loslässt – das ist Open-Drain mit Pull-up. Und eine Tür, an der gerade niemand steht, ist Tri-State: Sie gehört niemandem und andere dürfen sie bewegen.
 ## Grundlagen
 - **Push-Pull** (Gegentakt, bei TTL „Totem-Pole“): ein Transistor nach U_B, einer nach GND. Treibt aktiv HIGH und LOW, schnelle Flanken. Zwei Push-Pull-Ausgänge an einer Leitung → bei verschiedenen Pegeln **Kurzschluss** (Buskonflikt).
 - **Open Drain** (MOSFET) / **Open Collector** (bipolar): nur der Transistor nach GND. HIGH erzeugt ein **Pull-up**-Widerstand. Mehrere Ausgänge an einer Leitung sind erlaubt: **Wired-AND** – die Leitung ist nur HIGH, wenn ALLE loslassen. Anwendungen: I²C, Interrupt- und Reset-Leitungen, Pegelanpassung (Pull-up an eine andere Spannung).
@@ -38,6 +40,12 @@ Buskonflikt zweier 74HC-Ausgänge bei 5 V (R_on ≈ 50 Ω je Transistor): `I ≈
 - Bus-Treiber: 74HC125 (4 × Tri-State-Puffer), 74HC244/245 (8 Bit, 245 bidirektional für Datenbusse).
 - Open-Drain-Pull-up an 5 V bei einem 3.3-V-µC nur, wenn der Pin 5-V-tolerant ist.
 - Oszilloskop: Open-Drain-Leitungen zeigen schnelle fallende und langsame, abgerundete steigende Flanken (RC).
+## 🔬 Genauer hingeschaut
+- **Wired-AND:** Mehrere Open-Drain-Ausgänge an einer Leitung mit einem Pull-up sind gefahrlos. Die Leitung ist nur HIGH, wenn **keiner** nach LOW zieht. So können mehrere Teilnehmer eine gemeinsame Interrupt- oder Fehlerleitung teilen.
+- **Buskonflikt:** Zwei Push-Pull-Ausgänge an derselben Leitung, einer HIGH und einer LOW – das ist ein Kurzschluss über die beiden Ausgangstransistoren. Darum braucht ein gemeinsamer Bus Tri-State oder Open-Drain.
+- **Langsame steigende Flanke:** Bei Open-Drain zieht nur der Pull-up nach oben. Die Flanke ist ein RC-Verlauf und darum langsamer als bei Push-Pull.
+## 💡 Wusstest du?
+- I²C funktioniert nur dank Open-Drain: Weil niemand aktiv HIGH treibt, kann ein Slave die Taktleitung LOW halten (Clock Stretching), und mehrere Master können erkennen, wenn sie gleichzeitig senden (Arbitrierung).
 """,
 
     "tipps": [
