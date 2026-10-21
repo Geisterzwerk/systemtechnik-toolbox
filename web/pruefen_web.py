@@ -54,7 +54,7 @@ from wiki import grafiken, inhalt                                      # noqa: E
 from rechner import formular                                           # noqa: E402  -> web/rechner/
 
 # Django schreibt Zahlen schweizerisch ("3,5") - in Slider-Attributen muss es "3.5" sein
-KOMMA_ZAHL = re.compile(r'\b(min|max|value)="-?\d+,\d')
+KOMMA_ZAHL = re.compile(r'<input type="range"[^>]*\b(min|max|value)="-?\d+,\d')   # nur Slider (Textfelder dürfen Kommas)
 DOPPELTE_ID = re.compile(r'data-schaltung="([^"]+)"')        # jede Grafik höchstens einmal pro Seite
 AUSFUEHRLICH = "-v" in sys.argv
 # nicht ausgewertete Template-Teile wie "{{ s.zeilen }}" oder "{% if" (Code-Beispiele mit {{1, 2}} sind ok)
@@ -155,6 +155,32 @@ for teil, muss, nicht in EINHEIT_FAELLE:
     if text is not None and any(n in text for n in nicht):
         fehler.append(f"{adresse}: enthält {[n for n in nicht if n in text]}")
 
+# ---- 2d) Textfelder und Auswahl der Modelle (Digitaltechnik): sicher und verständlich ----
+abrufen("/rechner/werkzeug_uart/", muss_enthalten=["<svg"])                       # früher nur in der Desktop-App
+for adresse, muss in (
+        ("/schaltung/werkzeug_ausdruck/?werkzeug_ausdruck-ausdruck=A*B%2B!C", ["Gelesen als"]),
+        ("/schaltung/werkzeug_ausdruck/?werkzeug_ausdruck-ausdruck=A%2B%2B(", ["⚠"]),                  # Unsinn -> Meldung
+        ("/schaltung/werkzeug_zahlensystem/?werkzeug_zahlensystem-zahl=0xFF&werkzeug_zahlensystem-basis=Hexadezimal", ["255"]),
+        ("/schaltung/werkzeug_zahlensystem/?werkzeug_zahlensystem-zahl=0xFF", ["⚠"]),       # 0x passt nicht zu Dezimal
+        ("/schaltung/werkzeug_zahlensystem/?werkzeug_zahlensystem-zahl=999", ["⚠"]),                  # passt nicht in 8 Bit
+        ("/schaltung/werkzeug_kv/?werkzeug_kv-einsen=1,3,5,7&werkzeug_kv-v=3+Variablen&werkzeug_kv-alt=3+Variablen", ["Y = C"]),
+        ("/schaltung/werkzeug_logikpegel/?werkzeug_logikpegel-sender=GIBTSNICHT", ["ESP32"]),       # fremder Wert -> Start
+        ("/schaltung/werkzeug_uart/?werkzeug_uart-daten=" + "x" * 500, ["⚠"]),                        # gekürzt, Meldung
+):
+    abrufen(adresse, muss_enthalten=muss)
+for adresse in ("/schaltung/werkzeug_ausdruck/?werkzeug_ausdruck-ausdruck=<script>alert(1)</script>",
+                "/schaltung/werkzeug_uart/?werkzeug_uart-daten=<b>x</b>",
+                "/schaltung/werkzeug_logikpegel/?werkzeug_logikpegel-empf=<script>x</script>"):
+    text = abrufen(adresse) or ""
+    if "<script>alert" in text or "<b>x</b>" in text or "<script>x" in text:
+        fehler.append(f"{adresse}: Eingabe erscheint als HTML (nicht escaped)!")
+text = abrufen("/schaltung/werkzeug_uart/?werkzeug_uart-daten=A%00%1B[31m") or ""
+if "\x00" in text or "\x1b" in text:   # Steuerzeichen im HTML?
+    fehler.append("Textfeld: Steuerzeichen nicht entfernt")
+lang = abrufen("/schaltung/werkzeug_ausdruck/?werkzeug_ausdruck-ausdruck=" + "A+" * 400 + "B") or ""
+if ("A+" * 70) in lang:
+    fehler.append("Textfeld: zu lange Eingabe nicht gekürzt")
+
 # ---- 3) Rechner ----------------------------------------------------------------
 # Jeder Rechner leer + mit Unsinn; dazu ALLE von Hand gerechneten Fälle aus pruefung/rechner_faelle.py:
 # Das Web muss genau dasselbe Ergebnis liefern wie die Desktop-App.
@@ -191,8 +217,7 @@ abrufen("/rechner/smd_code/?code=" + "9" * 500)                      # sehr lang
 abrufen("/rechner/schaltung_ne555/?schaltung_ne555-v=monostabil", muss_enthalten=["<svg", "Impulsdauer"])
 
 # ---- 4) Unbekannte Adressen -------------------------------------------------
-for adresse in ("/gibtsnicht/", "/bauteile/gibtsnicht/", "/rechner/gibtsnicht/", "/schaltung/gibtsnicht/",
-                "/rechner/werkzeug_uart/"):
+for adresse in ("/gibtsnicht/", "/bauteile/gibtsnicht/", "/rechner/gibtsnicht/", "/schaltung/gibtsnicht/"):
     abrufen(adresse, erwartet=404)
 
 # ---- 5) Sicherheit: nichts aus der Adresse als HTML -------------------------

@@ -1,30 +1,43 @@
 # =============================================================================
 # digitaltechnik/grafiken_schaltwerke.py
 # -----------------------------------------------------------------------------
-# INTERAKTIVE WERKZEUGE der Schaltwerke (mit Speicher und Takt):
+# INTERAKTIVE WERKZEUGE der Schaltwerke (mit Speicher und Takt) - MODELLE OHNE FENSTER (Desktop-App UND Web):
 #
-#   FlipflopKarte          RS-Latch, D-Latch, D-, JK-, T-Flipflop: Eingänge setzen, Takt geben, Zeitdiagramm
+#   FlipflopKarte          RS-Latch, D-Latch, D-, JK-, T-Flipflop: Eingänge als FOLGE je Takt eintippen
+#                          (z.B. D = 0110 1001) -> Zeitdiagramm, Endzustand
 #   ZaehlerKarte           asynchroner und synchroner Zähler (auf/ab, modulo m), Zwischenzustände sichtbar
-#   SchieberegisterKarte   seriell (SIPO), Ringzähler, Johnson-Zähler – Takt für Takt
+#   SchieberegisterKarte   seriell (SIPO), Ringzähler, Johnson-Zähler - Folge der Eingänge bzw. Anzahl Takte
 #
 #   zeitdiagramm()         zeichnet digitale Signale untereinander (Treppenkurven), auch mit feiner Zeitachse
 #
+# Warum Folgen statt "Takt-Knopf"? Ein Modell hat keinen gespeicherten Zustand (die Webseite merkt sich nichts
+# zwischen zwei Aufrufen). Mit einer Folge sieht man ausserdem den ganzen Verlauf auf einmal und kann ihn ändern.
+#
 # Rechnung: digitaltechnik/schaltwerke_mathe.py
 # WER RUFT DAS AUF?  digitaltechnik/rechner.py (Registrierung, z.B. "werkzeug_flipflop")
-# Eigene Namen beginnen mit dg_ (keine Kollision mit tkinter).
 # =============================================================================
 
-import customtkinter as ctk
+import re
 
-import config                                                          # -> config.py
-from bauteile.grafiken.schaltplan import OK, WARN                      # -> bauteile/grafiken/schaltplan.py
-from bauteile.rechner.basis import WertRegler                          # -> bauteile/rechner/basis.py
-from core.layout import Karte, ResponsiveCanvas                        # -> core/layout.py
-from digitaltechnik import schaltwerke_mathe as swm                    # -> digitaltechnik/schaltwerke_mathe.py
-from digitaltechnik.grafiken import BitLeiste, _erklaerung, _ergebnis_label, _farbe   # -> digitaltechnik/grafiken.py
+import config                                                            # -> config.py
+from bauteile.grafiken.schaltplan import OK, WARN, SchaltungsModell      # -> bauteile/grafiken/schaltplan.py
+from digitaltechnik import schaltwerke_mathe as swm                      # -> digitaltechnik/schaltwerke_mathe.py
+from digitaltechnik.grafiken import bitreihe, farben                     # -> digitaltechnik/grafiken.py
 
 EINS, NULL_FARBE, ORANGE, ROT, BLAU = "#22C55E", "#6B7280", "#F59E0B", "#EF4444", "#3B82F6"
 SIGNAL_FARBEN = {"CLK": "#A855F7", "C": "#A855F7", "Q": EINS}
+MAX_SCHRITTE = 16
+
+
+def folge(text, name, laenge=None):
+    """'0110 1001' -> [0, 1, 1, 0, 1, 0, 0, 1]  (nur 0/1, Leerzeichen und Kommas egal, höchstens MAX_SCHRITTE)."""
+    t = re.sub(r"[\s,;_']", "", str(text or ""))
+    if t and set(t) - {"0", "1"}:
+        raise ValueError(f"{name}: nur 0 und 1 eintippen (je Takt ein Zeichen), z.B. 0110 1001")
+    werte = [int(z) for z in t][:MAX_SCHRITTE]
+    if laenge is not None:                                          # kürzere Folge: letzter Wert bleibt stehen
+        werte = (werte + [werte[-1] if werte else 0] * laenge)[:laenge]
+    return werte
 
 
 def zeitdiagramm(c, x0, x1, y0, y1, signale, schrift, leise, markierungen=()):
@@ -49,210 +62,140 @@ def zeitdiagramm(c, x0, x1, y0, y1, signale, schrift, leise, markierungen=()):
             y = unten if not w else oben
             if w == "Z":                                           # hochohmig (Leitung frei): Mitte
                 y = (oben + unten) / 2
-            elif w is None:                                        # unbestimmt: Mitte, gestrichelt dargestellt
+            elif w is None:                                        # unbestimmt: Mitte, Kasten rot gestrichelt
                 c.create_rectangle(x0 + i * dx, oben, x0 + (i + 1) * dx, unten, outline=ROT, dash=(2, 2))
                 y = (oben + unten) / 2
             punkte += [x0 + i * dx, y, x0 + (i + 1) * dx, y]
         c.create_line(*punkte, fill=farbe, width=2)
 
 
-def _knopf_stil(knopf, name, wert):
-    knopf.configure(text=f"{name} = {wert}", fg_color=config.FARBEN["akzent"] if wert else config.FARBEN["rahmen"],
-                    text_color=("#FFFFFF", "#FFFFFF") if wert else config.FARBEN["text"])
-
-
 # =============================================================================
 # FLIPFLOPS
 # =============================================================================
-class FlipflopKarte(Karte):
+class FlipflopKarte(SchaltungsModell):
+    TITEL = "⏱️ Flipflops und Latches (interaktiv)"
+    UNTERTITEL = "Eingänge als Folge eintippen (ein Zeichen je Takt) – das Zeitdiagramm zeigt, was passiert"
     EINGAENGE = {"RS-Latch": ["S", "R"], "D-Latch": ["D", "C"], "D-Flipflop": ["D"], "JK-Flipflop": ["J", "K"],
                  "T-Flipflop": ["T"]}
-    LAENGE = 24                                    # so viele Zeitschritte zeigt das Diagramm
+    VARIANTEN = ["D-Flipflop", "JK-Flipflop", "T-Flipflop", "D-Latch", "RS-Latch"]
+    TEXTFELDER = [("e1", "1. Eingang (D, J, T, S)", "0110 1001", {"max": 24, "platzhalter": "z.B. 0110 1001"}),
+                  ("e2", "2. Eingang (K, C, R)", "0011 0011", {"max": 24, "platzhalter": "z.B. 0011 0011"})]
+    STARTWERTE = {"D-Flipflop": {"e1": "0110 1001"}, "T-Flipflop": {"e1": "1101 0011"},
+                  "JK-Flipflop": {"e1": "1010 1100", "e2": "0110 1010"}, "D-Latch": {"e1": "0110 1001", "e2": "1100 0110"},
+                  "RS-Latch": {"e1": "1000 0011", "e2": "0010 0011"}}
+    SEITENVERHAELTNIS = 0.4
+    MAX_HOEHE = 340
+    ERKLAERUNG = ("Was zeigt das Werkzeug?  Ein Flipflop speichert ein Bit. Das RS-LATCH reagiert sofort: S setzt, R setzt "
+                  "zurück, S = R = 1 ist verboten. Das D-LATCH ist pegelgesteuert: Solange C = 1, folgt Q dem Eingang D "
+                  "(transparent), bei C = 0 hält es den Wert. FLIPFLOPS sind flankengesteuert (Dreieck am Takteingang): "
+                  "Sie übernehmen nur im Moment der steigenden Flanke – dazwischen dürfen sich die Eingänge ändern, ohne "
+                  "dass etwas passiert. Das D-Flipflop speichert D, das JK kann zusätzlich toggeln (J = K = 1), das "
+                  "T-Flipflop toggelt bei T = 1 – zwei T-Flipflops hintereinander teilen die Frequenz durch 4. "
+                  "Startzustand Q = 0.")
 
-    def __init__(self, master):
-        super().__init__(master, titel="⏱️ Flipflops und Latches (interaktiv)",
-                         untertitel="Eingänge setzen, dann „Takt ↑“ – das Zeitdiagramm zeichnet alles mit")
-        b = self.body
-        self.dg_e, self.dg_q, self.dg_verlauf, self.dg_hinweis = {}, 0, [], ""
-        self.dg_art = ctk.CTkSegmentedButton(b, values=swm.FLIPFLOP_ARTEN, command=lambda _v: self._dg_art_neu())
-        self.dg_art.set("D-Flipflop")
-        self.dg_art.grid(row=0, column=0, sticky="w")
-        self.dg_knoepfe_rahmen = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        self.dg_knoepfe_rahmen.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self.dg_canvas = ResponsiveCanvas(b, self._dg_zeichnen, seitenverhaeltnis=0.4, max_hoehe=340)
-        self.dg_canvas.grid(row=2, column=0, sticky="ew", pady=(8, 4))
-        self.dg_ergebnis = _ergebnis_label(b)
-        self.dg_ergebnis.grid(row=3, column=0, sticky="ew", pady=(6, 0))
-        _erklaerung(b, "Was zeigt das Werkzeug?  Ein Flipflop speichert ein Bit. Das RS-LATCH reagiert sofort: S setzt, "
-                       "R setzt zurück, S = R = 1 ist verboten. Das D-LATCH ist pegelgesteuert: Solange C = 1, folgt Q "
-                       "dem Eingang D (transparent), bei C = 0 hält es den Wert. FLIPFLOPS sind flankengesteuert "
-                       "(Dreieck am Takteingang): Sie übernehmen nur im Moment der steigenden Flanke – dazwischen "
-                       "dürfen sich die Eingänge ändern, ohne dass etwas passiert. Das D-Flipflop speichert D, das JK "
-                       "kann zusätzlich toggeln (J = K = 1), das T-Flipflop toggelt bei T = 1 – zwei T-Flipflops "
-                       "hintereinander teilen die Frequenz durch 4.").grid(row=4, column=0, sticky="ew", pady=(8, 0))
-        self._dg_art_neu()
+    def sk_rechnen(self, w, v):
+        art = v if v in self.EINGAENGE else "D-Flipflop"
+        namen = self.EINGAENGE[art]
+        erste = folge(w["e1"], namen[0])
+        n = max(len(erste), 1)
+        folgen = {namen[0]: folge(w["e1"], namen[0], n)}
+        if len(namen) > 1:
+            folgen[namen[1]] = folge(w["e2"], namen[1], n)
+        flanke = art in ("D-Flipflop", "JK-Flipflop", "T-Flipflop")
+        q, verlauf, hinweis = 0, [], "Startzustand Q = 0"
+        for k in range(n):
+            e = {name: folgen[name][k] for name in namen}
+            verboten = art == "RS-Latch" and e.get("S") and e.get("R")
+            if flanke:                                                  # Eingänge anlegen, dann Flanke
+                verlauf.append({"clk": 0, **e, "q": q, "verboten": False})
+                q, hinweis = swm.naechster_zustand(art, q, e)
+                verlauf += [{"clk": 1, **e, "q": q, "verboten": False}] * 2
+            else:                                                       # Latch reagiert sofort auf den Pegel
+                q, hinweis = swm.naechster_zustand(art, q, e)
+                verlauf += [{"clk": 0, **e, "q": q, "verboten": bool(verboten)}] * 2
+        return {"art": art, "namen": namen, "flanke": flanke, "q": q, "verlauf": verlauf, "hinweis": hinweis,
+                "schritte": n, "folge_q": [s["q"] for s in verlauf[(2 if flanke else 1)::3 if flanke else 2]]}
 
-    def _dg_art(self):
-        return self.dg_art.get()
+    def sk_info(self, w, e, v):
+        art = e["art"]
+        verboten = e["verlauf"] and e["verlauf"][-1]["verboten"]
+        tabelle = "   ".join(f"{a} → {q}" for a, q in swm.flipflop_tabelle(art))
+        return ([f"Nach {e['schritte']} {'Takten' if e['flanke'] else 'Schritten'}: Q = {e['q']}   ·   letzter Schritt: {e['hinweis']}",
+                 f"Q nach jedem {'Takt' if e['flanke'] else 'Schritt'}: {' '.join(map(str, e['folge_q']))}",
+                 swm.KENN_GLEICHUNG[art], tabelle],
+                WARN if verboten else config.FARBEN["akzent"])
 
-    def _dg_flanke(self):
-        return self._dg_art() in ("D-Flipflop", "JK-Flipflop", "T-Flipflop")
-
-    def _dg_art_neu(self):
-        for kind in self.dg_knoepfe_rahmen.winfo_children():
-            kind.destroy()
-        self.dg_e = {name: 0 for name in self.EINGAENGE[self._dg_art()]}
-        self.dg_knoepfe = {}
-        for i, name in enumerate(self.EINGAENGE[self._dg_art()]):
-            k = ctk.CTkButton(self.dg_knoepfe_rahmen, text="", width=86, height=30, font=(config.SCHRIFT_CODE, 13, "bold"),
-                              command=lambda name=name: self._dg_eingang(name))
-            k.grid(row=0, column=i, padx=(0, 8))
-            self.dg_knoepfe[name] = k
-        spalte = len(self.dg_knoepfe)
-        if self._dg_flanke():
-            ctk.CTkButton(self.dg_knoepfe_rahmen, text="Takt ↑", width=90, height=30, fg_color="#7C3AED",
-                          hover_color="#6D28D9", command=self._dg_takt).grid(row=0, column=spalte, padx=(12, 8))
-            spalte += 1
-        ctk.CTkButton(self.dg_knoepfe_rahmen, text="Neu", width=60, height=30, fg_color="transparent", border_width=1,
-                      text_color=config.FARBEN["text"], command=self._dg_art_neu).grid(row=0, column=spalte, padx=(8, 0))
-        self.dg_q, self.dg_verlauf, self.dg_hinweis = 0, [], "Startzustand Q = 0"
-        self._dg_aufzeichnen(0)
-        self._dg_neu()
-
-    def _dg_aufzeichnen(self, clk):
-        self.dg_verlauf.append({"clk": clk, **self.dg_e, "q": self.dg_q,
-                                "verboten": self._dg_art() == "RS-Latch" and self.dg_e.get("S") and self.dg_e.get("R")})
-        self.dg_verlauf = self.dg_verlauf[-self.LAENGE:]
-
-    def _dg_eingang(self, name):
-        self.dg_e[name] ^= 1
-        if not self._dg_flanke():                       # Latches reagieren sofort auf den Pegel
-            self.dg_q, self.dg_hinweis = swm.naechster_zustand(self._dg_art(), self.dg_q, self.dg_e)
-        else:
-            self.dg_hinweis = f"{name} = {self.dg_e[name]} – ohne Taktflanke ändert sich Q nicht"
-        self._dg_aufzeichnen(0)
-        self._dg_neu()
-
-    def _dg_takt(self):
-        self.dg_q, self.dg_hinweis = swm.naechster_zustand(self._dg_art(), self.dg_q, self.dg_e)
-        self.dg_hinweis = "↑ Flanke: " + self.dg_hinweis
-        self._dg_aufzeichnen(1)
-        self._dg_aufzeichnen(1)
-        self._dg_aufzeichnen(0)
-        self._dg_neu()
-
-    def _dg_neu(self):
-        if not hasattr(self, "dg_ergebnis"):
-            return
-        for name, k in self.dg_knoepfe.items():
-            _knopf_stil(k, name, self.dg_e[name])
-        art = self._dg_art()
-        tabelle = "   ".join(f"{e} → {q}" for e, q in swm.flipflop_tabelle(art))
-        verboten = self.dg_verlauf and self.dg_verlauf[-1]["verboten"]
-        zeilen = [f"Q = {self.dg_q}   ¬Q = {1 - self.dg_q if not verboten else 0}   ·   {self.dg_hinweis}",
-                  f"{swm.KENN_GLEICHUNG[art]}",
-                  tabelle]
-        self.dg_ergebnis.configure(text="\n".join(zeilen), text_color=WARN if verboten else config.FARBEN["akzent"])
-        w, h = self.dg_canvas.winfo_width(), self.dg_canvas.winfo_height()
-        if w > 1:
-            self.dg_canvas.delete("all")
-            self._dg_zeichnen(self.dg_canvas, w, h)
-
-    def _dg_zeichnen(self, c, w, h):
-        if not hasattr(self, "dg_ergebnis") or not self.dg_verlauf:
-            return
-        art = self._dg_art()
-        text, leise = _farbe(config.FARBEN["text"]), _farbe(config.FARBEN["text_leise"])
-        g = max(8, int(min(w / 2.4, h) / 16))
+    def sk_zeichnen(self, p, w, e, v):
+        c, wb, h = p.c, p.breite, p.hoehe
+        art, verlauf, flanke = e["art"], e["verlauf"], e["flanke"]
+        text, leise, _, _ = farben(p)
+        g = max(8, int(min(wb / 2.4, h) / 16))
         schrift, fett = (config.SCHRIFT, g), (config.SCHRIFT, g, "bold")
         dick = max(2, int(h / 120))
-        # ---- Symbol (IEC) ----
-        x0, x1 = w * 0.08, w * 0.22
-        y0, y1 = h * 0.14, h * 0.86
+        x0, x1, y0, y1 = wb * 0.08, wb * 0.22, h * 0.14, h * 0.86          # Symbol (IEC)
         c.create_rectangle(x0, y0, x1, y1, outline=text, width=dick)
-        namen = self.EINGAENGE[art] + (["C1"] if self._dg_flanke() else [])
+        namen = e["namen"] + (["C1"] if flanke else [])
+        letzt = verlauf[-1]
         for i, name in enumerate(namen):
             y = y0 + (y1 - y0) * (i + 1) / (len(namen) + 1)
-            wert = self.dg_e.get(name, self.dg_verlauf[-1]["clk"])
-            c.create_line(x0 - w * 0.04, y, x0, y, fill=EINS if wert else NULL_FARBE, width=dick)
-            c.create_text(x0 + 6, y, text=("1" + name if name in "DJKT" and self._dg_flanke() else name),
-                          anchor="w", fill=text, font=schrift)
-            if name == "C1":                               # Dreieck = flankengesteuert
-                c.create_polygon(x0, y - h * 0.035, x0 + w * 0.012, y, x0, y + h * 0.035, outline=text, fill="", width=dick)
-        for i, (name, wert) in enumerate((("Q", self.dg_q), ("¬Q", 1 - self.dg_q))):
+            wert = letzt.get(name, letzt["clk"])
+            c.create_line(x0 - wb * 0.04, y, x0, y, fill=EINS if wert else NULL_FARBE, width=dick)
+            c.create_text(x0 + 6, y, text=("1" + name if name in "DJKT" and flanke else name), anchor="w", fill=text,
+                          font=schrift)
+            if name == "C1":                                                  # Dreieck = flankengesteuert
+                c.create_polygon(x0, y - h * 0.035, x0 + wb * 0.012, y, x0, y + h * 0.035, outline=text, fill="", width=dick)
+        for i, (name, wert) in enumerate((("Q", e["q"]), ("¬Q", 1 - e["q"]))):
             y = y0 + (y1 - y0) * (i + 1) / 3
-            c.create_line(x1, y, x1 + w * 0.04, y, fill=EINS if wert else NULL_FARBE, width=dick)
+            c.create_line(x1, y, x1 + wb * 0.04, y, fill=EINS if wert else NULL_FARBE, width=dick)
             r = max(5, h * 0.035)
-            c.create_oval(x1 + w * 0.04, y - r, x1 + w * 0.04 + 2 * r, y + r, fill=EINS if wert else NULL_FARBE, outline="")
+            c.create_oval(x1 + wb * 0.04, y - r, x1 + wb * 0.04 + 2 * r, y + r, fill=EINS if wert else NULL_FARBE, outline="")
             c.create_text(x1 - 6, y, text=name, anchor="e", fill=text, font=fett)
         c.create_text((x0 + x1) / 2, y0 - 4, text=art, anchor="s", fill=leise, font=schrift)
-        # ---- Zeitdiagramm ----
-        signale = []
-        if self._dg_flanke():
-            signale.append(("CLK", [v["clk"] for v in self.dg_verlauf], SIGNAL_FARBEN["CLK"]))
-        for name in self.EINGAENGE[art]:
-            signale.append((name, [v[name] for v in self.dg_verlauf], SIGNAL_FARBEN.get(name, BLAU)))
-        signale.append(("Q", [None if v["verboten"] else v["q"] for v in self.dg_verlauf], EINS))
-        flanken = [(i, "#7C3AED") for i in range(1, len(self.dg_verlauf))
-                   if self.dg_verlauf[i]["clk"] and not self.dg_verlauf[i - 1]["clk"]]
-        zx0 = w * 0.38
-        zx1 = zx0 + (w * 0.96 - zx0) * len(self.dg_verlauf) / self.LAENGE
-        zeitdiagramm(c, zx0, zx1, h * 0.08, h * 0.95, signale, schrift, leise, flanken)
+        signale = [("CLK", [s["clk"] for s in verlauf], SIGNAL_FARBEN["CLK"])] if flanke else []
+        for name in e["namen"]:
+            signale.append((name, [s[name] for s in verlauf], SIGNAL_FARBEN.get(name, BLAU)))
+        signale.append(("Q", [None if s["verboten"] else s["q"] for s in verlauf], EINS))
+        flanken = [(i, "#7C3AED") for i in range(1, len(verlauf)) if verlauf[i]["clk"] and not verlauf[i - 1]["clk"]]
+        zeitdiagramm(c, wb * 0.38, wb * 0.96, h * 0.08, h * 0.95, signale, schrift, leise, flanken)
 
 
 # =============================================================================
 # ZÄHLER
 # =============================================================================
-class ZaehlerKarte(Karte):
-    ARTEN = ["asynchron (Ripple)", "synchron"]
+class ZaehlerKarte(SchaltungsModell):
+    TITEL = "🔢 Zähler: asynchron und synchron (interaktiv)"
+    UNTERTITEL = "Modulo und Richtung einstellen – beim asynchronen Zähler die Zwischenzustände beachten"
+    VARIANTEN = ["asynchron (Ripple)", "synchron"]
+    AUSWAHL = [("richtung", "Richtung", ["aufwärts", "abwärts"], "aufwärts")]
+    REGLER = [("m", "Modulo m (Zustände)", "zahl", 2.0, 16.0, 10.0, {"ganzzahl": True})]
     UNTER = 24                                     # Zeitschritte je Taktperiode (für die Verzögerungen)
+    SEITENVERHAELTNIS = 0.42
+    MAX_HOEHE = 360
+    ERKLAERUNG = ("Was zeigt das Werkzeug?  ASYNCHRON: Nur das erste Flipflop bekommt den Takt, jedes weitere wird vom "
+                  "Ausgang des vorigen getaktet. Einfach, aber die Bits kippen nacheinander – beim Übergang 0111 → 1000 "
+                  "erscheinen kurz 0110, 0100 und 0000 (rote Linien). Ein Modulo-Zähler, der beim Erreichen von m "
+                  "asynchron zurückgesetzt wird, zeigt m kurz an (Glitch). SYNCHRON: Alle Flipflops hängen am selben "
+                  "Takt und schalten gleichzeitig; eine Logik bestimmt, welche toggeln. Q0 hat die halbe Taktfrequenz, "
+                  "jedes weitere Bit wieder die Hälfte – ein Zähler ist auch ein Frequenzteiler (höchstes Bit: f / m).")
 
-    def __init__(self, master):
-        super().__init__(master, titel="🔢 Zähler: asynchron und synchron (interaktiv)",
-                         untertitel="Modulo und Richtung einstellen – beim asynchronen Zähler die Zwischenzustände beachten")
-        b = self.body
-        oben = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        oben.grid(row=0, column=0, sticky="w")
-        self.dg_art = ctk.CTkSegmentedButton(oben, values=self.ARTEN, command=lambda _v: self._dg_neu())
-        self.dg_art.set(self.ARTEN[0])
-        self.dg_art.grid(row=0, column=0, padx=(0, 12))
-        self.dg_richtung = ctk.CTkSegmentedButton(oben, values=["aufwärts", "abwärts"], command=lambda _v: self._dg_neu())
-        self.dg_richtung.set("aufwärts")
-        self.dg_richtung.grid(row=0, column=1)
-        self.dg_modulo = WertRegler(b, "Modulo m (Zustände)", "zahl", 2, 16, 10, ganzzahl=True,
-                                    bei_aenderung=self._dg_neu, text_breite=150)
-        self.dg_modulo.grid(row=1, column=0, sticky="ew", pady=(8, 0))
-        self.dg_canvas = ResponsiveCanvas(b, self._dg_zeichnen, seitenverhaeltnis=0.42, max_hoehe=360)
-        self.dg_canvas.grid(row=2, column=0, sticky="ew", pady=(8, 4))
-        self.dg_ergebnis = _ergebnis_label(b)
-        self.dg_ergebnis.grid(row=3, column=0, sticky="ew", pady=(6, 0))
-        _erklaerung(b, "Was zeigt das Werkzeug?  ASYNCHRON: Nur das erste Flipflop bekommt den Takt, jedes weitere wird "
-                       "vom Ausgang des vorigen getaktet. Einfach, aber die Bits kippen nacheinander – beim Übergang "
-                       "0111 → 1000 erscheinen kurz 0110, 0100 und 0000 (rote Linien). Ein Modulo-Zähler, der beim "
-                       "Erreichen von m asynchron zurückgesetzt wird, zeigt m kurz an (Glitch). SYNCHRON: Alle "
-                       "Flipflops hängen am selben Takt und schalten gleichzeitig; eine Logik bestimmt, welche toggeln. "
-                       "Q0 hat die halbe Taktfrequenz, jedes weitere Bit wieder die Hälfte – ein Zähler ist auch ein "
-                       "Frequenzteiler (höchstes Bit: f / m).").grid(row=4, column=0, sticky="ew", pady=(8, 0))
-        self.dg_d = None
-        self._dg_neu()
-
-    def _dg_daten(self):
-        m = int(round(self.dg_modulo.wert()))
+    def sk_rechnen(self, w, v):
+        m = int(round(w["m"]))
+        if not 2 <= m <= 16:
+            raise ValueError("Modulo m zwischen 2 und 16")
         bits = max(1, (m - 1).bit_length())
-        ab = self.dg_richtung.get() == "abwärts"
-        asyn = self.dg_art.get() == self.ARTEN[0]
+        ab = w["richtung"] == "abwärts"
+        asyn = v != "synchron"
         perioden = m + 1
-        folge = swm.zaehler_folge(bits, m, ab, schritte=perioden)
-        werte, glitches = [], []                       # werte: Zustand je feinem Zeitschritt
-        d = max(1, self.UNTER // (3 * bits))           # Verzögerung je Stufe (asynchron)
+        reihe = swm.zaehler_folge(bits, m, ab, schritte=perioden)
+        werte, glitches = [], []
+        d = max(1, self.UNTER // (3 * bits))                               # Verzögerung je Stufe (asynchron)
         for p in range(perioden):
-            # Periode 0 zeigt den Startzustand; ab Periode 1 schaltet die steigende Flanke am Periodenanfang weiter
-            alt, neu = (folge[0], folge[0]) if p == 0 else (folge[p - 1], folge[p])
+            alt, neu = (reihe[0], reihe[0]) if p == 0 else (reihe[p - 1], reihe[p])
             if p == 0:
                 zwischen = [alt]
             elif asyn and not ab:
                 zwischen = swm.ripple_uebergang(alt, bits, m)
-            elif asyn:                                  # abwärts: Bits kippen ebenfalls nacheinander
+            elif asyn:                                                      # abwärts: Bits kippen nacheinander
                 zwischen, z = [alt], alt
                 for i in range(bits):
                     z ^= 1 << i
@@ -271,144 +214,91 @@ class ZaehlerKarte(Karte):
                         glitches.append(p * self.UNTER + t)
                 else:
                     werte.append(alt if t < 1 else neu)
-        return {"m": m, "bits": bits, "folge": folge[:m + 1], "werte": werte, "glitches": glitches,
+        return {"m": m, "bits": bits, "folge": reihe[:m + 1], "werte": werte, "glitches": glitches,
                 "perioden": perioden, "asyn": asyn, "ab": ab}
 
-    def _dg_neu(self):
-        if not hasattr(self, "dg_ergebnis"):
-            return
-        self.dg_d = d = self._dg_daten()
-        m, bits = d["m"], d["bits"]
-        uebergang = ""
-        if d["asyn"] and not d["ab"]:
-            beispiel = 2 ** (bits - 1) - 1 if 2 ** (bits - 1) < m else m - 1
-            kette = swm.ripple_uebergang(beispiel, bits, m)
-            uebergang = ("Übergang " + " → ".join(format(z, f"0{bits}b") for z in kette) +
-                         f"   ({len(kette) - 2} falsche Zwischenwerte)")
-        zeilen = [f"{bits} Flipflops, {m} Zustände: " + ", ".join(map(str, d["folge"][:m])) +
-                  (" …" if m > 16 else ""),
+    def sk_info(self, w, e, v):
+        m, bits = e["m"], e["bits"]
+        zeilen = [f"{bits} Flipflops, {m} Zustände: " + ", ".join(map(str, e["folge"][:m])),
                   f"Frequenzen: Q0 = f/2 (bei Zweierpotenz) … höchstes Bit Q{bits - 1}: f / {m}" +
                   ("" if m == 2 ** bits else "  (Tastgrad ≠ 50 %, weil m keine Zweierpotenz ist)")]
-        if uebergang:
-            zeilen.append(uebergang)
-        if d["asyn"] and m != 2 ** bits:
+        if e["asyn"] and not e["ab"]:
+            beispiel = 2 ** (bits - 1) - 1 if 2 ** (bits - 1) < m else m - 1
+            kette = swm.ripple_uebergang(beispiel, bits, m)
+            zeilen.append("Übergang " + " → ".join(format(z, f"0{bits}b") for z in kette) +
+                          f"   ({len(kette) - 2} falsche Zwischenwerte)")
+        if e["asyn"] and m != 2 ** bits:
             zeilen.append(f"⚠ Asynchrones Rücksetzen bei {m}: Zustand {m} ist kurz sichtbar (Glitch) – "
                           "für saubere Ausgänge synchron zählen")
-        self.dg_ergebnis.configure(text="\n".join(zeilen), text_color=WARN if d["asyn"] else OK)
-        w, h = self.dg_canvas.winfo_width(), self.dg_canvas.winfo_height()
-        if w > 1:
-            self.dg_canvas.delete("all")
-            self._dg_zeichnen(self.dg_canvas, w, h)
+        return zeilen, (WARN if e["asyn"] else OK)
 
-    def _dg_zeichnen(self, c, w, h):
-        d = self.dg_d
-        if d is None:
-            return
-        leise = _farbe(config.FARBEN["text_leise"])
-        text = _farbe(config.FARBEN["text"])
-        g = max(7, int(min(w / 2.2, h) / 18))
-        schrift = (config.SCHRIFT, g)
-        n = len(d["werte"])
+    def sk_zeichnen(self, p, w, e, v):
+        c, wb, h = p.c, p.breite, p.hoehe
+        text, leise, _, _ = farben(p)
+        schrift = (config.SCHRIFT, max(7, int(min(wb / 2.2, h) / 18)))
+        n = len(e["werte"])
         clk = [1 if (t % self.UNTER) < self.UNTER // 2 else 0 for t in range(n)]
-        signale = [("CLK", clk, SIGNAL_FARBEN["CLK"])]
-        for i in range(d["bits"]):
-            signale.append((f"Q{i}", [(z >> i) & 1 for z in d["werte"]], EINS))
-        x0, x1, y0, y1 = w * 0.08, w * 0.98, h * 0.12, h * 0.98
-        markierungen = [(t, ROT) for t in d["glitches"]]
-        zeitdiagramm(c, x0, x1, y0, y1, signale, schrift, leise, markierungen)
+        signale = [("CLK", clk, SIGNAL_FARBEN["CLK"])] + [(f"Q{i}", [(z >> i) & 1 for z in e["werte"]], EINS)
+                                                          for i in range(e["bits"])]
+        x0, x1, y0, y1 = wb * 0.08, wb * 0.98, h * 0.12, h * 0.98
+        zeitdiagramm(c, x0, x1, y0, y1, signale, schrift, leise, [(t, ROT) for t in e["glitches"]])
         dx = (x1 - x0) / n
-        for p in range(d["perioden"]):                      # Zählerstand je Periode oben
-            z = d["werte"][p * self.UNTER + self.UNTER - 1]
-            c.create_text(x0 + (p + 0.55) * self.UNTER * dx, y0 - 4, text=str(z), anchor="s", fill=text, font=schrift)
+        for p_ in range(e["perioden"]):                                      # Zählerstand je Periode oben
+            z = e["werte"][p_ * self.UNTER + self.UNTER - 1]
+            c.create_text(x0 + (p_ + 0.55) * self.UNTER * dx, y0 - 4, text=str(z), anchor="s", fill=text, font=schrift)
 
 
 # =============================================================================
 # SCHIEBEREGISTER
 # =============================================================================
-class SchieberegisterKarte(Karte):
-    ARTEN = ["seriell (SIPO)", "Ringzähler", "Johnson-Zähler"]
+class SchieberegisterKarte(SchaltungsModell):
+    TITEL = "➡️ Schieberegister, Ring- und Johnson-Zähler (interaktiv)"
+    UNTERTITEL = "Seriell: Eingangsfolge eintippen (ein Bit je Takt). Ring/Johnson: Anzahl Takte wählen"
+    VARIANTEN = ["seriell (SIPO)", "Ringzähler", "Johnson-Zähler"]
+    TEXTFELDER = [("ein", "Eingang je Takt (seriell)", "1011 0010", {"max": 24, "platzhalter": "z.B. 1011 0010"})]
+    REGLER = [("takte", "Anzahl Takte (Ring/Johnson)", "zahl", 1.0, 16.0, 8.0, {"ganzzahl": True})]
+    SEITENVERHAELTNIS = 0.42
+    MAX_HOEHE = 340
+    ERKLAERUNG = ("Was zeigt das Werkzeug?  Ein Schieberegister sind D-Flipflops in einer Kette am selben Takt: Bei jeder "
+                  "Flanke übernimmt jede Stufe den Wert der vorigen. SERIELL rein, PARALLEL raus (SIPO, z.B. 74HC595) "
+                  "macht aus einer Datenleitung 8 Ausgänge – so steuert ein µC viele LEDs mit 3 Pins. Der RINGZÄHLER "
+                  "führt den Ausgang zurück an den Eingang: Eine einzelne 1 läuft im Kreis (n Zustände, 1-aus-n ohne "
+                  "Decoder). Der JOHNSON-Zähler führt den INVERTIERTEN Ausgang zurück: 2n Zustände, und es ändert sich "
+                  "pro Takt nur ein Bit.")
 
-    def __init__(self, master):
-        super().__init__(master, titel="➡️ Schieberegister, Ring- und Johnson-Zähler (interaktiv)",
-                         untertitel="Dateneingang setzen und „Takt ↑“ drücken – jedes Bit rückt eine Stelle weiter")
-        b = self.body
-        self.dg_ein, self.dg_z, self.dg_verlauf = 1, 0, []
-        oben = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
-        oben.grid(row=0, column=0, sticky="w")
-        self.dg_art = ctk.CTkSegmentedButton(oben, values=self.ARTEN, command=lambda _v: self._dg_reset())
-        self.dg_art.set(self.ARTEN[0])
-        self.dg_art.grid(row=0, column=0, padx=(0, 12))
-        self.dg_ein_knopf = ctk.CTkButton(oben, text="", width=110, height=30, command=self._dg_eingang)
-        self.dg_ein_knopf.grid(row=0, column=1, padx=(0, 8))
-        ctk.CTkButton(oben, text="Takt ↑", width=90, height=30, fg_color="#7C3AED", hover_color="#6D28D9",
-                      command=self._dg_takt).grid(row=0, column=2, padx=(0, 8))
-        ctk.CTkButton(oben, text="Reset", width=70, height=30, fg_color="transparent", border_width=1,
-                      text_color=config.FARBEN["text"], command=self._dg_reset).grid(row=0, column=3)
-        self.dg_leiste = BitLeiste(b, 4, None, titel="Q3 Q2 Q1 Q0")
-        self.dg_leiste.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self.dg_canvas = ResponsiveCanvas(b, self._dg_zeichnen, seitenverhaeltnis=0.34, max_hoehe=300)
-        self.dg_canvas.grid(row=2, column=0, sticky="ew", pady=(8, 4))
-        self.dg_ergebnis = _ergebnis_label(b)
-        self.dg_ergebnis.grid(row=3, column=0, sticky="ew", pady=(6, 0))
-        _erklaerung(b, "Was zeigt das Werkzeug?  Ein Schieberegister sind D-Flipflops in einer Kette am selben Takt: "
-                       "Bei jeder Flanke übernimmt jede Stufe den Wert der vorigen. SERIELL rein, PARALLEL raus (SIPO, "
-                       "z.B. 74HC595) macht aus einer Datenleitung 8 Ausgänge – so steuert ein µC viele LEDs mit 3 Pins. "
-                       "Der RINGZÄHLER führt den Ausgang zurück an den Eingang: Eine einzelne 1 läuft im Kreis (n "
-                       "Zustände, 1-aus-n ohne Decoder). Der JOHNSON-Zähler führt den INVERTIERTEN Ausgang zurück: "
-                       "2n Zustände, und es ändert sich pro Takt nur ein Bit.").grid(row=4, column=0, sticky="ew", pady=(8, 0))
-        self._dg_reset()
-
-    def _dg_art_kurz(self):
-        return {"seriell (SIPO)": "seriell", "Ringzähler": "Ring", "Johnson-Zähler": "Johnson"}[self.dg_art.get()]
-
-    def _dg_reset(self):
-        self.dg_z = 0b0001 if self._dg_art_kurz() == "Ring" else 0
-        self.dg_verlauf = [self.dg_z]
-        self._dg_neu()
-
-    def _dg_eingang(self):
-        self.dg_ein ^= 1
-        self._dg_neu()
-
-    def _dg_takt(self):
-        self.dg_z = swm.schieberegister(4, [self.dg_ein], self._dg_art_kurz(), self.dg_z)[-1]
-        self.dg_verlauf = (self.dg_verlauf + [self.dg_z])[-16:]
-        self._dg_neu()
-
-    def _dg_neu(self):
-        if not hasattr(self, "dg_ergebnis"):
-            return
-        art = self._dg_art_kurz()
+    def sk_rechnen(self, w, v):
+        art = {"seriell (SIPO)": "seriell", "Ringzähler": "Ring", "Johnson-Zähler": "Johnson"}.get(v, "seriell")
         if art == "seriell":
-            self.dg_ein_knopf.grid()
-            _knopf_stil(self.dg_ein_knopf, "Eingang", self.dg_ein)
+            eingaben = folge(w["ein"], "Eingang")
+            if not eingaben:
+                raise ValueError("Eingang je Takt eintippen, z.B. 1011 0010")
         else:
-            self.dg_ein_knopf.grid_remove()
-        self.dg_leiste.zeigen(self.dg_z)
+            eingaben = [0] * int(round(w["takte"]))
+        start = 0b0001 if art == "Ring" else 0
+        verlauf = swm.schieberegister(4, eingaben, art, start)
+        return {"art": art, "verlauf": verlauf, "z": verlauf[-1], "eingaben": eingaben}
+
+    def sk_info(self, w, e, v):
+        art = e["art"]
         zustaende = {"seriell": "beliebig (16 Muster)", "Ring": "4 Zustände (eine 1 läuft im Kreis)",
                      "Johnson": "8 Zustände (2 · n), pro Takt ändert sich nur ein Bit"}[art]
         rueck = {"seriell": "Q0 ← Eingang", "Ring": "Q0 ← Q3", "Johnson": "Q0 ← ¬Q3"}[art]
-        zeilen = [f"Q3 … Q0 = {format(self.dg_z, '04b')}   ·   {rueck}, Q(i) ← Q(i−1)",
-                  f"{zustaende}   ·   Verlauf: " + " → ".join(format(z, "04b") for z in self.dg_verlauf[-6:])]
-        if art == "Ring" and self.dg_z == 0:
-            zeilen.append("⚠ Alle Stufen 0: Der Ringzähler bleibt hängen – er braucht beim Start genau eine 1 (Reset)")
-        self.dg_ergebnis.configure(text="\n".join(zeilen), text_color=config.FARBEN["akzent"])
-        w, h = self.dg_canvas.winfo_width(), self.dg_canvas.winfo_height()
-        if w > 1:
-            self.dg_canvas.delete("all")
-            self._dg_zeichnen(self.dg_canvas, w, h)
+        return ([f"Q3 … Q0 = {format(e['z'], '04b')} nach {len(e['verlauf']) - 1} Takten   ·   {rueck}, Q(i) ← Q(i−1)",
+                 f"{zustaende}",
+                 "Verlauf: " + " → ".join(format(z, "04b") for z in e["verlauf"])],
+                config.FARBEN["akzent"])
 
-    def _dg_zeichnen(self, c, w, h):
-        if not hasattr(self, "dg_ergebnis"):
-            return
-        leise = _farbe(config.FARBEN["text_leise"])
-        g = max(7, int(min(w / 2.2, h) / 16))
-        schritte = []                                   # je Takt 2 Zeitschritte (Takt HIGH, LOW)
-        for z in self.dg_verlauf:
+    def sk_zeichnen(self, p, w, e, v):
+        c, wb, h = p.c, p.breite, p.hoehe
+        text, leise, _, _ = farben(p)
+        g = max(7, int(min(wb / 2.2, h) / 16))
+        bitreihe(p, wb * 0.02, h * 0.02, wb * 0.42, e["z"], 4, "Q3 … Q0")
+        schritte = []                                           # je Takt 2 Zeitschritte (Takt HIGH, LOW)
+        for z in e["verlauf"]:
             schritte += [z, z]
         clk = [1 if i % 2 == 0 and i > 0 else 0 for i in range(len(schritte))]
-        signale = [("CLK", clk, SIGNAL_FARBEN["CLK"])] + [(f"Q{i}", [(z >> i) & 1 for z in schritte], EINS)
-                                                         for i in range(4)]
-        x0 = w * 0.08
-        x1 = x0 + (w * 0.98 - x0) * len(schritte) / 32
-        zeitdiagramm(c, x0, x1, h * 0.06, h * 0.96, signale, (config.SCHRIFT, g), leise)
+        signale = [("CLK", clk, SIGNAL_FARBEN["CLK"])] + [(f"Q{i}", [(z >> i) & 1 for z in schritte], EINS) for i in range(4)]
+        if e["art"] == "seriell":
+            ein = [0] + [x for x in e["eingaben"] for _ in (0, 1)][:len(schritte) - 1]
+            signale.insert(1, ("Ein", ein, BLAU))
+        zeitdiagramm(c, wb * 0.08, wb * 0.98, h * 0.30, h * 0.98, signale, (config.SCHRIFT, g), leise)

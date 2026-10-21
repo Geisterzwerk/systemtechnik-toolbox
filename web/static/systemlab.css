@@ -186,6 +186,9 @@ input[type="text"], select {
 .regler .feld-fehler { grid-column: 1 / -1; margin: 0; font-size: 0.85rem; }
 .regler.hat-fehler input[type="text"] { border-color: #DC2626; }
 .schaltung.laedt .plan { opacity: 0.6; }
+.modell-eingaben { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 6px 0 4px; }
+.modell-feld { display: flex; align-items: center; gap: 8px; }
+.modell-feld input[type="text"] { width: 16em; }
 
 /* ---- Hell/Dunkel: passende Grafik zeigen ------------------------------------ */
 .nur-dunkel { display: none; }

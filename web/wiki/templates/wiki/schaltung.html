@@ -23,6 +23,15 @@
     {% for sch in s.schalter %}
     <label class="schalter"><input type="checkbox" name="{{ sch.name }}" value="1" {% if sch.an %}checked{% endif %}> {{ sch.text }}</label>
     {% endfor %}
+    {% if s.auswahl or s.textfelder %}
+    <div class="modell-eingaben">
+      {% for a in s.auswahl %}<label class="modell-feld"><span>{{ a.text }}</span>
+        <select name="{{ a.name }}">{% for o in a.optionen %}<option {% if o == a.wert %}selected{% endif %}>{{ o }}</option>{% endfor %}</select></label>{% endfor %}
+      {% for t in s.textfelder %}<label class="modell-feld"><span>{{ t.text }}</span>
+        <input type="text" name="{{ t.name }}" value="{{ t.wert }}" maxlength="{{ t.max }}" placeholder="{{ t.platzhalter }}"
+               autocomplete="off" autocapitalize="none" spellcheck="false" class="mono"></label>{% endfor %}
+    </div>
+    {% endif %}
 
     <div class="plan"{% if s.animation %} data-animation data-ms="{{ s.bild_ms }}" data-schleife-ab="{{ s.schleife_ab }}"{% endif %}><div class="nur-hell">{{ s.svg_hell|safe }}</div><div class="nur-dunkel">{{ s.svg_dunkel|safe }}</div></div>
     {% if s.animation %}<div class="knoepfe"><button type="button" class="knopf leer" data-animation-knopf aria-pressed="false">⏸ Pause</button>{% if s.schleife_ab %} <button type="button" class="knopf leer" data-animation-nochmal>↺ Umschalten nochmal zeigen</button>{% endif %}</div>{% endif %}

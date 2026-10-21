@@ -19,6 +19,7 @@
 # EINGABEN einer Schaltung (Adresse oder Formular), alle mit der Rechner-ID davor:
 #   <id>-v=Variante   <id>-alt=vorherige Variante   <id>-<regler>=Text   <id>-<regler>-e=Einheit
 #   <id>-<regler>-ea=Einheit, in der der Text steht (bis zum Wechsel = -e)   <id>-<schalter>=1
+#   <id>-<auswahl>=Option (nur Werte aus der Liste)   <id>-<textfeld>=Text (bereinigt, gekürzt - text_eingabe)
 #
 # WER RUFT DAS AUF?  web/wiki/views.py (Wissensseiten, /schaltung/<id>/)
 # =============================================================================
@@ -28,7 +29,7 @@ import math
 
 import bauteile.rechner as rechner_registry                            # -> bauteile/rechner/__init__.py
 from bauteile import einheiten                                         # -> bauteile/einheiten.py
-from bauteile.grafiken.schaltplan import SchaltungsModell, farbe_waehlen   # -> bauteile/grafiken/schaltplan.py
+from bauteile.grafiken.schaltplan import SchaltungsModell, farbe_waehlen, text_eingabe   # -> grafiken/schaltplan.py
 from bauteile.grafiken.svg_canvas import SvgCanvas, schaltung_svg     # -> bauteile/grafiken/svg_canvas.py
 from bauteile.grafiken.symbole import SYMBOLE                          # -> bauteile/grafiken/symbole.py
 from bauteile.grafiken.trafo_modell import TrafoModell                 # -> bauteile/grafiken/trafo_modell.py
@@ -155,10 +156,27 @@ def _bedienung(klasse, rechner_id, eingaben):
     for schluessel, text in klasse.SCHALTER:
         werte[schluessel] = eingaben.get(p + schluessel) == "1"
         schalter.append({"name": p + schluessel, "text": text, "an": werte[schluessel]})
+    neu_gesetzt = klasse.STARTWERTE.get(variante, {}) if gewechselt else {}      # Variante gewechselt -> Startwerte
+    auswahl = []
+    for schluessel, text, optionen, _start in getattr(klasse, "AUSWAHL", []):        # Trafo-Animation hat keine
+        wert = eingaben.get(p + schluessel)
+        if wert not in optionen or schluessel in neu_gesetzt:             # nur Werte aus der Liste - nie fremder Text
+            wert = werte[schluessel]
+        werte[schluessel] = wert
+        auswahl.append({"name": p + schluessel, "text": text, "optionen": optionen, "wert": wert})
+    textfelder = []
+    for schluessel, text, _start, opt in getattr(klasse, "TEXTFELDER", []):
+        laenge = opt.get("max", 40)
+        eingabe = eingaben.get(p + schluessel)
+        if eingabe is not None and schluessel not in neu_gesetzt:
+            werte[schluessel] = text_eingabe(eingabe, laenge)             # Steuerzeichen raus, gekürzt
+        textfelder.append({"name": p + schluessel, "text": text, "wert": werte[schluessel], "max": laenge,
+                           "platzhalter": opt.get("platzhalter", "")})
 
     return {"id": rechner_id, "titel": klasse.TITEL, "untertitel": klasse.UNTERTITEL,
             "erklaerung": klasse.ERKLAERUNG, "varianten": varianten, "variante": variante,
-            "schalter": schalter, "regler": regler, "meldungen": meldungen, "werte": werte}
+            "schalter": schalter, "auswahl": auswahl, "textfelder": textfelder, "regler": regler,
+            "meldungen": meldungen, "werte": werte}
 
 
 def schaltung(rechner_id, eingaben):

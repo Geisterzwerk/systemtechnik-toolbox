@@ -15,6 +15,8 @@
 #   karte.sk_regler          {"ue": WertRegler, ...}
 #   karte.sk_variante        Umschalter oder None
 #   karte.sk_schalter        {"taster": CTkSwitch, ...}
+#   karte.sk_auswahl         {"sender": Auswahl, ...}      (Modell.AUSWAHL, Dropdown)
+#   karte.sk_texte           {"zahl": CTkEntry, ...}       (Modell.TEXTFELDER, Enter oder Verlassen = übernehmen)
 #   karte.sk_neu()           neu rechnen + zeichnen (nach jeder Änderung)
 #
 # WER RUFT DAS AUF?  SchaltungsModell.karte_bauen() (bauteile/grafiken/schaltplan.py),
@@ -24,8 +26,8 @@
 import customtkinter as ctk
 
 import config                                                            # -> config.py
-from bauteile.grafiken.schaltplan import WARN, Schaltplan                # -> grafiken/schaltplan.py
-from bauteile.rechner.basis import WertRegler                            # -> rechner/basis.py
+from bauteile.grafiken.schaltplan import WARN, Schaltplan, text_eingabe  # -> grafiken/schaltplan.py
+from bauteile.rechner.basis import Auswahl, WertRegler                   # -> rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel               # -> core/layout.py
 
 
@@ -55,6 +57,25 @@ class SchaltungsKarte(Karte):
                 schalter.grid(row=0, column=spalte, sticky="w", padx=(0, 16), pady=2)
                 self.sk_schalter[schluessel] = schalter
                 spalte += 1
+        self.sk_auswahl, self.sk_texte = {}, {}
+        if m.AUSWAHL or m.TEXTFELDER:
+            eingaben = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
+            eingaben.grid(row=zeile, column=0, sticky="w", pady=(0, 6))
+            zeile += 1
+            for i, (schluessel, text, optionen, start) in enumerate(m.AUSWAHL):
+                ctk.CTkLabel(eingaben, text=text, anchor="w").grid(row=i, column=0, sticky="w", padx=(0, 8), pady=2)
+                feld = Auswahl(eingaben, optionen, start, breite=240, bei_aenderung=self.sk_neu)
+                feld.grid(row=i, column=1, sticky="w", pady=2)
+                self.sk_auswahl[schluessel] = feld
+            for i, (schluessel, text, start, opt) in enumerate(m.TEXTFELDER, start=len(m.AUSWAHL)):
+                ctk.CTkLabel(eingaben, text=text, anchor="w").grid(row=i, column=0, sticky="w", padx=(0, 8), pady=2)
+                feld = ctk.CTkEntry(eingaben, width=240, font=(config.SCHRIFT_CODE, 14),
+                                    placeholder_text=opt.get("platzhalter", ""))
+                feld.insert(0, start)
+                feld.bind("<Return>", lambda _e: self.sk_neu())
+                feld.bind("<FocusOut>", lambda _e: self.sk_neu(), add="+")
+                feld.grid(row=i, column=1, sticky="w", pady=2)
+                self.sk_texte[schluessel] = feld
         self.sk_canvas = ResponsiveCanvas(b, self._sk_zeichnen, seitenverhaeltnis=m.SEITENVERHAELTNIS,
                                           max_hoehe=m.MAX_HOEHE)
         self.sk_canvas.grid(row=zeile, column=0, sticky="ew")
@@ -78,6 +99,9 @@ class SchaltungsKarte(Karte):
         """Alle Reglerwerte und Schalterstellungen: {"ue": 12.0, "taster": False, ...}"""
         werte = {k: r.wert() for k, r in self.sk_regler.items()}
         werte.update({k: bool(s.get()) for k, s in self.sk_schalter.items()})
+        werte.update({k: a.wert() for k, a in self.sk_auswahl.items()})
+        laenge = {f[0]: f[3].get("max", 40) for f in self.sk_modell.TEXTFELDER}
+        werte.update({k: text_eingabe(f.get(), laenge[k]) for k, f in self.sk_texte.items()})
         return werte
 
     def sk_v(self):
@@ -88,7 +112,13 @@ class SchaltungsKarte(Karte):
         v = self.sk_v()
         if v != getattr(self, "sk_letzte_variante", v):                   # Variante gewechselt -> Startwerte
             for schluessel, wert in self.sk_modell.STARTWERTE.get(v, {}).items():
-                self.sk_regler[schluessel].setzen(wert)
+                if schluessel in self.sk_regler:
+                    self.sk_regler[schluessel].setzen(wert)
+                elif schluessel in self.sk_auswahl:
+                    self.sk_auswahl[schluessel].set(wert)
+                elif schluessel in self.sk_texte:
+                    self.sk_texte[schluessel].delete(0, "end")
+                    self.sk_texte[schluessel].insert(0, wert)
         self.sk_letzte_variante = v
         w = self._sk_werte()
         try:

@@ -49,6 +49,12 @@ WARN = ("#B45309", ORANGE)
 OK = ("#15803D", GRUEN)
 
 
+def text_eingabe(text, laenge=40):
+    """Text aus einem Eingabefeld bereinigen: Steuerzeichen raus, Leerraum am Rand weg, höchstens 'laenge' Zeichen.
+    (Angezeigt wird er IMMER escaped - SvgCanvas und Django-Templates escapen selbst.)"""
+    return "".join(z for z in str(text or "") if z.isprintable()).strip()[:laenge]
+
+
 def farbe_waehlen(farbe, dunkel):
     """('hell', 'dunkel') -> die passende Farbe. Ein einfacher Text "#RRGGBB" bleibt, wie er ist."""
     if isinstance(farbe, (tuple, list)):
@@ -587,6 +593,10 @@ class SchaltungsModell:
                             z.B. ("taster", "Taster gedrückt") -> w["taster"] ist True/False
       REGLER                [(schluessel, text, typ, von, bis, start, {optionen}), ...]
                             optionen: einheit, log, grenzen, ganzzahl, schritte (siehe WertRegler)
+      AUSWAHL               [(schluessel, text, [optionen], start), ...] Dropdown -> w[schluessel] = gewählter Text
+      TEXTFELDER            [(schluessel, text, start, {"max": 40, "platzhalter": "…"}), ...] Eingabefeld
+                            -> w[schluessel] = Text (Steuerzeichen entfernt, gekürzt; PRÜFEN im Modell:
+                            sk_rechnen wirft ValueError mit verständlicher Meldung, wenn er unbrauchbar ist)
       RASTER                (spalten, zeilen) des Schaltplans
       sk_raster(breite)     (optional) anderes Raster bei schmaler Zeichenfläche, z.B. ohne Diagramm
       STARTWERTE            (optional) {variante: {regler: wert}} - beim Umschalten der Variante gesetzt,
@@ -608,6 +618,8 @@ class SchaltungsModell:
     STARTWERTE = {}
     SCHALTER = []
     REGLER = []
+    AUSWAHL = []
+    TEXTFELDER = []
     RASTER = (12, 8)
     SEITENVERHAELTNIS = 0.6
     MAX_HOEHE = 440
@@ -623,6 +635,8 @@ class SchaltungsModell:
         """Reglerwerte wie beim Öffnen: {"ue": 12.0, "taster": False, ...} (+ STARTWERTE der Variante)."""
         werte = {r[0]: r[5] for r in cls.REGLER}
         werte.update({k: False for k, _text in cls.SCHALTER})
+        werte.update({a[0]: a[3] for a in cls.AUSWAHL})
+        werte.update({f[0]: f[2] for f in cls.TEXTFELDER})
         werte.update(cls.STARTWERTE.get(variante, {}))
         return werte
 
