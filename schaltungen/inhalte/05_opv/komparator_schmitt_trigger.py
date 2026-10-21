@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_schmitt"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Thermostat** schaltet die Heizung bei 20 °C ein und erst bei 22 °C wieder aus. Würde er bei genau 21 °C ein- und ausschalten, würde er bei jedem kleinen Luftzug hin und her klicken. Diese Lücke zwischen Ein- und Ausschaltpunkt heisst **Hysterese** – und genau das macht ein Schmitt-Trigger aus einem einfachen Komparator.
 ## Funktion
 **Komparator** (keine Gegenkopplung): Ist U+ > U−, geht der Ausgang an die obere Grenze, sonst an die untere. Eine Spannung wird mit einer Referenz verglichen (Temperatur zu hoch? Batterie leer?).
 
@@ -43,6 +45,12 @@ Problem: Wackelt das Signal nahe der Schwelle (Rauschen, Brumm, langsame Flanke)
 - R1 → 0 (invertierend): beide Schwellen = U_ref, ebenfalls keine Hysterese.
 - Hysterese grösser als das Signal: Eine Schwelle wird nie erreicht – der Ausgang schaltet nie um.
 - OPV als Komparator: viele OPV sind langsam aus der Sättigung (µs) und manche vertragen keine grosse Differenzspannung an den Eingängen – Datenblatt prüfen.
+## 🔬 Genauer hingeschaut
+- **Echte Komparatoren statt OPV:** Bausteine wie LM393 oder LM339 sind für das Vergleichen gebaut: schneller, und sie erholen sich sofort aus der Begrenzung. Ein OPV als Komparator ist oft langsam, weil er sich erst aus der Sättigung lösen muss. Viele Komparatoren haben einen **Open-Collector-Ausgang** – ohne Pull-up-Widerstand geht dann nichts.
+- **Fensterkomparator:** Zwei Komparatoren mit einer oberen und einer unteren Schwelle melden, ob ein Signal **innerhalb** eines Bereichs liegt – z.B. Über- und Unterspannungsüberwachung.
+- **Hysterese richtig wählen:** Sie muss grösser sein als das Rauschen und die Störungen auf dem Signal, sonst schaltet es trotzdem mehrfach.
+## 💡 Wusstest du?
+- Otto Schmitt erfand die Schaltung in den 1930er-Jahren, als er die Weiterleitung von Nervenimpulsen untersuchte – Nervenzellen „feuern“ ebenfalls erst ab einer Schwelle.
 """,
 
     "tipps": [

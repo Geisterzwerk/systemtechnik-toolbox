@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_lasttreiber"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Mikrocontroller ist wie ein **Chef**, der Entscheidungen trifft, aber keine schweren Kisten trägt. Für die schwere Arbeit braucht er einen **kräftigen Helfer**: einen Transistor oder MOSFET. Der Chef gibt nur das Zeichen (ein paar mA), der Helfer schaltet die grosse Last – und bei Spulen sorgt die Freilaufdiode dafür, dass der Helfer beim Loslassen nicht verletzt wird.
 ## Funktion
 Ein µC-Pin liefert nur wenige mA bei 3.3 oder 5 V. Ein Transistor (NPN) oder MOSFET auf der **Low-Side** schaltet die eigentliche Last aus einer eigenen, oft höheren Versorgung. Jede Lastart braucht dazu etwas anderes:
 - **LED**: Vorwiderstand begrenzt den Strom, `R_V = (U_B − U_F − U_CE,sat) / I_LED`.
@@ -40,6 +42,12 @@ Ein µC-Pin liefert nur wenige mA bei 3.3 oder 5 V. Ein Transistor (NPN) oder MO
 - Relais ohne Freilaufdiode: Transistor stirbt nach einigen Schaltvorgängen (oder sofort).
 - Motor blockiert: Dauernd Anlaufstrom – Transistor und Motor überhitzen → Strombegrenzung oder Sicherung.
 - Last direkt am µC-Pin: Nur bei sehr kleinen Strömen (LED mit wenigen mA) zulässig – Summe aller Pins beachten.
+## 🔬 Genauer hingeschaut
+- **Grenzen pro Pin UND pro Chip:** Datenblätter geben einen Maximalstrom pro Pin und einen für alle Pins zusammen an. Acht LEDs mit je 20 mA können einzeln erlaubt, zusammen aber zu viel sein.
+- **Kalte Lampen ziehen mehr:** Der Glühfaden einer Glühlampe hat kalt einen viel kleineren Widerstand als heiss – beim Einschalten fliesst kurz ein Vielfaches des Nennstroms. Auch Kondensatoren in Geräten und blockierte Motoren erzeugen solche Spitzen.
+- **Getrennte Masseführung:** Grosse Lastströme erzeugen auf der Masseleitung Spannungsabfälle. Fliessen sie über dieselbe Leitung wie die µC-Masse, „hüpft“ dessen Bezugspotenzial. Darum Lastmasse und Logikmasse getrennt führen und an einem Punkt verbinden (Sternpunkt).
+## 💡 Wusstest du?
+- Glühlampen brennen meistens **beim Einschalten** durch – genau dann, wenn der grosse Einschaltstrom durch den kalten Faden fliesst.
 """,
 
     "tipps": [

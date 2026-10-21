@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_schwingkreis"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Radio**: Aus Hunderten Sendern in der Luft holst du genau einen heraus, indem du auf seine Frequenz abstimmst – das ist ein Bandpass. Die Bandsperre ist das Gegenteil: Sie lässt alles durch, ausser einer bestimmten Frequenz, z.B. dem nervigen 50-Hz-Brummen.
 ## Funktion
 Im Reihenschwingkreis heben sich bei der Resonanzfrequenz die Blindwiderstände von L und C genau auf (`X_L = X_C`). Dann wirkt nur noch R:
 - `f0 = 1 / (2π · √(L · C))`
@@ -41,6 +43,12 @@ Im Reihenschwingkreis heben sich bei der Resonanzfrequenz die Blindwiderstände 
 - R sehr gross: Q < 0.5, es gibt keine ausgeprägte Resonanz mehr, der Bandpass wird sehr breit.
 - Last am Ausgang: liegt parallel zum R (Bandpass) und senkt Q bzw. verschiebt die Kerbe.
 - Reale Spule: Der Drahtwiderstand verhindert eine vollständige Auslöschung – die Bandsperre erreicht bei f0 nur endliche Dämpfung.
+## 🔬 Genauer hingeschaut
+- **Bandbreite und Güte:** `B = f0 / Q`. Ein Bandpass bei 1 kHz mit Q = 10 lässt ungefähr den Bereich von 950 Hz bis 1050 Hz durch (B = 100 Hz, −3-dB-Grenzen). Grosses Q = schmales Band.
+- **Doppel-T-Sperre:** Eine passive Schaltung aus zwei T-Gliedern (RC) sperrt eine einzige Frequenz sehr tief, z.B. 50 Hz in Messschaltungen. Sie reagiert aber empfindlich auf Toleranzen und wird darum oft mit einem OPV kombiniert.
+- **Breitband aus zwei Filtern:** Ein breiter Bandpass lässt sich auch aus einem Hochpass und einem Tiefpass hintereinander bauen – jeder bestimmt eine Grenze.
+## 💡 Wusstest du?
+- Ein grafischer **Equalizer** mit vielen Schiebereglern ist eine Reihe von Bandpässen: Jeder Regler hebt oder senkt ein Frequenzband an.
 """,
 
     "tipps": [

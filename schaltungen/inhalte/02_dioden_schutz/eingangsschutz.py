@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_eingangsschutz"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Damm mit **Überlaufrinnen** auf beiden Seiten: Steigt das Wasser über die Dammkrone, läuft es in die Rinne ab, statt den Damm zu zerstören. Die Schutzdioden am Eingang leiten Überspannung in die Versorgung oder nach GND ab. Der Vorwiderstand sorgt dafür, dass dabei nur so viel Wasser fliesst, wie die Rinnen schlucken können.
 ## Funktion
 Jeder CMOS-Pin hat interne **ESD-Dioden**: eine vom Pin zu U_DD, eine von GND zum Pin. Steigt die Spannung über `U_DD + U_F` (oder sinkt unter `−U_F`), leiten sie und halten den Pin fest. Den Strom begrenzt nur der **Serienwiderstand R**:
 - `U_Pin = U_DD + U_F`   bzw.   `−U_F`
@@ -38,6 +40,12 @@ Die internen Dioden sind nur für kurze ESD-Pulse gebaut, als Dauerstrom erlaube
 - `R → 0`: Die Quelle treibt grosse Ströme in die ESD-Dioden → Latch-up oder zerstörter Pin.
 - `R` sehr gross: Gut geschützt, aber ADC-Messungen werden falsch (der Abtastkondensator lädt nicht schnell genug) → Kondensator direkt am Pin.
 - Ausgeschaltetes Gerät (U_DD = 0): Ein Signal am Eingang versorgt den ganzen Chip über die ESD-Diode („phantom powering“) – R begrenzt auch das.
+## 🔬 Genauer hingeschaut
+- **Interne Dioden sind schwach:** Fast jeder IC-Pin hat eingebaute Schutzdioden gegen elektrostatische Entladungen. Der erlaubte Dauerstrom durch sie (Injektionsstrom) steht im Datenblatt und ist meist klein – deshalb der Vorwiderstand.
+- **Externe Schottky-Dioden:** Sie leiten schon bei ca. 0.3 V und damit früher als die internen Si-Dioden. So übernimmt die externe Diode den Strom, und die internen Dioden bleiben geschont.
+- **ESD-Prüfung:** Elektronik wird mit nachgebildeten Entladungen getestet, z.B. dem Human Body Model (ein Mensch, der sich aufgeladen hat). Datenblätter geben an, bis zu wie vielen Kilovolt ein Pin das aushält.
+## 💡 Wusstest du?
+- Wer über einen Teppich läuft, kann sich auf mehrere Tausend Volt aufladen. Den Funken an der Türklinke spürt man erst ab einigen Kilovolt – Halbleiter können schon an kleineren Entladungen sterben, die man gar nicht bemerkt.
 """,
 
     "tipps": [

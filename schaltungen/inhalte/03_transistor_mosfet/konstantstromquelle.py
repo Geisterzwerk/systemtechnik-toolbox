@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_konstantstrom"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Tempomat** im Auto: Bergauf gibt er mehr Gas, bergab weniger – die Geschwindigkeit bleibt gleich. Die Konstantstromquelle macht das mit dem Strom: Ändert sich der Lastwiderstand, verstellt der Transistor seine Spannung so, dass der Strom gleich bleibt – solange die Versorgungsspannung reicht (der Motor stark genug ist).
 ## Funktion
 **Transistor + Referenz**: Die Basis liegt auf einer festen Spannung U_ref (Z-Diode, zwei Dioden ≈ 1.4 V, LED ≈ 1.8 V). Am Emitterwiderstand liegt deshalb immer `U_ref − U_BE`, und es fliesst
 - `I ≈ (U_ref − 0.7 V) / R_E`
@@ -40,6 +42,12 @@ Die Last im Kollektorkreis hat darauf keinen Einfluss – der Transistor passt U
 - R_E → 0: Strom wird nur noch von β und dem Basisstrom begrenzt – Transistor zerstört.
 - Sehr kleine Ströme (µA): Basisstrom und Leckströme verfälschen das Ergebnis → JFET oder OPV-Regler.
 - Präzise Quellen: OPV + Transistor + Shunt (geregelte Stromquelle) oder Spezial-ICs (LM334).
+## 🔬 Genauer hingeschaut
+- **Mit einem Regler-IC:** Ein LM317 mit einem Widerstand R zwischen Ausgang und Einstellpin liefert einen konstanten Strom von `I = 1.25 V / R` – eine bewährte Laborschaltung.
+- **Temperaturdrift:** Bei der Transistorstromquelle mit Z-Diode gilt `I ≈ (U_Z − U_BE) / R_E`. U_BE sinkt um etwa 2 mV/K – der Strom steigt mit der Wärme. Abhilfe: grössere Spannung an R_E oder Kompensation mit einer Diode.
+- **Idealer Innenwiderstand:** Eine ideale Stromquelle hätte einen unendlich grossen Innenwiderstand. In der Praxis ist er gross, aber endlich – der Strom ändert sich mit der Spannung noch ein wenig.
+## 💡 Wusstest du?
+- LEDs, Laserdioden und Akkus beim Laden werden über den **Strom** gesteuert, nicht über die Spannung. Darum stecken in LED-Leuchten und Ladegeräten fast immer Konstantstromquellen.
 """,
 
     "tipps": [

@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_funktionsgenerator"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Pingpong-Spiel**: Der Ball (Dreieck) rollt gleichmässig in eine Richtung, bis er die Wand erreicht. Dort gibt ihm der Schläger (Schmitt-Trigger) einen Schlag in die Gegenrichtung. So rollt der Ball endlos hin und her – und der Schläger wechselt dabei ständig zwischen zwei Stellungen (Rechteck).
 ## Funktion
 Zwei bekannte OPV-Schaltungen im Kreis:
 - **OPV1: nichtinvertierender Schmitt-Trigger** – sein Ausgang ist +U_sat oder −U_sat (Rechteck).
@@ -43,6 +45,12 @@ Ergebnis:
 - Sehr hohe Frequenz: Slew-Rate begrenzt, das Rechteck wird trapezförmig, die Frequenz sinkt.
 - U_sat unsymmetrisch (Einzelversorgung, nicht Rail-to-Rail): Dreieck nicht symmetrisch, Tastgrad ≠ 50 %.
 - Mit einer Steuerspannung statt U_sat am Integrator wird daraus ein VCO (spannungsgesteuerter Oszillator).
+## 🔬 Genauer hingeschaut
+- **Obere Frequenzgrenze:** Bei hoher Frequenz kommt der Schmitt-Trigger-OPV mit seiner Slew-Rate nicht mehr nach – das Rechteck bekommt schräge Flanken und das Dreieck wird krumm. Für höhere Frequenzen verwendet man Komparatoren und schnelle OPV.
+- **Die Amplitude hängt an U_sat:** Weil die Schwelle von der Ausgangsspannung des Schmitt-Triggers abhängt, schwankt die Dreieckamplitude mit der Versorgung. Begrenzerdioden (Z-Dioden) am Rechteckausgang machen sie stabil.
+- **Moderne Generatoren** erzeugen Kurvenformen meist digital (DDS: Direkte Digitale Synthese) aus einer Tabelle und einem DA-Wandler – Frequenz und Form sind dann sehr genau einstellbar.
+## 💡 Wusstest du?
+- Früher gab es dafür eigene Funktionsgenerator-ICs wie den ICL8038, die Rechteck, Dreieck und einen angenäherten Sinus gleichzeitig lieferten.
 """,
 
     "tipps": [

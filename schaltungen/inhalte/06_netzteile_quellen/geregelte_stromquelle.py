@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_stromquelle_opv"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Wasserhahn mit Durchflussregler**: Egal, ob der Schlauch dahinter lang oder kurz, dick oder dünn ist – der Regler öffnet oder schliesst automatisch so weit, dass immer gleich viele Liter pro Minute fliessen. Die geregelte Stromquelle misst den Strom über einen Shunt und stellt ihn ebenso automatisch nach.
 ## Funktion
 Die Last liegt zwischen +U_B und dem Drain eines N-MOSFET, unter dem Source sitzt der Shunt R_S gegen GND. Der OPV vergleicht die Sollspannung U_soll (+ Eingang) mit der Spannung am Shunt (− Eingang) und steuert das Gate:
 - Gleichgewicht bei `U_Shunt = U_soll` → `I = U_soll / R_S`
@@ -37,6 +39,12 @@ Die Last liegt zwischen +U_B und dem Drain eines N-MOSFET, unter dem Source sitz
 - R_S sehr klein (mΩ): grosse Ströme möglich, aber Leiterbahn- und Kontaktwiderstände verfälschen → Kelvin-Anschluss (4-Leiter).
 - Kapazitive Last oder lange Leitungen: Regelkreis kann schwingen.
 - High-Side-Variante (P-MOSFET oder PNP) für Lasten, die einseitig an GND liegen müssen.
+## 🔬 Genauer hingeschaut
+- **Arbeitsbereich (Compliance):** Eine Stromquelle kann den Strom nur halten, solange die Versorgungsspannung reicht: `U_Last = I · R_Last` plus Spannung am Shunt und am Stellglied muss kleiner sein als die Versorgung. Diesen Bereich nennt man Ausgangsspannungs- oder Bürdenbereich.
+- **Stabilität:** Der Regelkreis enthält den OPV und die Gate- bzw. Basiskapazität des Stellglieds. Schwingt die Schaltung, helfen ein kleiner Widerstand vor dem Gate und ein Kondensator in der Gegenkopplung des OPV.
+- **Shunt auf der High- oder Low-Side:** Low-Side ist einfacher zu messen (Bezug Masse), High-Side lässt die Last mit Masse verbunden – dafür braucht es einen Strommessverstärker.
+## 💡 Wusstest du?
+- Industrielle **4…20-mA-Schleifen** übertragen Messwerte als Strom. Der Widerstand der Leitung spielt dann keine Rolle, solange die Quelle genug Spannung hat. Und weil 0 % = 4 mA ist, erkennt man einen Kabelbruch sofort (0 mA).
 """,
 
     "tipps": [

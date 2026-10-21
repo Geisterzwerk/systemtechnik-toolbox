@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["rc_ladekurve"],
 
     "erklaerung": """
+## Stell dir vor …
+Du bläst einen **Luftballon** durch einen dünnen Strohhalm auf. Am Anfang geht es leicht und schnell. Je voller der Ballon, desto stärker drückt er zurück, und es geht immer langsamer. Ganz voll wird er nie – aber nach einer Weile merkst du keinen Unterschied mehr. Der Strohhalm ist der Widerstand, der Ballon der Kondensator.
 ## Funktion
 Wird ein RC-Glied an eine Spannung geschaltet, liegt im ersten Moment die ganze Differenz am Widerstand – der Strom ist am grössten. Je voller der Kondensator, desto kleiner die Differenz und der Strom:
 - Laden: `u_C(t) = U · (1 − e^(−t/τ))`,  Entladen: `u_C(t) = U_0 · e^(−t/τ)`
@@ -40,6 +42,12 @@ Anwendungen: Einschaltverzögerung, Power-on-Reset eines µC, Zeitglied (NE555),
 - R → 0: unendlich grosser Ladestrom im Modell – in Wirklichkeit begrenzen ESR, Leitungen und die Quelle (Einschaltstromstoss bei grossen Elkos!).
 - Elko mit Leckstrom: lädt nie ganz voll, wenn R sehr gross ist (Spannungsteiler aus R und Leckwiderstand).
 - Ladung bleibt nach dem Ausschalten erhalten – grosse Elkos über einen Entladewiderstand entladen (Berührungsschutz).
+## 🔬 Genauer hingeschaut
+- **Eine Formel für alles:** Jeder Lade- oder Entladevorgang folgt `u(t) = U_end + (U_start − U_end) · e^(−t/τ)`. Laden von 0 V und Entladen auf 0 V sind nur Spezialfälle davon.
+- **τ hängt nicht von der Spannung ab:** Ob 5 V oder 500 V – nach einem τ ist immer 63 % der Änderung geschafft. Nur R und C bestimmen das Tempo.
+- **Die Hälfte geht verloren:** Lädt man einen Kondensator über einen Widerstand an einer festen Spannung, wird im Widerstand genau so viel Energie in Wärme umgesetzt, wie im Kondensator landet – unabhängig davon, wie gross R ist. Ein kleineres R macht den Vorgang nur schneller, nicht verlustärmer.
+## 💡 Wusstest du?
+- Der NE555 nutzt genau die Schwellen 1/3 und 2/3 der Versorgung. Von 1/3 auf 2/3 zu laden dauert `τ · ln 2 ≈ 0.693 · τ` – daher stammt die Zahl 0.693 in den 555-Formeln.
 """,
 
     "tipps": [

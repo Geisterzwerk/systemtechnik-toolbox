@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_ne555"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Wasserkübel unter einem Hahn**, mit zwei Markierungen bei einem Drittel und zwei Dritteln. Ist das Wasser bei zwei Dritteln, öffnet ein Abfluss; ist es auf ein Drittel gesunken, schliesst der Abfluss wieder. Der Kübel füllt und leert sich im Takt. Der 555 macht genau das mit der Spannung an einem Kondensator.
 ## Funktion
 Im NE555 teilen drei gleiche Widerstände die Versorgung in **⅓ U_B** und **⅔ U_B**. Zwei Komparatoren vergleichen damit:
 - **Pin 6 (Threshold)** > ⅔ U_B → Flipflop zurücksetzen: Ausgang (Pin 3) LOW, Entladetransistor (Pin 7) leitet
@@ -49,6 +51,12 @@ Weil nur **Verhältnisse** von U_B zählen, hängen die Zeiten nicht von der Ver
 - Sehr grosse R mit Elko: Leckstrom des Elkos verlängert die Zeit massiv (oder sie läuft nie ab).
 - Bipolarer NE555 erzeugt beim Umschalten Stromspitzen von über 100 mA → 100 nF direkt an Pin 8.
 - Trigger länger als der Impuls (monostabil): Ausgang bleibt so lange HIGH, wie der Trigger anliegt.
+## 🔬 Genauer hingeschaut
+- **CMOS-Versionen:** Der klassische NE555 braucht im Leerlauf einige mA. CMOS-Typen wie TLC555 oder ICM7555 kommen mit einem Bruchteil davon aus und eignen sich für Batteriegeräte.
+- **Pin 5 (Control):** Hier liegt die ⅔-Schwelle direkt an. Ein Kondensator (oft 10 nF) nach GND macht sie störfest. Legt man eine Spannung an, verschiebt man die Schwellen – so wird der 555 zum einfachen spannungsgesteuerten Oszillator.
+- **Monostabil:** In der zweiten Grundschaltung erzeugt der 555 auf einen Triggerimpuls genau einen Puls der Länge `t ≈ 1.1 · R · C` (das ist `ln 3 · R · C`).
+## 💡 Wusstest du?
+- Der 555 wurde 1971 vom gebürtigen Schweizer Hans Camenzind entworfen und 1972 von Signetics auf den Markt gebracht. Er gilt als einer der meistverkauften Chips überhaupt.
 """,
 
     "tipps": [

@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_addierer"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Mischpult**: Mehrere Mikrofone kommen zusammen auf einen Ausgang, und mit jedem Regler bestimmst du, wie laut ein Kanal im Mix ist. Der OPV-Addierer ist genau das: Jeder Eingang hat seinen eigenen Widerstand (seinen Regler), am Ausgang erscheint die gewichtete Summe – ohne dass sich die Eingänge gegenseitig beeinflussen.
 ## Funktion
 Der invertierende Verstärker bekommt mehrere Eingangswiderstände, die alle am − Eingang (virtuelle Masse, 0 V) zusammentreffen:
 - Jeder Eingang liefert `I_k = U_k / R_k` – unabhängig von den anderen, weil der Knoten auf 0 V festgehalten wird.
@@ -37,6 +39,12 @@ Der invertierende Verstärker bekommt mehrere Eingangswiderstände, die alle am 
 - Ein R_k → 0: dieser Eingang bekommt unendliches Gewicht (Kurzschluss gegen virtuelle Masse, Quelle wird überlastet).
 - Sehr viele Eingänge: Die Rauschverstärkung `1 + R_f / (R1 ∥ R2 ∥ …)` steigt → Bandbreite sinkt (f_g = GBW / Rauschverstärkung).
 - R-2R-Netzwerk mit Schaltern an den Eingängen: wird zum D/A-Wandler (gewichtete Summe von Bits).
+## 🔬 Genauer hingeschaut
+- **Warum sich die Eingänge nicht stören:** Der − Eingang liegt auf virtueller Masse. Jeder Eingangsstrom `Ue / R` fliesst also unabhängig von den anderen hinein. Darum kann man beliebig viele Kanäle anhängen.
+- **Addierer als DA-Wandler:** Sind die Eingangswiderstände binär gestuft (R, 2R, 4R, 8R …) und schaltet man jeden Eingang zwischen 0 V und einer Referenz, ist der Ausgang proportional zur Binärzahl – ein einfacher Digital-Analog-Wandler. In der Praxis nimmt man dafür das R-2R-Netzwerk, weil es nur zwei Widerstandswerte braucht.
+- **Pegel verschieben:** Addiert man zu einem Signal eine feste Spannung, verschiebt man es – z.B. um ein Signal von −1 … +1 V in den Bereich eines ADC zu bringen (Achtung: Der Addierer invertiert).
+## 💡 Wusstest du?
+- Analoge Mischpulte in Tonstudios bestehen im Kern aus vielen solcher Summierverstärker – der „Summenbus“ ist der virtuelle-Masse-Punkt, auf den alle Kanäle ihren Strom geben.
 """,
 
     "tipps": [

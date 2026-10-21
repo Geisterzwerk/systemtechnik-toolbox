@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["transistor_simulator"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein schweres **Schleusentor** mit einem kleinen Hebel daneben: Ein Kind kann den Hebel umlegen, und das Tor öffnet sich ganz. Der Basisstrom ist der Hebel, der Kollektorstrom das Wasser durch das Tor. Damit das Tor wirklich ganz aufgeht, legt man den Hebel kräftig um – das ist die **Übersteuerung**.
 ## Funktion
 - **NPN Low-Side**: Last zwischen +U_B und Kollektor, Emitter an GND. HIGH an der Basis (über R_B) schaltet ein.
 - **PNP High-Side**: Emitter an +U_B, Last zwischen Kollektor und GND. Eingeschaltet wird, wenn die Basis **unter** U_B − 0.7 V gezogen wird (LOW). Zum Ausschalten muss die Basis fast auf U_B.
@@ -37,6 +39,12 @@ Der Transistor ist **stromgesteuert**: `I_C ≤ B · I_B`. Als Schalter soll er 
 - Ohne R_B: Der Steuerausgang treibt die Basis-Emitter-Diode direkt – Pin oder Transistor werden überlastet.
 - PNP mit 3.3-V-µC an 12 V: Der Pin kann die Basis nicht auf 12 V ziehen → der PNP schaltet nie ab. Lösung: kleiner NPN als Pegelwandler davor.
 - Induktive Last ohne Freilaufdiode: Durchbruch beim Abschalten (siehe Freilaufdiode).
+## 🔬 Genauer hingeschaut
+- **Basis-Emitter-Widerstand:** Ein Widerstand (z.B. 10 … 100 kΩ) von der Basis zum Emitter sorgt dafür, dass der Transistor bei offenem Eingang sicher sperrt und Leckströme abfliessen.
+- **Sättigung macht langsam:** Ein stark übersteuerter Transistor hat viele Ladungsträger in der Basis gespeichert. Beim Ausschalten müssen sie zuerst abfliessen (Speicherzeit) – das verzögert das Abschalten. Für schnelle Schalter hilft eine Schottky-Diode zwischen Basis und Kollektor, die die Sättigung verhindert.
+- **Darlington für grosse Lasten:** Reicht der Basisstrom nicht, kann ein Darlington oder ein MOSFET helfen – mit dem Nachteil von ≈ 1 V Spannungsfall beim Darlington.
+## 💡 Wusstest du?
+- Die Logikfamilie **74LS** (Low-Power-Schottky-TTL) verdankt ihren Namen genau diesem Trick: Schottky-Dioden verhindern die Sättigung der Transistoren und machen die Gatter schneller.
 """,
 
     "tipps": [

@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_pegelwandler"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Leute sprechen verschiedene Sprachen: Der eine versteht nur „laut und deutlich“ (5 V), der andere wird bei lauter Stimme verletzt (3.3 V). Der Pegelwandler ist der **Dolmetscher** in der Mitte: Er übersetzt in beide Richtungen so, dass jeder genau das hört, was er verträgt.
 ## Funktion
 Ein 5-V-Ausgang an einem 3.3-V-Eingang treibt Strom über die Schutzdioden in die 3.3-V-Versorgung – der Baustein kann Schaden nehmen. Umgekehrt erkennt ein 5-V-CMOS-Eingang (V_IH = 0.7 · 5 V = 3.5 V) ein 3.3-V-HIGH nicht sicher.
 - **Spannungsteiler** (nur 5 V → 3.3 V): `U = 5 V · R2 / (R1 + R2)`. Mit der Eingangskapazität entsteht ein Tiefpass: `t_r = 2.2 · (R1 ∥ R2) · C`.
@@ -46,6 +48,12 @@ MOSFET-Wandler:
 - Push-Pull-Signal mit hoher Frequenz über den MOSFET-Wandler: Die Pull-ups sind zu langsam → IC-Wandler nehmen.
 - Teiler in Gegenrichtung (3.3 V → 5 V): funktioniert nicht.
 - Viele Pull-ups parallel (mehrere Module mit eigenen Pull-ups): zu kleiner Gesamtwiderstand, LOW wird nicht erreicht.
+## 🔬 Genauer hingeschaut
+- **Manchmal braucht es gar nichts:** Ein 5-V-Baustein mit TTL-kompatiblen Eingängen (z.B. 74HCT) erkennt schon ab 2.0 V ein HIGH. Ein 3.3-V-Ausgang reicht dann direkt. Ein normaler 74HC an 5 V braucht dagegen 3.5 V – da geht es nicht.
+- **Open-Drain ist einfach:** Bei Signalen, die nur nach LOW gezogen werden (I²C, Interrupt-Leitungen), reicht oft ein Pull-up auf die tiefere Spannung – sofern alle Teilnehmer diesen Pegel als HIGH erkennen.
+- **Geschwindigkeit:** Der MOSFET-Wandler ist auf Pull-ups angewiesen und darum langsam. Für schnelle Push-Pull-Signale (SPI mit vielen MHz) eignen sich Puffer-ICs mit zwei Versorgungen.
+## 💡 Wusstest du?
+- Die Spannungen sind über die Jahre immer kleiner geworden: von 5 V über 3.3 V auf 1.8 V und darunter. Kleinere Transistoren vertragen weniger Spannung – die Rechenkerne moderner Prozessoren laufen mit rund 1 V.
 """,
 
     "tipps": [

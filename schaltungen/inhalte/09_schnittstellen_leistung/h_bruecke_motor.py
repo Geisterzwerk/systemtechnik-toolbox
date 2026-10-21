@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_h_bruecke"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Gleis mit **vier Weichen**, in der Mitte eine Brücke für den Zug. Stellst du links oben und rechts unten, fährt der Zug in die eine Richtung über die Brücke, stellst du rechts oben und links unten, in die andere. Stellst du beide Weichen auf einer Seite gleichzeitig, rasen die Züge ineinander – das ist der verbotene Kurzschluss (Shoot-through).
 ## Funktion
 Vier Schalter (MOSFETs) bilden ein „H“, der Motor ist der Querbalken. Je nachdem, welche zwei Schalter leiten, fliesst der Strom in die eine oder andere Richtung durch den Motor:
 - **Vorwärts**: S1 (oben links) + S4 (unten rechts)
@@ -45,6 +47,12 @@ Mit **PWM** an einem Schalterpaar stellt man die mittlere Motorspannung ein: `U_
 - Blockierter Motor: dauernd Anlaufstrom → Strombegrenzung im Treiber nötig.
 - Bipolare Treiber (L298) verlieren 2 … 4 V – bei kleinen Spannungen bleibt kaum etwas für den Motor.
 - Rückspeisung beim Bremsen in ein Netzteil ohne Rücklastfestigkeit: Versorgungsspannung steigt.
+## 🔬 Genauer hingeschaut
+- **Zwei PWM-Arten:** Bei der Vorzeichen-Betrag-Steuerung bestimmt ein Pin die Richtung und die PWM die Geschwindigkeit. Bei der Gegentakt-PWM (locked anti-phase) wechselt die Brücke ständig die Richtung – 50 % Tastgrad heisst Stillstand. Die zweite Art ist einfacher zu regeln, verursacht aber im Stillstand Verluste.
+- **Bremsen erzeugt Energie:** Wird ein Motor gebremst, arbeitet er als Generator. Die Energie fliesst über die Brücke zurück in die Versorgung und kann deren Spannung anheben – bei Netzteilen, die keinen Strom aufnehmen können, braucht es einen Bremswiderstand oder eine Begrenzung.
+- **Strom messen:** Ein Shunt im Fusspunkt der Brücke misst den Motorstrom. So lassen sich Blockieren und Überlast erkennen.
+## 💡 Wusstest du?
+- Ein bipolarer **Schrittmotor** hat zwei Wicklungen und braucht deshalb zwei H-Brücken. Treiber-ICs für 3D-Drucker enthalten genau diese beiden Brücken plus Stromregelung.
 """,
 
     "tipps": [

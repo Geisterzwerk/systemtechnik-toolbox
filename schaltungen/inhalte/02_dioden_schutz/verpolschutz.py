@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_verpol"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Schlüssel passt nur **in einer Richtung** ins Schloss. Bei Steckern ist das oft mechanisch gelöst – aber bei Batterien, Klemmen und Hohlsteckern kann man sich vertun. Der Verpolschutz ist dann die elektrische Sperre: Richtig herum fliesst Strom, falsch herum bleibt die Schaltung einfach aus, statt kaputtzugehen.
 ## Funktion
 **Diode in der Plusleitung**: Richtig gepolt leitet sie, verpolt sperrt sie. Einfach und sicher, aber sie kostet immer die Durchlassspannung U_F (Si ≈ 0.7 V, Schottky ≈ 0.3 … 0.5 V) und erzeugt Wärme `P = U_F · I`.
 
@@ -40,6 +42,12 @@ THEMA = {
 - Sehr grosser Strom: Diode wird heiss (2 A × 0.7 V = 1.4 W) → MOSFET ist dann fast immer besser.
 - Last mit grossem Elko und Rückspeisung (Motor bremst): Beim MOSFET kann Strom auch rückwärts fliessen, solange er leitet – für echte „Idealdioden“ gibt es Controller-ICs.
 - Ohne Schutz: Elkos (verpolt) können platzen, ICs und Regler werden über ihre internen Dioden kurzgeschlossen.
+## 🔬 Genauer hingeschaut
+- **Warum der P-MOSFET „falsch herum“ eingebaut ist:** Beim Verpolschutz liegt die Body-Diode in **Durchlassrichtung**. Beim Einschalten leitet zuerst sie, dann bekommt das Gate Spannung und der Kanal überbrückt die Diode mit seinem kleinen Rds(on). Verpolt sperrt die Body-Diode, und das Gate hält den MOSFET aus.
+- **Gate schützen:** Ist die Versorgung höher als die erlaubte Ugs (oft ±20 V), braucht es eine Z-Diode zwischen Gate und Source und einen Widerstand vor dem Gate.
+- **Ideale-Diode-ICs:** Spezielle Controller steuern einen N-MOSFET so an, dass er sich wie eine Diode mit fast null Spannungsfall verhält – und schnell abschaltet, wenn der Strom rückwärts fliessen will.
+## 💡 Wusstest du?
+- Bei Hohlsteckern ist die Polarität **nicht genormt**. Darum ist auf Netzteilen und Geräten ein kleines Symbol aufgedruckt, das zeigt, ob der Mittelstift Plus oder Minus ist.
 """,
 
     "tipps": [

@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_spannungsteiler"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Wasserfall mit **zwei Stufen**: Das Wasser fällt insgesamt 10 m tief, aufgeteilt auf eine hohe und eine niedrige Stufe. Die hohe Stufe „verbraucht“ mehr Fallhöhe. Beim Spannungsteiler ist die Gesamtspannung die Fallhöhe, die zwei Widerstände sind die Stufen – der grössere Widerstand bekommt den grösseren Teil der Spannung.
 ## Funktion
 R1 und R2 liegen in Reihe, durch beide fliesst derselbe Strom `I = Ue / (R1 + R2)`. Nach der Maschenregel teilt sich Ue im Verhältnis der Widerstände auf:
 - `Ua = Ue · R2 / (R1 + R2)`   (unbelastet, Ua liegt an R2)
@@ -41,6 +43,12 @@ Beispiel: 12 V → 5 V an einem ADC-Eingang (R_L ≈ 1 MΩ). Mit R1 = 14 kΩ, R2
 - `R1 → 0`: Ua = Ue – der Teiler ist überbrückt.
 - `R_L ≫ R2`: Last spielt keine Rolle.   `R_L ≪ R2`: Ua wird fast nur noch von R1 und R_L bestimmt.
 - Ein Spannungsteiler ist **keine Spannungsversorgung**: Für Lasten mit wechselndem Strom braucht es einen Spannungsregler oder einen Spannungsfolger (OPV).
+## 🔬 Genauer hingeschaut
+- **Der Teiler als Ersatzquelle:** Von der Last aus gesehen verhält sich jeder Spannungsteiler wie eine Spannungsquelle mit der Leerlaufspannung `Ue · R2 / (R1 + R2)` und dem Innenwiderstand `R1 ∥ R2`. Mit diesem Bild (Ersatzspannungsquelle) lässt sich die Belastung sofort ausrechnen.
+- **Toleranzen:** Weichen R1 und R2 in entgegengesetzte Richtungen ab, addieren sich die Fehler. Mit 1-%-Widerständen kann das Teilerverhältnis bis zu knapp 2 % daneben liegen.
+- **Frequenzverhalten:** Schon kleine Kapazitäten (Leiterbahn, ADC-Eingang) bilden mit einem hochohmigen Teiler einen Tiefpass. Der 10:1-Tastkopf am Oszilloskop ist ein Spannungsteiler, bei dem darum ein Trimmkondensator nachgestellt wird (kompensierter Teiler).
+## 💡 Wusstest du?
+- Viele Sensoren werden als halber Spannungsteiler angeschlossen: Ein NTC, ein Fotowiderstand oder ein Poti zusammen mit einem festen Widerstand – der ADC misst einfach die Mittelspannung.
 """,
 
     "tipps": [

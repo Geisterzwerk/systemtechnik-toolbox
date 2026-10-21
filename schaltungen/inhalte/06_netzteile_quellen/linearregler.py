@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_linearregler"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Druckminderer** an einer Wasserleitung: Egal ob vorne 5 oder 8 bar anliegen, hinten kommen immer 3 bar an. Der Druckunterschied wird einfach „weggedrosselt“. Der Linearregler macht das mit Spannung – und die weggedrosselte Spannung mal Strom wird zu Wärme.
 ## Funktion
 Im Regler sitzt ein Längstransistor, den ein Regelverstärker so steuert, dass die Ausgangsspannung mit einer internen Referenz übereinstimmt – er wirkt wie ein automatisch verstellter Widerstand.
 - **78xx** (7805, 7812 …): feste Spannung, Dropout ≈ 2 V, bis 1 … 1.5 A. 79xx für negative Spannungen.
@@ -38,6 +40,13 @@ Im Regler sitzt ein Längstransistor, den ein Regelverstärker so steuert, dass 
 - U_ein ≫ U_aus bei grossem Strom: Wirkungsgrad sehr schlecht (12 V → 3.3 V: 27 %) → Schaltregler.
 - Ausgang an einem grossen Elko, Eingang kurzgeschlossen: Strom fliesst rückwärts durch den Regler → Schutzdiode OUT→IN.
 - Sehr kleine Lasten am LM317: unter der Mindestlast steigt die Ausgangsspannung.
+## Beispiel durchgerechnet
+Ein 7805 versorgt aus 12 V eine Last mit 0.5 A: `P = (12 V − 5 V) · 0.5 A = 3.5 W`. Mit ≈ 50 K/W (TO-220 ohne Kühlkörper) würde er sich um rund 175 K erwärmen – viel zu viel, er schaltet thermisch ab. Mit einem Kühlkörper von z.B. 10 K/W (plus Übergänge) bleibt er im erlaubten Bereich. Der Wirkungsgrad ist nur `5 / 12 ≈ 42 %`.
+## 🔬 Genauer hingeschaut
+- **Brummunterdrückung sinkt mit der Frequenz:** Der Regler unterdrückt 100-Hz-Brumm sehr gut, Störungen von Schaltreglern (100 kHz und mehr) aber viel schlechter. Darum hilft hinter einem Schaltregler oft noch ein LC-Filter.
+- **Rauschen:** Für empfindliche Analogschaltungen gibt es rauscharme LDOs. Im Datenblatt steht das Ausgangsrauschen in µV (effektiv, über eine bestimmte Bandbreite).
+## 💡 Wusstest du?
+- Die Ziffern im Namen sagen alles: **78**xx = positive, **79**xx = negative Festspannung, die letzten zwei Ziffern sind die Spannung. 7805 = +5 V, 7912 = −12 V.
 """,
 
     "tipps": [

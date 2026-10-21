@@ -9,6 +9,8 @@ THEMA = {
     "grafiken": ["schaltung_stromteiler"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Fluss teilt sich um eine **Insel** in zwei Arme. Durch den breiten Arm fliesst mehr Wasser als durch den schmalen. Unten vereinen sie sich wieder, und insgesamt fliesst gleich viel weiter wie vorher. Beim Stromteiler sind die Arme parallele Widerstände: Der **kleinere** Widerstand bekommt den **grösseren** Strom.
 ## Funktion
 Alle parallelen Zweige liegen an **derselben Spannung** U. Nach dem Ohm'schen Gesetz fliesst durch jeden Zweig `I_k = U / R_k`. Die Summe der Zweigströme ist wieder der Gesamtstrom (**Knotenregel**, 1. Kirchhoff'sches Gesetz):
 - `I = I1 + I2 + …`
@@ -38,6 +40,12 @@ Beispiel Messbereichserweiterung: Ein Messwerk (100 µA, 1 kΩ) soll 1 A messen.
 - `R2 → ∞`: I1 = I (Zweig 2 wirkt wie nicht vorhanden).
 - `R2 → 0`: I2 = I, I1 = 0.
 - Parallele LEDs/Dioden teilen den Strom **nicht** gleichmässig – kleine Unterschiede in U_F ergeben grosse Stromunterschiede (exponentielle Kennlinie).
+## 🔬 Genauer hingeschaut
+- **Mit Leitwerten ist es einfacher:** Mit `G = 1/R` gilt für jeden Zweig `I_k = I · G_k / G_gesamt`. Der Strom teilt sich also im Verhältnis der **Leitwerte** auf – genau wie sich die Spannung beim Spannungsteiler im Verhältnis der Widerstände aufteilt.
+- **Kleine Unterschiede, grosse Wirkung:** Parallele Bauteile mit fast gleichem Widerstand (z.B. LEDs, Dioden, Akkuzellen) teilen den Strom oft sehr ungleich auf, weil schon kleine Abweichungen viel ausmachen. Kleine Ausgleichswiderstände in jedem Zweig verbessern die Aufteilung.
+- **Shunt-Messung:** Bei sehr kleinen Shunts verfälschen Lötstellen und Leiterbahnen die Aufteilung. Darum misst man die Spannung mit separaten Fühlerleitungen direkt am Shunt (4-Leiter-Anschluss).
+## 💡 Wusstest du?
+- Die Knotenregel (alles, was in einen Knoten hineinfliesst, fliesst auch wieder hinaus) hat Gustav Robert Kirchhoff **1845** formuliert – zusammen mit der Maschenregel die Grundlage jeder Schaltungsberechnung.
 """,
 
     "tipps": [

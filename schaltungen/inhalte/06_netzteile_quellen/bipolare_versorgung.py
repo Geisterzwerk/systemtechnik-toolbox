@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_virtuelle_masse"],
 
     "erklaerung": """
+## Stell dir vor …
+Stell dir den **Meeresspiegel** als 0 vor: Berge ragen darüber (positive Spannung), Täler liegen darunter (negative Spannung). Viele Signale – Audio, Sensoren, Wechselspannungen – schwingen um null herum, also nach oben und unten. Damit ein Verstärker beides darstellen kann, braucht er eine Versorgung über und unter der Masse.
 ## Funktion
 Drei Wege zu ±U:
 - **Trafo mit Mittelanzapfung**: Die Mittelanzapfung wird GND, ein Brückengleichrichter liefert an zwei Elkos +Û und −Û. Dahinter 78xx für + und 79xx für −. Echte, belastbare ±U.
@@ -41,6 +43,12 @@ Die einfache Teilermitte verschiebt sich, sobald die Lasten oben und unten ungle
 - R_L2 → ∞ (nur positive Seite belastet): ohne Puffer fliesst der ganze Laststrom durch den unteren Teiler-R – die Mitte steigt stark.
 - Teiler ohne Puffer, aber R ≪ R_L: funktioniert, kostet aber viel Querstrom (Batterie!).
 - Signale mit Gleichanteil gegen die echte Masse (GND der Batterie) und gegen M verwechselt – der Pegel ist um U_B/2 verschoben.
+## 🔬 Genauer hingeschaut
+- **Negative Spannung aus einer positiven:** Für kleine Ströme erzeugt eine **Ladungspumpe** (z.B. ICL7660) aus +5 V eine negative Spannung von etwa −5 V – nur mit Kondensatoren, ohne Spule.
+- **Gleichzeitig hochfahren:** Erscheint eine der beiden Spannungen deutlich früher, können manche ICs in einen unzulässigen Zustand geraten. Datenblätter geben dazu teils Hinweise zur Einschaltreihenfolge; Schutzdioden von jeder Schiene nach Masse helfen.
+- **Masse ist der Mittelpunkt:** Bei einer echten bipolaren Versorgung fliessen die Ströme beider Hälften über die Masse zurück. Bei einer „virtuellen Masse“ (Spannungsteiler + Puffer) muss der Puffer diesen Ausgleichsstrom liefern können.
+## 💡 Wusstest du?
+- Die serielle Schnittstelle RS-232 arbeitet mit positiven und negativen Pegeln. Der bekannte Baustein **MAX232** erzeugt diese aus 5 V mit eingebauten Ladungspumpen.
 """,
 
     "tipps": [

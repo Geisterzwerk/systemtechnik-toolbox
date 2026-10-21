@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_gleichrichter"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Brunnen ohne Druckregler**: Wenn nur ein Haus Wasser holt, ist der Druck hoch. Zapfen alle gleichzeitig, sinkt er spürbar. Ein ungeregeltes Netzteil liefert ähnlich: Ohne Last ist seine Spannung deutlich höher als mit Volllast, und dazu kommt die Brummspannung.
 ## Funktion
 Der Trafo setzt die Netzspannung herunter und trennt galvanisch, der Brückengleichrichter klappt die negative Halbwelle um, der Ladeelko glättet:
 - Spitze am Elko: `Û = U_sek · √2 − 2 · U_F` (zwei Dioden leiten gleichzeitig)
@@ -40,6 +42,12 @@ Rückwärts vom Ausgang her (mit Regler dahinter):
 - Kein Elko: pulsierende Gleichspannung (100 Hz), Mittelwert `0.9 · U_sek − 2 · U_F`.
 - Riesiger Elko: kleine Welligkeit, aber sehr kurze, hohe Stromspitzen → Trafo und Dioden werden heiss.
 - Einweg statt Brücke: nur 50 Hz Nachladen → doppelte Welligkeit, Gleichstromvormagnetisierung des Trafos.
+## 🔬 Genauer hingeschaut
+- **Trafo grösser wählen:** Weil der Ladeelko nur in kurzen Stromspitzen nachgeladen wird, fliesst im Trafo ein deutlich höherer Effektivstrom als der abgegebene Gleichstrom. Der Trafo muss darum spürbar mehr VA haben als die Gleichstromleistung, die man braucht.
+- **Wohin die Spannung verschwindet:** Unter Last addieren sich die Spannungsabfälle am Trafo-Innenwiderstand, an den Dioden (2 × ≈ 0.7 … 1 V bei der Brücke) und die Brummspannung. Für einen nachfolgenden Regler zählt das **Wellental**, nicht der Mittelwert.
+- **Netzschwankungen gehen durch:** Die Netzspannung darf ±10 % schwanken – ein ungeregeltes Netzteil gibt diese Schwankung 1:1 an den Ausgang weiter.
+## 💡 Wusstest du?
+- Alte Steckernetzteile waren schwer, weil darin ein 50-Hz-Trafo steckte. Heutige Ladegeräte sind fast immer Schaltnetzteile – bei gleicher Leistung viel kleiner und leichter.
 """,
 
     "tipps": [

@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_gleichrichter"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Wasserturm**, der von einer Pumpe nur in kurzen Stössen nachgefüllt wird. Unten zapfen die Häuser ständig Wasser ab. Zwischen den Pumpstössen sinkt der Wasserstand etwas, dann wird wieder aufgefüllt. Der Ladeelko ist der Wasserturm, der Gleichrichter die Pumpe – und das Absinken dazwischen ist die **Brummspannung**.
 ## Funktion
 Dioden lassen Strom nur in eine Richtung durch. Hinter dem Gleichrichter lädt sich der **Ladeelko** auf den Spitzenwert auf und versorgt die Last, solange die Trafospannung darunter liegt.
 - **Einweg** (1 Diode): nur die positive Halbwelle wird genutzt. Brummfrequenz = f (50 Hz).
@@ -42,6 +44,12 @@ Kennwerte (U2 = Effektivwert, beim Mittelpunkt einer Wicklungshälfte):
 - Ohne Elko: pulsierende Gleichspannung, Mittelwert `0.9 · U2` (Brücke) bzw. `0.45 · U2` (Einweg).
 - Sehr grosser Elko: kleine Welligkeit, aber sehr kurze, hohe Ladestromspitzen (Trafo- und Diodenerwärmung, Oberwellen im Netz).
 - Last grösser als geplant: Welligkeit wächst, der Spannungsregler fällt aus der Regelung (Brumm am Ausgang).
+## 🔬 Genauer hingeschaut
+- **Strom in kurzen Spitzen:** Der Elko wird nur nachgeladen, wenn die Trafospannung höher ist als seine eigene – also nur kurz um die Spitze herum. In dieser kurzen Zeit muss die ganze Ladung nachfliessen. Die Stromspitzen sind deshalb ein Vielfaches des Gleichstroms: Dioden, Trafo und Elko (Rippelstrom!) müssen das aushalten.
+- **Leerlaufspannung:** Ein 12-V-Trafo liefert eine Spitze von `12 V · √2 ≈ 17 V`. Nach einer Brücke (2 Dioden) bleiben ≈ 15.6 V – und weil kleine Trafos im Leerlauf mehr Spannung liefern als auf dem Typenschild, oft noch mehr. Die Elko-Spannungsfestigkeit danach auswählen.
+- **Netzrückwirkung:** Die kurzen Stromspitzen verzerren den Netzstrom (Oberwellen). Darum brauchen grössere Netzteile eine **Leistungsfaktorkorrektur (PFC)**.
+## 💡 Wusstest du?
+- In der EU verlangt die Norm EN 61000-3-2 für viele Geräte ab 75 W Eingangsleistung Grenzwerte für diese Oberwellen. Darum haben grössere PC-Netzteile eine aktive PFC-Stufe.
 """,
 
     "tipps": [

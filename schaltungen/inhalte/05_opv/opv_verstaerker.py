@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_opv_verstaerker"],
 
     "erklaerung": """
+## Stell dir vor …
+Du hältst einen **Zeiger** und sollst ihn immer genau so hoch halten wie den Zeiger deines Nachbarn. Du schaust ständig hin und korrigierst. Ein OPV mit Gegenkopplung macht genau das: Er verstellt seinen Ausgang so lange, bis seine beiden Eingänge gleich sind. Die Widerstände bestimmen, wie stark er dafür „ausholen“ muss – das ist die Verstärkung.
 ## Funktion
 Ein OPV verstärkt die Spannung zwischen + und − Eingang sehr stark (Leerlaufverstärkung 10⁵ … 10⁶). Mit **Gegenkopplung** (Ausgang über einen Widerstand zurück an −) regelt er seinen Ausgang so, dass die Eingangsdifferenz praktisch 0 wird:
 - **Goldene Regeln** (idealer OPV mit Gegenkopplung): `U+ = U−` (virtueller Kurzschluss) und in die Eingänge fliesst kein Strom.
@@ -43,6 +45,12 @@ Daraus folgen die drei Grundschaltungen:
 - R1 → 0 (invertierend): Vu → ∞, der Eingang wird kurzgeschlossen – nur die Leerlaufverstärkung begrenzt.
 - Kapazitive Last am Ausgang (lange Kabel, > 100 pF): OPV kann schwingen → 50 … 100 Ω in Reihe zum Ausgang.
 - Gegenkopplung versehentlich an + (Mitkopplung): Ausgang springt an eine Grenze und bleibt dort (Schmitt-Trigger statt Verstärker).
+## 🔬 Genauer hingeschaut
+- **Offsetspannung:** Ein echter OPV verhält sich, als läge eine kleine Spannung (oft µV bis einige mV) zwischen seinen Eingängen. Sie wird mit `1 + R2/R1` verstärkt: 1 mV Offset bei Vu = 101 ergibt **101 mV** Fehler am Ausgang – auch ohne Eingangssignal.
+- **Volle Aussteuerung bei hoher Frequenz:** Die Slew-Rate SR begrenzt, wie schnell sich der Ausgang ändern kann. Ein Sinus mit Amplitude Û geht bis `f_max = SR / (2π · Û)`. Mit 0.5 V/µs und Û = 10 V sind das nur rund **8 kHz**.
+- **Eingangsströme:** Bei OPV mit bipolaren Eingängen fliessen kleine Ströme in die Eingänge. Ein Widerstand am + Eingang mit dem Wert `R1 ∥ R2` gleicht den Fehler aus. Bei OPV mit FET-Eingängen sind die Ströme so klein, dass das meist entfällt.
+## 💡 Wusstest du?
+- Der **µA741** von 1968 ist einer der bekanntesten Chips der Elektronikgeschichte und wird bis heute hergestellt und in Lehrbüchern verwendet.
 """,
 
     "tipps": [

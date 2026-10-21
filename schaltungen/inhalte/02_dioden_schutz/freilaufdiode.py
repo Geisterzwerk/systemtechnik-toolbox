@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_freilauf", "rl_kurve"],
 
     "erklaerung": """
+## Stell dir vor …
+Beim **Fahrrad** kannst du aufhören zu treten, und das Rad dreht trotzdem weiter – dank Freilauf. Würde die Kette starr blockieren, gäbe es einen harten Ruck. Eine Spule ist wie das schwere Rad: Ihr Strom will weiterlaufen. Die Freilaufdiode ist der Freilauf: Sie lässt den Strom nach dem Abschalten im Kreis weiterfliessen, bis er von selbst ausgelaufen ist.
 ## Funktion
 Eine Spule speichert Energie `W = ½ · L · I²`, und ihr Strom kann nicht springen. Schaltet der Transistor ab, induziert die Spule eine Spannung `u = −L · di/dt`, die so gross wird, dass der Strom weiterfliessen kann. Ohne Freilaufpfad sind das Hunderte Volt am Kollektor.
 
@@ -38,6 +40,12 @@ Zeit bis der Strom null ist: `t_0 = τ · ln(1 + I · R / U_Gegen)`.
 - Spule ohne Freilauf an einem **mechanischen Schalter**: Funke an den Kontakten, Abbrand, Störungen (EMV).
 - Sehr grosse Induktivität (Schütze, Ventile): Mit reiner Freilaufdiode schaltet das Ventil spürbar verzögert ab → Z-Diode oder Varistor.
 - AC-Spulen: Hier geht keine Diode – RC-Glied (Snubber) oder Varistor verwenden.
+## 🔬 Genauer hingeschaut
+- **Wohin geht die Energie?** In der Spule steckt `W = ½ · L · I²`. Nach dem Abschalten wird sie im Spulenwiderstand und in der Diode in Wärme umgewandelt. Der Strom klingt ungefähr mit der Zeitkonstante `τ = L / R` ab – darum fällt ein Relais mit Freilaufdiode verzögert ab.
+- **Welche Diode?** Sie muss kurzzeitig den vollen Spulenstrom führen. Bei kleinen Relais reicht eine 1N4148, bei grösseren Spulen eine 1N400x. Bei **PWM** (Motoren, Ventile) schaltet die Diode tausendfach pro Sekunde – dann braucht es eine **schnelle oder Schottky-Diode**, sonst wird sie heiss.
+- **Gegenspannung bestimmt die Abfallzeit:** Je höher die Spannung, gegen die der Strom abfliessen muss, desto schneller ist er weg. Diode + Z-Diode ist darum ein Kompromiss zwischen Schutz und Tempo.
+## 💡 Wusstest du?
+- Bei **Wechselspannungs-Spulen** funktioniert eine Freilaufdiode nicht – sie würde in jeder zweiten Halbwelle die Spule kurzschliessen. Dort nimmt man ein RC-Glied oder einen Varistor.
 """,
 
     "tipps": [

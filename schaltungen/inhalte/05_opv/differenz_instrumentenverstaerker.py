@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_differenz"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Leute stehen in einem **schaukelnden Boot** und wollen wissen, wer grösser ist. Die Wellen heben und senken beide gleichzeitig – das interessiert nicht. Wichtig ist nur der **Unterschied** zwischen ihren Köpfen. Der Differenzverstärker macht dasselbe: Er verstärkt die Differenz zweier Spannungen und ignoriert, was beide gemeinsam auf und ab bewegt (Gleichtakt).
 ## Funktion
 Viele Sensoren liefern ihr Signal als kleine **Differenz** auf einer grossen **Gleichtaktspannung**: Messbrücke (2.5 V ± einige mV), Shunt auf der High-Side (12 V ± 50 mV), symmetrische Leitungen.
 - Differenz `U_d = U2 − U1`, Gleichtakt `U_cm = (U1 + U2) / 2`
@@ -45,6 +47,12 @@ Viele Sensoren liefern ihr Signal als kleine **Differenz** auf einer grossen **G
 - Quelle mit Innenwiderstand am einfachen Differenzverstärker: R_i liegt in Reihe zu R1 → Verhältnis stimmt nicht mehr, CMRR bricht ein. Abhilfe: Puffer davor = Instrumentenverstärker.
 - R_G → ∞ (offen): Eingangsstufe hat Verstärkung 1 → G = R2/R1.
 - Gleichtakt ausserhalb der Versorgung (z.B. 48-V-Shunt): Spezielle Strommessverstärker (INA240, INA219) verwenden.
+## 🔬 Genauer hingeschaut
+- **dB in Faktoren:** CMRR wird in dB angegeben, `Faktor = 10^(dB/20)`. 60 dB = 1000, 80 dB = 10'000, 100 dB = 100'000. Ein INA mit 100 dB macht aus 1 V Gleichtakt nur noch 10 µV Fehler (bezogen auf den Eingang).
+- **Symmetrische Leitungen:** In der Studio- und Industrietechnik wird ein Signal oft auf zwei Adern gegenphasig übertragen. Störungen koppeln auf beide Adern gleich ein (Gleichtakt) und werden am Empfänger vom Differenzverstärker herausgerechnet.
+- **Gleiche Leitungen, gleiche Störung:** Das funktioniert nur, wenn beide Adern gleich behandelt werden – verdrillte Leitungen, gleiche Länge, gleiche Impedanz.
+## 💡 Wusstest du?
+- Ein **EKG** misst Herzsignale von rund 1 mV, während der Körper durch Einstreuung oft Volt an 50-Hz-Gleichtakt trägt. Ohne Instrumentenverstärker mit hoher Gleichtaktunterdrückung wäre davon nichts zu sehen.
 """,
 
     "tipps": [

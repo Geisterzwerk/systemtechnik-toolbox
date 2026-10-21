@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_entprellung"],
 
     "erklaerung": """
+## Stell dir vor …
+Lass einen **Ball** auf den Boden fallen: Er bleibt nicht sofort liegen, sondern hüpft ein paarmal, immer kleiner. Die Kontakte in einem Taster machen genau das, nur in Millisekunden. Für einen Menschen ist das ein Druck – für einen schnellen Mikrocontroller sind es fünf. Entprellen heisst: so lange warten, bis der Ball liegt.
 ## Funktion
 Mechanische Kontakte federn beim Schliessen und Öffnen zurück: Für ≈ 0.1 … 10 ms (alte oder billige Taster bis 20 ms) wechselt der Kontakt mehrmals zwischen offen und geschlossen. Ein schneller Eingang (µC, Zähler, Interrupt) zählt jeden Wechsel.
 
@@ -44,6 +46,12 @@ Mechanische Kontakte federn beim Schliessen und Öffnen zurück: Für ≈ 0.1 �
 - C zu gross: spürbare Verzögerung (> 50 ms fühlt sich träge an), kurze Tastendrücke gehen verloren.
 - C zu klein: Prellen kommt durch – mehrere Flanken.
 - **Software-Entprellung** (häufigste Lösung bei µC): Pin alle 1 … 5 ms abfragen und erst nach mehreren gleichen Werten (≈ 10 … 20 ms) übernehmen – spart Bauteile, belegt aber Rechenzeit/Timer.
+## 🔬 Genauer hingeschaut
+- **Auch beim Loslassen:** Kontakte prellen beim Öffnen ebenfalls. Eine Entprellung muss beide Richtungen abdecken – die Schaltung oben tut das mit zwei Zeitkonstanten.
+- **Software-Muster:** Ein bewährter Ansatz ist ein „Schieberegister“ im Programm: Alle paar Millisekunden wird der Pin eingelesen und als Bit nachgeschoben. Erst wenn z.B. 8 Bits hintereinander gleich sind, gilt der neue Zustand.
+- **Fertige Bausteine:** Es gibt spezielle Entprell-ICs mit eingebautem Zähler, und viele Mikrocontroller haben digitale Eingangsfilter, die man im Register einschaltet.
+## 💡 Wusstest du?
+- Computertastaturen entprellen jede einzelne Taste in ihrer Firmware. Bei Gaming-Tastaturen ist die Entprellzeit oft sogar einstellbar – zu kurz, und eine Taste schreibt doppelt.
 """,
 
     "tipps": [

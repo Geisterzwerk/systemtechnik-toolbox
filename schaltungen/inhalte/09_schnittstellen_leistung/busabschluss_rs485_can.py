@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["schaltung_busabschluss"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Welle läuft durch ein langes **Schwimmbecken**. Am Ende prallt sie an der Wand ab und läuft zurück – das Wasser schwappt hin und her. Ein Becken mit einer schrägen „Wellenschluck-Kante“ am Ende dämpft die Welle, statt sie zurückzuwerfen. Der Abschlusswiderstand ist diese Kante für elektrische Signale auf einer langen Leitung.
 ## Funktion
 Eine verdrillte Zweidrahtleitung hat einen **Wellenwiderstand** Z0 (RS-485- und CAN-Kabel: ≈ 120 Ω). Ein Signal braucht etwa **5 ns pro Meter**. Kommt eine Flanke am Leitungsende an, wird ein Teil reflektiert:
 - Reflexionsfaktor `Γ = (R − Z0) / (R + Z0)`
@@ -48,6 +50,12 @@ Die reflektierte Welle läuft zurück, wird am niederohmigen Sender wieder refle
 - Falscher Kabeltyp (z.B. ungeschirmtes Netzkabel mit Z0 ≈ 80 Ω): Abschluss passt nicht, Restreflexionen.
 - Abschluss in der Mitte des Busses: Die Enden bleiben offen – reflektiert trotzdem.
 - Fehlende Masseverbindung zwischen den Teilnehmern: Gleichtaktspannung verlässt den erlaubten Bereich (−7 … +12 V bei RS-485).
+## 🔬 Genauer hingeschaut
+- **Ruhepegel bei RS-485:** Sendet niemand, ist der Bus hochohmig und die Empfänger könnten zufällige Bits sehen. **Failsafe-Widerstände** (Pull-up an A, Pull-down an B, typischerweise nur an einer Stelle) erzwingen dann einen definierten Ruhezustand. Viele moderne Transceiver haben das eingebaut.
+- **Linie, nicht Stern:** Der Bus soll als eine Linie von Teilnehmer zu Teilnehmer laufen, mit möglichst kurzen Stichleitungen. Ein Stern hat viele offene Enden – jedes reflektiert.
+- **Geteilter Abschluss:** Statt 120 Ω verwendet man oft 2 × 60 Ω mit einem Kondensator vom Mittelpunkt nach Masse. Das leitet Gleichtaktstörungen ab und verbessert die Störfestigkeit.
+## 💡 Wusstest du?
+- Der CAN-Bus wurde in den 1980er-Jahren von Bosch für Autos entwickelt, damit nicht mehr jedes Steuergerät mit jedem einzeln verkabelt werden muss. Heute haben Autos meist mehrere CAN-Busse und Dutzende Steuergeräte.
 """,
 
     "tipps": [

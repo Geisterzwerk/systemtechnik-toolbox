@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["schaltung_pt_leitung"],
 
     "erklaerung": """
+## Stell dir vor …
+Du willst das Gewicht eines Briefes messen, aber die Waage steht am anderen Ende eines langen Seils, und das Seil wiegt selbst etwas. Bei der 2-Leiter-Schaltung wiegst du das Seil einfach mit. Bei der 4-Leiter-Schaltung führt ein zweites, unbelastetes Seil die Anzeige direkt von der Waage zurück – das Seilgewicht spielt keine Rolle mehr.
 ## Funktion
 Ein Pt100 hat bei 0 °C genau 100 Ω und ändert sich um etwa **0.385 Ω/K** (Pt1000: 3.85 Ω/K). Man schickt einen kleinen, konstanten Strom I hindurch und misst die Spannung: `R = U / I`.
 Das Problem: Auch die Zuleitung hat Widerstand – 20 m Kupfer mit 0.25 mm² sind schon 1.4 Ω je Ader.
@@ -46,6 +48,12 @@ Zusätzlich heizt der Messstrom den Sensor: `P = I² · R`, Erwärmung `ΔT = P 
 - Pt1000 statt Pt100 erkannt (oder umgekehrt): Anzeige völlig falsch (z.B. 1000 Ω als Pt100 = 2000 °C).
 - Thermospannungen an Steckern mit verschiedenen Metallen → bei sehr kleinen Messströmen Strom umpolen und mitteln.
 - Störungen auf langen Leitungen: verdrillte und geschirmte Leitung, Filter vor dem ADC.
+## 🔬 Genauer hingeschaut
+- **Nicht ganz linear:** Die 0.385 Ω/K sind ein Mittelwert. Genau gilt für 0 … 850 °C die Callendar-Van-Dusen-Gleichung `R(t) = R0 · (1 + A · t + B · t²)` mit A = 3.9083 · 10⁻³ und B = −5.775 · 10⁻⁷ (IEC 60751). Bei 100 °C ergibt das 138.51 Ω.
+- **Messumformer im Kopf:** In der Industrie sitzt oft ein kleiner Messumformer direkt im Anschlusskopf des Fühlers. Er misst den Pt100 auf kurzem Weg und gibt ein 4…20-mA-Signal aus – der Leitungswiderstand zum Schaltschrank spielt dann keine Rolle mehr.
+- **Gepulster Messstrom:** Wird der Strom nur während der Messung eingeschaltet, sinkt die Eigenerwärmung deutlich.
+## 💡 Wusstest du?
+- Die internationale Temperaturskala ITS-90 verwendet speziell gebaute Platin-Widerstandsthermometer als Referenz – Platin ist so stabil, dass es selbst die Messnormale in Kalibrierlabors bestimmt.
 """,
 
     "tipps": [

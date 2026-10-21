@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_bruecke"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei gleich gebaute Treppen stehen nebeneinander, auf halber Höhe ist eine **Brücke** zwischen ihnen gespannt. Sind beide Treppen gleich, liegt die Brücke waagrecht – nichts rollt hinüber. Wird eine Treppe nur ein bisschen verändert, neigt sich die Brücke sofort. Die Wheatstone-Brücke misst genau diese Neigung: den **Unterschied** zwischen zwei Spannungsteilern.
 ## Funktion
 Zwei Spannungsteiler (R1/R2 links, R3/R4 rechts) hängen an derselben Speisespannung Ue. Gemessen wird die **Diagonalspannung** zwischen den Mittelpunkten:
 - `U(M1) = Ue · R2 / (R1 + R2)`     `U(M2) = Ue · R4 / (R3 + R4)`
@@ -38,6 +40,12 @@ Der Trick: Die grosse Grundspannung (z.B. 5 V an beiden Mittelpunkten) hebt sich
 - Grosse Änderungen: U_d ist nicht mehr linear zu ΔR (Viertelbrücke). Halb- und Vollbrücke mit mehreren aktiven Elementen sind linearer und kompensieren Temperatur.
 - Ein Zweig unterbrochen: M1 bzw. M2 springt auf 0 V oder Ue → U_d gross (Drahtbruch-Erkennung möglich).
 - Leitungswiderstände zum Sensor liegen in Reihe zum Sensor → 3-Leiter-Schaltung (Messtechnik → Temperatur) kompensiert das.
+## 🔬 Genauer hingeschaut
+- **Grösste Empfindlichkeit:** Bei gegebener Speisespannung reagiert eine Ausschlagbrücke am empfindlichsten, wenn alle vier Widerstände etwa gleich gross sind.
+- **Die Brücke als Quelle:** Zwischen M1 und M2 wirkt die Brücke wie eine Spannungsquelle mit dem Innenwiderstand `R1∥R2 + R3∥R4`. Das Messgerät muss dagegen hochohmig sein, sonst sinkt die gemessene Differenz.
+- **Speisung mit Konstantstrom:** Statt einer festen Spannung kann die Brücke auch mit konstantem Strom gespeist werden. Dann stört der Widerstand langer Zuleitungen weniger.
+## 💡 Wusstest du?
+- Mit einer Brückenschaltung lässt sich sogar der **Ort eines Kabelfehlers** finden: Bei der Murray-Schleife bildet das defekte Kabel zusammen mit einer intakten Ader zwei Brückenzweige. Aus dem Abgleich folgt, nach wie vielen Metern der Isolationsfehler liegt.
 """,
 
     "tipps": [

@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_ntc_teiler"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein NTC ist wie ein **Wachsklumpen in einer engen Röhre**: Ist es kalt, ist das Wachs zäh und lässt wenig durch. Wird es warm, wird es weich und lässt viel mehr durch. Im Spannungsteiler wird aus dieser Änderung eine Spannung, die der Mikrocontroller in eine Temperatur umrechnet.
 ## Funktion
 Ein NTC wird mit steigender Temperatur stark niederohmiger: `R(T) = R25 · e^(B · (1/T − 1/298.15 K))` (T in Kelvin). Ein 10-kΩ-NTC mit B = 3950 hat bei 0 °C etwa 34 kΩ, bei 100 °C nur noch 700 Ω.
 Mit einem Festwiderstand R_fix entsteht ein Spannungsteiler:
@@ -43,6 +45,12 @@ Die Kennlinie ist ein **S**: am steilsten und fast gerade dort, wo `R_NTC ≈ R_
 - R_fix viel kleiner als R_NTC im ganzen Bereich: Spannung klebt am oberen Rand, kaum Auflösung.
 - Hochohmiger Teiler ohne Kondensator am ADC: Abtastfehler (siehe „ADC-Eingang“).
 - Sehr hohe Temperaturen: NTC wird so niederohmig, dass der Strom ihn selbst aufheizt.
+## 🔬 Genauer hingeschaut
+- **Genauer als die B-Formel:** Die B-Wert-Gleichung stimmt nur in einem begrenzten Bereich gut. Für höhere Genauigkeit über einen grossen Temperaturbereich verwendet man die **Steinhart-Hart-Gleichung** mit drei Koeffizienten oder direkt die Tabelle des Herstellers.
+- **Eigenerwärmung:** Durch den Teilerstrom wird der NTC selbst warm. Datenblätter geben dafür einen Wärmeleitwert in mW/K an. Mit grossem R_fix oder nur kurz eingeschalteter Versorgung bleibt der Fehler klein.
+- **Linearisieren:** Ein Widerstand parallel zum NTC macht die Kennlinie im gewünschten Bereich gerader – auf Kosten der Empfindlichkeit.
+## 💡 Wusstest du?
+- Viele Akkupacks haben neben Plus und Minus einen dritten Anschluss: einen NTC. Das Ladegerät misst darüber die Akkutemperatur und lädt nicht, wenn der Akku zu kalt oder zu heiss ist.
 """,
 
     "tipps": [

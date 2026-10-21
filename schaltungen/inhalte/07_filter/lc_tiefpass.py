@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_lc_filter"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Gewicht an einer Feder**: Bewegst du die Hand langsam, folgt das Gewicht brav. Bewegst du sie sehr schnell, bleibt das Gewicht fast stehen – die schnellen Bewegungen kommen nicht durch. Aber bei einer bestimmten Frequenz schwingt es plötzlich stark mit: die **Resonanz**. Ein LC-Tiefpass verhält sich genau so.
 ## Funktion
 Die Spule L lässt tiefe Frequenzen durch und sperrt hohe (`X_L = 2π·f·L`), der Kondensator C schliesst hohe Frequenzen nach Masse kurz (`X_C = 1/(2π·f·C)`). Zusammen ergibt das ein Filter **2. Ordnung**:
 - Resonanzfrequenz `f0 = 1 / (2π · √(L · C))`
@@ -45,6 +47,12 @@ Anders als beim RC-Tiefpass fällt im Durchlass fast keine Spannung ab (nur der 
 - R_L sehr gross (Leerlauf): starke Überhöhung bei f0 – eine Störung genau bei f0 wird verstärkt statt gedämpft.
 - Spule gesättigt: L bricht ein, f0 steigt, die Filterwirkung verschwindet.
 - Weit oberhalb von f0: Eigenkapazität der Spule und ESL des Kondensators – das Filter wird wieder durchlässig (Eigenresonanz).
+## 🔬 Genauer hingeschaut
+- **Ohne Dämpfung gefährlich:** Ein LC-Filter vor einer Schaltung mit wenig Last hat eine hohe Güte – Störungen nahe der Resonanzfrequenz werden **verstärkt** statt gedämpft. Ein Widerstand in Reihe mit einem Kondensator oder der ESR eines Elkos dämpft die Überhöhung.
+- **π-Filter:** Kondensator – Spule – Kondensator. Typisch in Netzteilen und an Versorgungen empfindlicher Schaltungsteile. Statt einer Spule wird oft eine **Ferritperle** verwendet, die bei hohen Frequenzen vor allem dämpft (Verluste) statt nur zu speichern.
+- **Gleichstrom durch die Spule:** Fliesst der Versorgungsstrom durch die Filterspule, darf sie dabei nicht sättigen – sonst verliert sie ihre Induktivität und das Filter wirkt nicht mehr.
+## 💡 Wusstest du?
+- In fast jedem Gerät mit Netzanschluss steckt ein Netzfilter aus X- und Y-Kondensatoren und einer Gleichtaktdrossel. Er hält Störungen des Geräts vom Stromnetz fern – und umgekehrt.
 """,
 
     "tipps": [

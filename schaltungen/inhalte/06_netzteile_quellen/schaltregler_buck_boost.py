@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_schaltregler"],
 
     "erklaerung": """
+## Stell dir vor …
+Statt Wasser durch ein Ventil zu drosseln (Linearregler), schöpfst du es **eimerweise** um: Eimer voll machen, ausleeren, wieder füllen. Fast nichts geht verloren. Ein Schaltregler macht das mit Energie: Ein Schalter lädt die Spule in sehr kurzen Stössen, die Spule gibt die Energie am Ausgang wieder ab – hunderttausendmal pro Sekunde.
 ## Funktion
 Ein MOSFET schaltet mit f = 50 kHz … 2 MHz ein und aus. Die Spule speichert in jeder Periode Energie und gibt sie wieder ab (`u_L = L · di/dt`), der Kondensator glättet. Weil der Schalter entweder ganz ein (kaum Spannung) oder ganz aus (kein Strom) ist, entstehen fast keine Verluste.
 - Tastgrad `D = t_ein / T`.
@@ -49,6 +51,14 @@ Ein MOSFET schaltet mit f = 50 kHz … 2 MHz ein und aus. Die Spule speichert in
 - D → 1 beim Boost: U_a → ∞ in der Formel – praktisch begrenzen Verluste auf ≈ 5 … 10 × U_e.
 - Spule zu klein: grosser Rippel, DCM, hohe Spitzenströme; Spule in Sättigung: L bricht ein, Strom schiesst hoch → Schalter stirbt.
 - Buck kann nicht aufwärts, Boost nicht abwärts – für beides: Buck-Boost, SEPIC oder Inverter.
+## Beispiel durchgerechnet
+Buck 12 V → 5 V mit 500 kHz und L = 10 µH: Tastgrad `D ≈ 5 / 12 ≈ 0.42`. Der Spulenstrom schwankt um `ΔI = (Ue − Ua) · D / (f · L) = 7 V · 0.42 / (500 kHz · 10 µH) ≈ 0.58 A` Spitze-Spitze. Bei 2 A Ausgangsstrom muss die Spule also mindestens ≈ 2.3 A Spitzenstrom vertragen, ohne in Sättigung zu gehen – mit Reserve.
+## 🔬 Genauer hingeschaut
+- **Layout ist Teil der Schaltung:** Die Schleife, in der der Strom hart geschaltet wird (Eingangskondensator, Schalter, Diode), muss so klein wie möglich sein. Lange Leiterbahnen dort wirken als Antenne und erzeugen Spannungsspitzen und Funkstörungen.
+- **Lückender Betrieb:** Bei kleiner Last fällt der Spulenstrom in jedem Takt auf null. Die Formeln für D gelten dann nicht mehr. Viele Regler wechseln bei kleiner Last in einen Sparmodus mit einzelnen Pulsen.
+- **Wirkungsgrad:** Gute Schaltregler erreichen 85 … 95 %. Die Verluste stecken im Rds(on) der Schalter, in der Diode, im Spulenwiderstand und in den Schaltvorgängen.
+## 💡 Wusstest du?
+- In jeder **Powerbank** arbeitet ein Boost-Wandler: Er macht aus den rund 3.7 V der Lithium-Zelle die 5 V für USB.
 """,
 
     "tipps": [

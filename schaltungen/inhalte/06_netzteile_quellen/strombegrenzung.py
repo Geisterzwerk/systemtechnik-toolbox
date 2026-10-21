@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_strombegrenzung"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Sicherung** ist wie ein Notausgang, der bei Gefahr das ganze Haus räumt – danach ist alles aus. Eine **Strombegrenzung** ist eher ein Türsteher: Er lässt nur so viele hinein, wie erlaubt sind, und alles läuft weiter. Die Schaltung oben ist so ein Türsteher für den Strom.
 ## Funktion
 **Einfacher Längsregler**: Die Z-Diode legt die Basis von T1 fest, T1 arbeitet als Emitterfolger: `U_a ≈ U_Z − 0.7 V`. Der Laststrom fliesst durch T1, die Z-Diode liefert nur den Basisstrom (I_L / β) – sie kann klein bleiben.
 
@@ -39,6 +41,12 @@ THEMA = {
 - R_S → 0: keine Begrenzung (I_max → ∞), ein Kurzschluss zerstört T1.
 - R_S zu gross: Spannung fällt schon bei kleinem Strom deutlich ab (schlechte Lastregelung).
 - Heisse Umgebung: U_BE von T2 sinkt (−2 mV/K), I_max wird kleiner – Begrenzung ist nur ±20 % genau.
+## 🔬 Genauer hingeschaut
+- **Rückstellende Sicherung (PTC, „Polyfuse“):** Ein Kaltleiter wird bei Überstrom heiss und hochohmig. Nach dem Abkühlen leitet er wieder – praktisch z.B. an USB-Anschlüssen.
+- **eFuse:** Integrierte Schutzschalter messen den Strom, begrenzen ihn und schalten bei Dauerüberlast ab. Viele begrenzen auch den Einschaltstrom und schützen vor Überspannung.
+- **Begrenzen kostet Wärme:** Solange begrenzt wird, liegt die überschüssige Spannung am Stellglied. Darum begrenzen gute Schaltungen nur kurz und schalten bei anhaltendem Kurzschluss ab (oder nutzen Foldback).
+## 💡 Wusstest du?
+- Beim Labornetzteil zeigt meist eine LED „CC“ (Constant Current) an, dass die Strombegrenzung gerade aktiv ist. Beim ersten Einschalten einer neuen Schaltung lohnt es sich, den Strom niedrig einzustellen – ein Fehler kostet dann keine Bauteile.
 """,
 
     "tipps": [

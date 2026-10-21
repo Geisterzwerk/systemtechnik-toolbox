@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_optokoppler"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Leute stehen auf beiden Seiten eines **Grabens** und dürfen sich nicht berühren. Einer gibt mit einer Taschenlampe Lichtzeichen, der andere sieht sie und reagiert. Der Optokoppler macht genau das: Eine LED „blinkt“, ein Fototransistor sieht es – und dazwischen bleibt eine isolierende Lücke, die Tausende Volt aushält.
 ## Funktion
 Eine Infrarot-LED leuchtet auf einen Fototransistor – zwischen Eingang und Ausgang gibt es **keine elektrische Verbindung** (Isolationsspannung typ. 3 … 5 kV). Eingangs- und Ausgangsseite haben getrennte Massen.
 - Eingang: `I_F = (U_e − U_F) / R_V` (U_F ≈ 1.2 V)
@@ -38,6 +40,12 @@ Eine Infrarot-LED leuchtet auf einen Fototransistor – zwischen Eingang und Aus
 - Kleine Eingangsspannung (z.B. 12 V statt 24 V): I_F halbiert sich → evtl. keine Sättigung mehr.
 - Hohe Temperatur: CTR sinkt.
 - Störungen zwischen den Massen (schnelle Spannungssprünge): koppeln über die Koppelkapazität (≈ 1 pF) durch → Typen mit hoher CMTI.
+## 🔬 Genauer hingeschaut
+- **CTR wird kleiner:** Die LED im Optokoppler altert und wird mit der Zeit schwächer, ausserdem hängt der CTR von der Temperatur ab. Darum dimensioniert man mit dem kleinsten CTR aus dem Datenblatt und gibt noch Reserve dazu.
+- **Langsam:** Ein einfacher Fototransistor-Optokoppler schaltet in Mikrosekunden – für schnelle Daten zu träge. Ein kleinerer Lastwiderstand macht ihn schneller. Für Datenraten im MBit-Bereich gibt es schnelle Optokoppler oder **digitale Isolatoren**, die kapazitiv oder magnetisch übertragen.
+- **Isolation hat Regeln:** Damit die Trennung wirklich sicher ist, müssen auch Abstände auf der Leiterplatte (Luft- und Kriechstrecken) eingehalten werden.
+## 💡 Wusstest du?
+- Eine **Gabellichtschranke** ist ein offener Optokoppler: LED und Fototransistor stehen sich gegenüber, und ein Gegenstand dazwischen unterbricht das Licht – so zählen Drucker Papier oder Encoder Striche.
 """,
 
     "tipps": [

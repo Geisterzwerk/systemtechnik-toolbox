@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_vco"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Gaspedal für eine Schwingung**: Je weiter du drückst (Steuerspannung), desto schneller schwingt es. Lässt du nach, wird es langsamer. Ein VCO ist ein Oszillator mit genau so einem Pedal – und weil man das Pedal elektrisch betätigt, kann eine Regelschaltung die Frequenz automatisch nachführen.
 ## Funktion
 Ein VCO erzeugt eine Schwingung, deren Frequenz von einer **Steuerspannung U_st** abhängt. Das einfachste Prinzip baut auf dem Rechteck-/Dreieckgenerator auf:
 - Ein **Integrator** integriert die Steuerspannung: Das Dreieck steigt bzw. fällt mit der Steigung `U_st / (R · C)`.
@@ -43,6 +45,12 @@ Andere VCO-Arten: LC-Oszillator mit Kapazitätsdiode (Funk, hohe Frequenzen), Ri
 - Sehr kleine U_st: Offsetspannungen des OPV werden vergleichbar – die Kennlinie knickt bei kleinen Frequenzen ab.
 - Sehr grosse U_st: Slew-Rate und Umschaltzeiten begrenzen – die Kennlinie flacht oben ab.
 - Negative U_st (bei diesem Prinzip): kehrt nur die Richtung um, die Frequenz hängt vom Betrag ab.
+## 🔬 Genauer hingeschaut
+- **Die PLL:** Ein Phasenregelkreis vergleicht die (geteilte) VCO-Frequenz mit einem genauen Referenztakt, z.B. einem Quarz. Ein Regelfilter stellt die Steuerspannung so ein, dass beide genau gleich laufen. Mit einem Teiler 9 wird aus 8 MHz so ein stabiler Takt von 72 MHz.
+- **Hochfrequenz-VCOs** arbeiten mit einem LC-Schwingkreis, dessen Kapazität eine Kapazitätsdiode bildet: Die Steuerspannung ändert die Kapazität und damit die Frequenz.
+- **Linearität:** Für Messzwecke (Spannung-Frequenz-Wandler) muss `f = K · U` über den ganzen Bereich genau stimmen. Für eine PLL ist das unwichtig – die Regelung gleicht es aus.
+## 💡 Wusstest du?
+- Analoge **Synthesizer** steuern ihre Oszillatoren oft nach der Regel „1 Volt pro Oktave“: Jedes zusätzliche Volt verdoppelt die Frequenz – der VCO arbeitet also exponentiell, passend zum Gehör.
 """,
 
     "tipps": [

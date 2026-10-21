@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["schaltung_gate_treiber"],
 
     "erklaerung": """
+## Stell dir vor …
+Du willst eine schwere **Schiebetür** schnell auf- und zuschieben. Mit einem Finger (µC-Pin) geht das nur langsam – und solange sie halb offen ist, zieht es. Ein Gate-Treiber ist ein kräftiger Helfer, der die Tür mit einem Ruck bewegt: Der MOSFET ist nur ganz kurz „halb offen“, und genau dort entstehen die Verluste.
 ## Funktion
 Das Gate eines MOSFET ist ein Kondensator. Zum Einschalten muss die **Gate-Ladung Q_g** hineingeschoben werden – je mehr Strom, desto schneller.
 Der Verlauf von u_GS hat drei Teile:
@@ -44,6 +46,12 @@ Ein µC-Pin liefert ca. 20 mA und 3.3 V – bei Standard-MOSFETs liegt das sogar
 - Treiberspannung unter dem Plateau: MOSFET bleibt halb leitend und überhitzt.
 - Sehr kleines R_G und lange Gate-Leitung: Schwingungen, im schlimmsten Fall ungewolltes Einschalten.
 - Miller-Effekt beim Abschalten der Gegenseite (Halbbrücke): u_DS-Sprung koppelt über C_gd ins Gate → kurzzeitiges Einschalten. Abhilfe: niederohmiger Pull-down im Treiber, negative Gate-Spannung.
+## 🔬 Genauer hingeschaut
+- **Bootstrap für die High-Side:** Ein N-MOSFET oben in einer Halbbrücke braucht eine Gate-Spannung über der Versorgung. Ein Bootstrap-Kondensator wird geladen, während der untere MOSFET leitet, und versorgt dann den oberen Treiber. Darum kann so ein Treiber nicht dauerhaft 100 % einschalten – der Kondensator muss regelmässig nachgeladen werden.
+- **Getrennt ein- und ausschalten:** Mit zwei Gate-Widerständen und einer Diode lässt sich das Einschalten langsamer und das Ausschalten schneller machen (oder umgekehrt) – z.B. um Störungen zu verringern oder Totzeiten zu sichern.
+- **Ungewolltes Einschalten:** Springt die Drainspannung schnell, kann über die Gate-Drain-Kapazität Strom ins Gate fliessen und den MOSFET kurz einschalten. Ein niederohmiger Treiber (oder eine negative Gate-Spannung bei IGBT und SiC) hält das Gate unten.
+## 💡 Wusstest du?
+- Moderne Leistungsschalter aus **Siliziumkarbid (SiC)** und **Galliumnitrid (GaN)** schalten in wenigen Nanosekunden. Sie machen Ladegeräte und E-Auto-Umrichter kleiner und effizienter – brauchen aber besonders sorgfältige Treiber und Layouts.
 """,
 
     "tipps": [

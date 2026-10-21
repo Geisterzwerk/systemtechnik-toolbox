@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_begrenzer"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Ball springt in einem Raum mit **niedriger Decke**: Wirfst du ihn sanft, fliegt er ganz normal. Wirfst du ihn kräftig, prallt er an der Decke ab und kommt nie höher. Die Begrenzerdioden sind diese Decke (und der Boden): Kleine Signale laufen unverändert durch, grosse werden bei der Schwellspannung abgeschnitten.
 ## Funktion
 Ein Vorwiderstand R_V und eine oder mehrere Dioden vom Ausgang nach GND bilden einen spannungsabhängigen Spannungsteiler:
 - Solange die Ausgangsspannung unter der Schwelle liegt, **sperren** die Dioden – fast kein Strom, `u_a = u_e`.
@@ -37,6 +39,12 @@ Schwellen: eine Si-Diode `+0.7 V`, zwei antiparallel `±0.7 V`, zwei Z-Dioden ge
 - `R_V → 0`: Die Diode schliesst die Quelle kurz – Diode oder Quelle wird zerstört.
 - `R_V` sehr gross: Die Begrenzung wirkt noch, aber jede Last am Ausgang verschiebt den Pegel.
 - Diodenkennlinie ist nicht ideal: Bei kleinen Strömen setzt die Begrenzung „weich“ schon ab ca. 0.5 V ein, bei grossen Strömen liegt sie über 0.7 V.
+## 🔬 Genauer hingeschaut
+- **Weicher Knick:** Eine Diode schaltet nicht schlagartig bei 0.7 V ein – schon ab etwa 0.4 … 0.5 V fliesst merklich Strom. Darum wird ein Signal schon vor der eigentlichen Grenze leicht verformt. Für ein scharfes Abschneiden braucht es aktive Schaltungen (OPV).
+- **Begrenzen verzerrt:** Ein abgeschnittener Sinus ist kein Sinus mehr – es entstehen **Oberwellen**. In Messsignalen ist das unerwünscht, in Audio-Effekten gewollt.
+- **Kapazität:** Dioden haben eine Sperrschichtkapazität. Bei schnellen Signalen bildet sie mit dem Vorwiderstand einen Tiefpass. Für hohe Frequenzen kleine, schnelle Dioden (z.B. 1N4148) oder Schottky-Dioden nehmen.
+## 💡 Wusstest du?
+- Viele **Verzerrer-Pedale** für E-Gitarren arbeiten mit genau dieser Schaltung: Zwei antiparallele Dioden schneiden das Signal ab – das macht den typischen „verzerrten“ Klang.
 """,
 
     "tipps": [

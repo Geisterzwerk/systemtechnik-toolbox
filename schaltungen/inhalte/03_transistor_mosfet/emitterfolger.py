@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_emitterfolger"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **starker Helfer**, der genau nachmacht, was du vormachst: Hebst du die Hand um 10 cm, hebt er einen schweren Balken um 10 cm. Er macht die Bewegung nicht grösser, aber er hat viel mehr Kraft. Der Emitterfolger verstärkt nicht die Spannung (Ausgang ≈ Eingang − 0.7 V), sondern den **Strom** – er macht aus einer schwachen Quelle eine starke.
 ## Funktion
 Der Kollektor liegt an +U_B, der Ausgang wird am Emitter abgegriffen. Der Emitter „folgt“ der Basis mit dem Abstand U_BE:
 - `Ua = Ue − 0.7 V`,  Spannungsverstärkung `Vu = R / (r_e + R) ≈ 1` (nicht invertierend)
@@ -38,6 +40,12 @@ Deshalb heisst er **Impedanzwandler**: Eine hochohmige Quelle (Spannungsteiler, 
 - Kapazitive Last + schnelle Signale: Der Emitterfolger kann schwingen → kleiner Widerstand (z.B. 47 … 100 Ω) in die Basisleitung.
 - Ausgang kurzgeschlossen: Strom nur durch β · I_B begrenzt – Transistor überhitzt.
 - Push-Pull: Zwei Emitterfolger (NPN + PNP) liefern und nehmen Strom auf – Grundlage der Gegentakt-Endstufe.
+## 🔬 Genauer hingeschaut
+- **Impedanzwandler:** Der Eingangswiderstand ist ungefähr `β · R_E` (R_E parallel zur Last), also sehr gross. Der Ausgangswiderstand ist ungefähr der Quellwiderstand geteilt durch β – also sehr klein. Genau das will man, um eine schwache Quelle mit einer schweren Last zu verbinden.
+- **Nur eine Richtung:** Ein NPN-Emitterfolger kann Strom nur **liefern**. Muss die Last auch Strom zurückgeben (Lautsprecher, kapazitive Last), braucht es einen zweiten, komplementären Transistor – die **Gegentakt-Endstufe**.
+- **Thermisch:** Am Transistor liegt `U_B − Ua` bei vollem Laststrom. Bei grossen Spannungsunterschieden wird er heiss – Kühlkörper einplanen.
+## 💡 Wusstest du?
+- In klassischen Linearreglern wie dem 7805 sitzt am Ausgang ein Längstransistor, der genau als Emitterfolger arbeitet – angesteuert von einem Regelverstärker.
 """,
 
     "tipps": [

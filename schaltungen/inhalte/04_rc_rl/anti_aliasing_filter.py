@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_anti_aliasing"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Sieb vor dem Trichter**: Bevor etwas in die Flasche kommt, hält das Sieb alles Grobe zurück – was einmal in der Flasche ist, kann man nicht mehr heraussortieren. Genauso muss ein Anti-Aliasing-Filter zu hohe Frequenzen **vor** dem AD-Wandler entfernen. Nach dem Abtasten sind sie als falsche, tiefe Frequenzen im Signal und von echten Werten nicht mehr zu unterscheiden.
 ## Funktion
 Ein ADC misst nur zu den Abtastzeitpunkten (Abtastrate f_s). **Abtasttheorem** (Nyquist/Shannon): Eindeutig erfasst wird nur, was unter `f_s / 2` liegt.
 
@@ -41,6 +43,12 @@ Nach dem Abtasten ist der Alias nicht mehr vom echten Signal zu unterscheiden �
 - f genau ein Vielfaches von f_s: Alias bei 0 Hz – das Signal sieht wie eine Gleichspannung aus.
 - Kein Filter, aber Signal bandbegrenzt (z.B. Temperatur, sehr langsam): Störungen (Netzbrumm, Schaltregler) falten trotzdem herunter – darum immer ein kleines RC.
 - Sehr grosses C bei grossem R: Filter zu langsam, Sprünge im Messsignal werden verschliffen.
+## 🔬 Genauer hingeschaut
+- **Ein RC-Glied reicht selten:** Es dämpft nur mit 20 dB pro Dekade – bei der zehnfachen Grenzfrequenz bleibt ein Zehntel übrig. Ein 12-Bit-Wandler löst aber 1/4096 auf. Darum verwendet man Filter höherer Ordnung (z.B. Sallen-Key) oder tastet viel schneller ab als nötig.
+- **Überabtastung entlastet das Filter:** Tastet man mit dem 10- oder 100-Fachen der Signalfrequenz ab, liegt die Nyquist-Frequenz weit weg und ein einfaches Filter genügt. Danach filtert man digital und reduziert die Datenrate. So arbeiten Delta-Sigma-Wandler.
+- **Digital geht nicht davor:** Ein Digitalfilter nach dem ADC kann Aliasing nicht mehr entfernen – das falsche Signal ist ja schon eine echte Zahl geworden.
+## 💡 Wusstest du?
+- Aliasing gibt es auch bei Bildern: Feine Streifenmuster (z.B. ein Hemd im Fernsehen) erscheinen als wellige **Moiré-Muster**. Viele Digitalkameras haben deshalb ein optisches Tiefpassfilter vor dem Sensor.
 """,
 
     "tipps": [

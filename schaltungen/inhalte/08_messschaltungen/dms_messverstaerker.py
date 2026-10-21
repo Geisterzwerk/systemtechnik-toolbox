@@ -13,6 +13,8 @@ THEMA = {
     "grafiken": ["schaltung_dms_kette"],
 
     "erklaerung": """
+## Stell dir vor …
+Du willst messen, wie stark sich eine dicke Stahlplatte unter einem Gewicht verbiegt – die Änderung ist kleiner als ein Haar breit. Der DMS macht daraus eine Widerstandsänderung von Promille, die Brücke daraus wenige Millivolt, und der Messverstärker ist die **Lupe**, die diese Millivolt so gross macht, dass ein ADC sie lesen kann.
 ## Funktion
 Ein Dehnungsmessstreifen ändert seinen Widerstand nur sehr wenig: `ΔR / R = k · ε` (k ≈ 2, ε = Dehnung). Bei 1000 µm/m sind das 0.2 %.
 Die Wheatstone-Brücke macht daraus eine kleine Differenzspannung:
@@ -49,6 +51,12 @@ Diese Differenz „schwimmt“ auf der halben Speisespannung (Gleichtakt U_e/2).
 - Gleichtakt ausserhalb des erlaubten Bereichs: Ausgang falsch, obwohl die Rechnung stimmt.
 - Lange Leitungen ohne Sense: Spannungsabfall an den Speiseleitungen verkleinert U_e an der Zelle.
 - Störungen (50 Hz): verdrillte, geschirmte Leitungen, Tiefpass vor dem ADC, Mittelwertbildung.
+## 🔬 Genauer hingeschaut
+- **Wie fein muss der ADC sein?** Eine Wägezelle mit 2 mV/V an 5 V liefert bei Nennlast 10 mV. Soll die Waage 3000 Schritte anzeigen, muss sie etwa 3.3 µV auflösen. Darum verwendet man meist Delta-Sigma-Wandler mit 24 Bit und eingebautem Verstärker (z.B. HX711 in vielen Bastel-Waagen).
+- **Ratiometrisch messen:** Hängen Brückenspeisung und ADC-Referenz an derselben Spannung, kürzen sich deren Schwankungen heraus – die Speisung muss dann nicht besonders genau sein.
+- **Kriechen:** Unter dauernder Last ändert sich das Signal einer Wägezelle über Minuten leicht. Gute Zellen geben dieses Kriechen im Datenblatt an.
+## 💡 Wusstest du?
+- Eine Fahrzeugwaage für Lastwagen besteht aus mehreren Wägezellen unter einer Plattform. Ihre Signale werden zusammengezählt – so spielt es keine Rolle, wo das Fahrzeug genau steht.
 """,
 
     "tipps": [

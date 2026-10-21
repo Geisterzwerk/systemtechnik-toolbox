@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_pull"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine Tür mit **Schliessfeder**: Solange niemand drückt, ist sie sicher zu. Drückt jemand, geht sie auf – lässt er los, fällt sie wieder zu. Der Pull-up- oder Pull-down-Widerstand ist diese Feder: Er zieht einen Eingang in einen klaren Ruhezustand. Ohne ihn würde die Tür im Wind hin und her schlagen – ein offener Eingang „schwebt“.
 ## Funktion
 Ein CMOS-Eingang ist extrem hochohmig (MΩ … GΩ). Ist er offen, **schwebt** er: Er nimmt Störungen auf und liest zufällig 0 oder 1, oft wechselnd. Ein Widerstand legt ihn auf einen festen Pegel, solange nichts anderes treibt:
 - **Pull-up**: R von +U_B zum Eingang, Taster nach GND → offen = HIGH, gedrückt = LOW (aktiv-LOW).
@@ -40,6 +42,12 @@ Typische Werte: Taster 4.7 … 47 kΩ, I²C 1 … 10 kΩ (je nach Busgeschwindig
 - `R → 0`: Kurzschluss beim Drücken (U_B direkt auf GND).
 - Pull-up UND Pull-down am selben Pin: bilden einen Spannungsteiler, der Pegel liegt im verbotenen Bereich.
 - Lange Leitungen (Taster im Gerät, Kabel 1 m+): Störungen koppeln ein → kleineres R, RC-Filter oder Schmitt-Trigger-Eingang.
+## 🔬 Genauer hingeschaut
+- **Interne Pull-ups:** Viele Mikrocontroller haben zuschaltbare Pull-up-Widerstände eingebaut (oft einige 10 kΩ, Datenblatt). Für einfache Taster reicht das, für lange Leitungen oder Busse sind sie meist zu schwach.
+- **Flankensteilheit:** Der Pull-up lädt die Leitungskapazität über einen Widerstand auf – ein RC-Glied. Mit 10 kΩ und 100 pF ist `τ = R · C = 1 µs`. Darum brauchen schnelle Open-Drain-Busse wie I²C kleinere Pull-ups.
+- **Stromverbrauch:** Bei gedrücktem Taster fliesst dauerhaft `U_B / R`, z.B. 5 V / 10 kΩ = 0.5 mA. Bei Batteriegeräten mit lange gedrückten Kontakten lohnt sich ein grösserer Wert.
+## 💡 Wusstest du?
+- Ein offener CMOS-Eingang kann zwischen den Pegeln hängen bleiben. Dann leiten im Eingang beide Transistoren halb – der Chip zieht mehr Strom und kann sogar schwingen. Darum werden auch **unbenutzte** Eingänge an einen festen Pegel gelegt.
 """,
 
     "tipps": [

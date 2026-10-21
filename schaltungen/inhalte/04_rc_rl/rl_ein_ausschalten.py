@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["rl_kurve", "schaltung_freilauf"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein schweres **Schwungrad** braucht eine Weile, bis es auf Touren kommt – und hält man es plötzlich an, gibt es einen gewaltigen Ruck. Die Spule ist dieses Schwungrad für den Strom: Beim Einschalten steigt er langsam an, beim Abschalten will er weiterfliessen. Wohin er dann fliesst, entscheidet die Schaltung.
 ## Funktion
 Die Spule wehrt sich gegen jede Stromänderung: `u_L = L · di/dt`.
 - **Einschalten**: Zuerst liegt die ganze Spannung an der Spule, der Strom steigt mit `τ = L / R` an: `i(t) = U / R · (1 − e^(−t/τ))`.
@@ -44,6 +46,12 @@ Der **Freilaufpfad** entscheidet, wie hoch die Spannung wird und wie schnell der
 - R → 0 (Supraleiter, sehr dicke Wicklung): Strom steigt linear `di/dt = U / L` – begrenzt nur durch die Quelle.
 - Eisenkern in Sättigung: L bricht ein, Strom steigt plötzlich steil an (Trafo-Einschaltstromstoss).
 - Ohne Freilaufpfad an mechanischem Kontakt: Abrissfunke – Kontaktabbrand, Störungen (EMV).
+## 🔬 Genauer hingeschaut
+- **Die Spitze ausrechnen:** Im Moment des Abschaltens fliesst der Strom I₀ unverändert weiter. Kann er nur durch einen Widerstand R_p parallel zur Spule, entsteht dort `U = I₀ · R_p`. Mit 1 A und 100 Ω sind das 100 V, mit 10 kΩ wären es 10'000 V. Ohne Pfad ist R_p „unendlich“ – darum entstehen Funken.
+- **Schnell abschalten kostet Spannung:** Der Strom klingt mit `τ = L / R_gesamt` ab. Ein grösserer Widerstand im Freilaufkreis macht das Abschalten schneller, aber die Spitze höher. Das ist derselbe Kompromiss wie bei Freilaufdiode mit Z-Diode.
+- **Einschalten:** Der Endstrom ist `U / R` (nur Drahtwiderstand). Die Spule begrenzt den Strom also nur am Anfang – im eingeschwungenen Zustand nicht mehr.
+## 💡 Wusstest du?
+- Wer den Stecker eines laufenden Staubsaugers zieht, sieht manchmal einen kleinen Funken: Der Motor ist eine induktive Last, und die Energie im Magnetfeld entlädt sich über die Luft zwischen den Kontakten.
 """,
 
     "tipps": [

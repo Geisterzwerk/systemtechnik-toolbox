@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_watchdog"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Totmannschalter** im Zug: Der Lokführer muss regelmässig eine Taste drücken. Bleibt das Drücken aus, weil er eingeschlafen ist oder ein Problem hat, bremst der Zug automatisch. Der Watchdog ist der Totmannschalter für Software: Bleibt das regelmässige „Lebenszeichen“ aus, wird der Mikrocontroller neu gestartet.
 ## Funktion
 Ein Watchdog ist ein Zeitglied, das ständig „zurückgesetzt“ werden muss:
 - Das Programm sendet im normalen Ablauf regelmässig einen **Trigger** (Puls an WDI, oder bei internen Watchdogs ein Register-Schreibzugriff).
@@ -44,6 +46,12 @@ Externe Watchdog-ICs enthalten oft zusätzlich eine **Spannungsüberwachung** (R
 - Watchdog im Debugger: beim Anhalten am Breakpoint gibt es Resets → im Debug-Modus deaktivieren (bei internen WDTs meist einstellbar).
 - Trigger im Timer-Interrupt: Hauptprogramm kann hängen, der Watchdog merkt es nicht.
 - Toleranz ignoriert: Ein Teil der Geräte resettet sporadisch, ein anderer nie.
+## 🔬 Genauer hingeschaut
+- **Wo man triggert, ist entscheidend:** Wird der Watchdog in einem Timer-Interrupt zurückgesetzt, läuft er weiter, auch wenn das Hauptprogramm hängt – dann ist er nutzlos. Triggern sollte man an einer Stelle, die nur erreicht wird, wenn alle wichtigen Aufgaben wirklich laufen.
+- **Ursache merken:** Viele Mikrocontroller speichern, warum der letzte Neustart passiert ist (Einschalten, Reset-Taste, Watchdog …). Wer das beim Start ausliest und protokolliert, findet sporadische Fehler viel schneller.
+- **Unabhängiger Takt:** Ein guter Watchdog läuft mit einem eigenen Oszillator. Fällt der Haupttakt aus, merkt er es trotzdem.
+## 💡 Wusstest du?
+- 1997 setzte der Watchdog der Mars-Sonde **Pathfinder** den Bordrechner immer wieder zurück. Die Ursache war ein Software-Fehler (Prioritätsinversion), den die Ingenieure von der Erde aus per Update beheben konnten – der Watchdog hatte die Mission bis dahin am Leben gehalten.
 """,
 
     "tipps": [

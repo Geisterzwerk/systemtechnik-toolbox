@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_poti"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine lange Rutschbahn von oben (Ue) nach unten (GND), und du sitzt irgendwo darauf. Je weiter oben du sitzt, desto höher bist du. Der **Schleifer** des Potentiometers ist dieser Sitzplatz: Er greift auf dem Widerstandsweg eine beliebige Spannung zwischen 0 und Ue ab – ein Spannungsteiler, den man von Hand verstellen kann.
 ## Funktion
 Ein Potentiometer ist ein Widerstand R_P mit einem **Schleifer**, der ihn in zwei Teile trennt: oben `(1 − α) · R_P`, unten `α · R_P` (α = Stellung 0 … 1). Es ist ein Spannungsteiler, dessen Verhältnis man drehen kann:
 - unbelastet: `Ua = α · Ue`   (lineares Poti → gerade Kennlinie)
@@ -34,6 +36,13 @@ Ein Potentiometer ist ein Widerstand R_P mit einem **Schleifer**, der ihn in zwe
 - `R_L → ∞`: ideale Gerade.
 - `R_L ≪ R_P`: Ua bleibt fast überall klein und steigt erst kurz vor Anschlag steil an.
 - Schleifer an den Anschlag bei kleiner Last: Der ganze Strom `Ue / R_L` fliesst über ein winziges Stück Widerstandsbahn und den Schleifer → Poti brennt durch. Abhilfe: Schutzwiderstand in Reihe zum Schleifer.
+## 🔬 Genauer hingeschaut
+- **Linear oder logarithmisch:** Bei linearen Potis ändert sich der Widerstand gleichmässig mit dem Drehwinkel. Lautstärkeregler sind meist **logarithmisch**, weil das Ohr Lautstärke ungefähr logarithmisch empfindet – sonst passiert fast alles im ersten Viertel des Drehwegs. Die Kennbuchstaben (A, B …) werden von Herstellern unterschiedlich verwendet – Datenblatt prüfen.
+- **Der Schleifer ist die Schwachstelle:** Er verträgt nur wenig Strom. Wird ein Poti als einstellbarer Widerstand (Rheostat) verwendet, gehört ein fester Widerstand in Reihe, damit bei Endstellung nicht der volle Strom über einen winzigen Kontaktpunkt fliesst.
+- **Trimmer** sind für das einmalige Einstellen gebaut, nicht für das ständige Verdrehen. Für Bedienelemente nimmt man richtige Potis oder Drehgeber.
+## 💡 Wusstest du?
+- Es gibt **digitale Potentiometer**: ICs mit einer Widerstandskette und elektronischen Schaltern, die der Mikrocontroller über I²C oder SPI verstellt.
+- Ein **Drehgeber** (Encoder) sieht aus wie ein Poti, liefert aber Impulse statt einer Spannung – er hat keinen Anschlag und kann endlos gedreht werden.
 """,
 
     "tipps": [

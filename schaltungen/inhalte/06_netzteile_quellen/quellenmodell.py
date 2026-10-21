@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_quelle"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein grosser **Wassertank** mit einem engen Auslaufrohr. Lässt du nur ein wenig Wasser ab, kommt es mit vollem Druck. Willst du viel auf einmal, bremst das enge Rohr – am Ende des Rohrs ist der Druck kleiner. Jede echte Quelle hat so ein „enges Rohr“ eingebaut: den **Innenwiderstand**.
 ## Funktion
 Eine reale Quelle liefert nicht unbegrenzt Strom – ihre Spannung sinkt unter Last. Modell:
 - **Ersatzspannungsquelle** (Thevenin): ideale Quelle U0 in Reihe mit R_i. Klemmenspannung `U_K = U0 − I · R_i = U0 · R_L / (R_i + R_L)`.
@@ -42,6 +44,12 @@ Drei Betriebsarten:
 - R_i = 0 (ideale Spannungsquelle): U_K = U0 bei jeder Last, Kurzschlussstrom unendlich (gibt es nicht).
 - R_i → ∞ (ideale Stromquelle): Strom fest, Spannung beliebig (Leerlauf → unendlich).
 - Nichtlineare Quellen (Solarzelle, Akku bei tiefer Ladung): R_i ändert sich mit dem Arbeitspunkt – Kennlinie statt fester Wert.
+## 🔬 Genauer hingeschaut
+- **Innenwiderstand messen:** Man misst zwei Arbeitspunkte, z.B. ohne Last und mit Last: `R_i = ΔU / ΔI`. Beispiel: Leerlauf 12.6 V, bei 10 A noch 12.1 V → `R_i = 0.5 V / 10 A = 50 mΩ`.
+- **Spannungs- oder Stromquelle:** Dieselbe Quelle kann man gleichwertig als Spannungsquelle U₀ mit R_i in Reihe oder als Stromquelle `I_K = U₀ / R_i` mit R_i parallel zeichnen. Je nach Aufgabe rechnet sich das eine oder andere einfacher.
+- **Welche Anpassung will man?** Für Energieversorgung soll R_L viel grösser als R_i sein (wenig Verlust). Leistungsanpassung (R_L = R_i) bringt zwar maximale Leistung in die Last, aber höchstens 50 % Wirkungsgrad – sinnvoll nur bei kleinen Signalen, z.B. Antennen.
+## 💡 Wusstest du?
+- Beim Starten eines Autos zieht der Anlasser Hunderte Ampere aus der Batterie. Schon wenige Milliohm Innenwiderstand lassen die Spannung dabei deutlich einbrechen – darum flackert manchmal das Licht.
 """,
 
     "tipps": [

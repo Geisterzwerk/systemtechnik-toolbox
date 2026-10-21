@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_multivibrator"],
 
     "erklaerung": """
+## Stell dir vor …
+Eine **Wippe** mit zwei Kindern, die sich gegenseitig hochschaukeln: Ist das eine unten, ist das andere oben. Nach einer Weile drückt sich das untere ab, und die Wippe kippt auf die andere Seite. Beim Multivibrator sind die Transistoren die Kinder und die Kondensatoren bestimmen, wie lange jede Seite unten bleibt.
 ## Funktion
 Zwei Transistorschalter, über Kondensatoren über Kreuz verbunden. Es leitet immer genau einer:
 1. T1 schaltet ein → sein Kollektor springt von U_B auf ≈ 0.2 V.
@@ -42,6 +44,12 @@ Frequenz (symmetrisch): `f ≈ 0.72 / (R_B · C)`
 - R_C · C gross gegen R_B · C: Kollektorspannung erreicht U_B nicht mehr, bevor wieder umgeschaltet wird.
 - Hohe Versorgung: Basis-Emitter-Durchbruch verändert die Frequenz und belastet die Transistoren.
 - Sehr kleine C: Transistor-Schaltzeiten und Kapazitäten bestimmen die Frequenz.
+## 🔬 Genauer hingeschaut
+- **Die negative Basisspannung:** Beim Umschalten wird die Basis des gesperrten Transistors auf etwa −(U_B − 0.9 V) gezogen. Die Basis-Emitter-Strecke verträgt in Sperrrichtung aber nur wenige Volt (beim BC547 z.B. 6 V). Bei höherer Versorgung bricht sie durch, und die Frequenz stimmt nicht mehr. Abhilfe: eine Diode in Reihe zur Basis.
+- **Flanken:** Die Kollektorspannung steigt nicht senkrecht an, weil der Kondensator über R_C nachgeladen wird. Wer steile Flanken braucht, schaltet einen Schmitt-Trigger nach.
+- **Unsymmetrisch:** Mit verschiedenen R_B oder C pro Seite entstehen ungleiche Ein- und Auszeiten – z.B. ein kurzer Blitz mit langer Pause.
+## 💡 Wusstest du?
+- Der Multivibrator wurde 1917 erfunden – damals noch mit Elektronenröhren statt Transistoren. Das Prinzip ist bis heute unverändert.
 """,
 
     "tipps": [

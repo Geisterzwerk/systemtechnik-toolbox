@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_emitter"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Megafon**: Du flüsterst ein wenig hinein, heraus kommt dasselbe in laut. Die Energie dafür kommt nicht von deiner Stimme, sondern aus der Batterie im Megafon. Die Emitterschaltung macht dasselbe mit Spannung: Ein kleines Signal an der Basis steuert eine grosse Änderung am Kollektor – die Energie liefert die Versorgung U_B.
 ## Funktion
 Der Emitter ist der gemeinsame Bezugspunkt von Ein- und Ausgang. Eine kleine Änderung der Basisspannung ändert I_C, und R_C setzt diese Stromänderung in eine grosse Spannungsänderung um – **umgekehrt** zum Eingang (180° Phasendrehung).
 - Basisteiler R1/R2 stellt den **Arbeitspunkt** (Ruhestrom) ein, Koppelkondensatoren trennen den Gleichanteil ab.
@@ -39,6 +41,12 @@ Der Emitter ist der gemeinsame Bezugspunkt von Ein- und Ausgang. Eine kleine Än
 - R_E = 0 und ohne Gegenkopplung: Arbeitspunkt läuft mit Temperatur weg (thermisches Weglaufen).
 - Last am Ausgang: liegt parallel zu R_C → kleinere Verstärkung (Emitterfolger als Puffer dahinter).
 - Hohe Frequenzen: Miller-Effekt (Basis-Kollektor-Kapazität × Verstärkung) begrenzt die Bandbreite.
+## 🔬 Genauer hingeschaut
+- **Der innere Emitterwiderstand:** Für kleine Signale wirkt im Transistor ein Widerstand `r_e ≈ U_T / I_C ≈ 26 mV / I_C`. Bei 1 mA sind das 26 Ω. Die Verstärkung ist ungefähr `V ≈ −R_C / (r_e + R_E)`.
+- **R_E überbrücken:** Ein Kondensator parallel zu R_E schliesst ihn für Wechselspannung kurz. Die Verstärkung steigt stark (nur noch r_e im Nenner), wird aber abhängig von Temperatur und Exemplar und verzerrt mehr. Oft überbrückt man nur einen Teil von R_E.
+- **Miller-Effekt:** Die kleine Kapazität zwischen Basis und Kollektor wirkt am Eingang um die Verstärkung vergrössert. Das begrenzt die Bandbreite der Emitterschaltung bei hohen Frequenzen.
+## 💡 Wusstest du?
+- Das Minus in der Verstärkung heisst: Das Signal kommt **umgedreht** heraus (180° Phasendrehung). Steigt die Basisspannung, sinkt die Kollektorspannung.
 """,
 
     "tipps": [

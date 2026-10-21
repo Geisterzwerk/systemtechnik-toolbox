@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_tvs"],
 
     "erklaerung": """
+## Stell dir vor …
+Das **Sicherheitsventil** an einem Dampfkessel: Im normalen Betrieb bleibt es zu. Steigt der Druck plötzlich gefährlich an, öffnet es in Sekundenbruchteilen und bläst den Überdruck ab. Danach schliesst es wieder. Eine TVS-Diode macht das mit Spannungsspitzen – sie ist aber für **kurze** Spitzen gebaut, nicht für dauernden Überdruck.
 ## Funktion
 Eine TVS-Diode (Transient Voltage Suppressor) ist eine Z-Diode für sehr grosse, kurze Ströme. Sie liegt parallel zur geschützten Leitung:
 - Im Betrieb sperrt sie (`U_B ≤ U_WM`, Stand-off-Spannung), es fliesst nur ein kleiner Leckstrom.
@@ -39,6 +41,12 @@ Den Strom begrenzt der **Innenwiderstand der Störquelle** (und eventuelle Leitu
 - `U_B > U_WM`: TVS leitet schon im Betrieb, wird heiss und stirbt.
 - Sehr energiereiche Störungen (Blitz, Netz): TVS allein reicht nicht → Stufenschutz mit Gasableiter/Varistor vorne, Entkopplung (Induktivität/Widerstand), TVS als Feinschutz.
 - Lange Leitungen zur TVS: Ihre Induktivität (≈ 1 µH/m) lässt schnelle Spitzen durch – TVS direkt am Steckverbinder platzieren.
+## 🔬 Genauer hingeschaut
+- **Pulsleistung ist an eine Pulsform gebunden:** Die Angabe „600 W“ gilt für einen genormten Prüfimpuls (oft 10/1000 µs: Anstieg 10 µs, Abfall auf die Hälfte nach 1000 µs). Ein längerer Puls darf nur viel weniger Leistung haben.
+- **Unidirektional oder bidirektional:** Unidirektionale TVS schützen Gleichspannungsleitungen (in Gegenrichtung leiten sie wie eine normale Diode). Bidirektionale begrenzen in beide Richtungen – für Signale, die positiv und negativ werden.
+- **Kapazität auf Datenleitungen:** Grosse TVS haben viele 100 pF. An schnellen Leitungen (USB, Ethernet) würde das das Signal verschleifen – dort gibt es spezielle Schutz-Arrays mit sehr kleiner Kapazität.
+## 💡 Wusstest du?
+- Im Auto gibt es den gefürchteten **Load Dump**: Wird bei laufender Lichtmaschine die Batterie abgetrennt, steigt die Bordspannung kurzzeitig weit über den Normalwert. Kfz-Elektronik wird darum mit genormten Störimpulsen geprüft (z.B. ISO 16750-2).
 """,
 
     "tipps": [

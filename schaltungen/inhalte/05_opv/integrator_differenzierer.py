@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_integrator"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Integrator** ist wie eine Badewanne: Der Wasserstand zeigt, wie viel insgesamt zugeflossen ist – egal, wann. Ein **Differenzierer** ist wie ein Tacho: Er zeigt nicht, wo du bist, sondern wie schnell sich etwas gerade ändert. Steht alles still, zeigt der Tacho null, die Badewanne aber behält ihren Stand.
 ## Funktion
 Beide Schaltungen sind invertierende Verstärker, bei denen ein Widerstand durch einen Kondensator ersetzt wird. Der − Eingang ist virtuelle Masse.
 
@@ -43,6 +45,13 @@ Beide Schaltungen sind invertierende Verstärker, bei denen ein Widerstand durch
 - R_p → 0: kein Integrator mehr, nur noch invertierender Verstärker −R_p / R.
 - f ≫ 1 / (2π · R · C) beim Differenzierer: Verstärkung wird riesig, GBW des OPV begrenzt sie und der Kreis kann schwingen.
 - Anwendungen: Dreieck-/Rechteckgenerator (Integrator + Schmitt-Trigger), I-Anteil eines PI-Reglers, Ladungsverstärker.
+## Beispiel durchgerechnet
+Integrator mit R = 10 kΩ und C = 100 nF (τ = 1 ms), am Eingang 1 V: Der Ausgang läuft mit `1 V / 1 ms = 1 V pro ms` nach unten (invertierend). Bei einem Rechteck ±1 V mit 500 Hz (je 1 ms pro Halbwelle) entsteht ein Dreieck mit **1 V Spitze-Spitze**.
+## 🔬 Genauer hingeschaut
+- **Integrator = Tiefpass, Differenzierer = Hochpass:** Mathematisch ist das Integrieren ein extremes Tiefpassverhalten (−20 dB/Dekade über den ganzen Bereich), das Differenzieren ein extremes Hochpassverhalten. Die Praxis-Widerstände R_p und R_s machen daraus „zahme“ Filter.
+- **Ladungsverstärker:** Ein Integrator ohne Eingangswiderstand integriert direkt Ladung – so werden Piezo-Sensoren (Kraft, Beschleunigung) ausgelesen.
+## 💡 Wusstest du?
+- Vor den Digitalrechnern löste man Differentialgleichungen mit **Analogrechnern** aus vielen Integrierern und Addierern. Daher kommt der Name „Operationsverstärker“: Er führte Rechenoperationen aus.
 """,
 
     "tipps": [

@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_zstabi"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein Becken mit einer **Überlaufkante**: Egal ob viel oder wenig zufliesst, der Wasserstand bleibt an der Kante stehen – der Rest läuft über. Die Z-Diode ist diese Kante, der Vorwiderstand der Zulauf. Solange genug zufliesst, bleibt die Spannung konstant. Wird zu viel unten abgezapft, sinkt der Spiegel unter die Kante – dann ist es mit der Stabilisierung vorbei.
 ## Funktion
 Die Z-Diode leitet in Sperrrichtung ab U_Z und hält dann ihre Spannung fast konstant (differentieller Widerstand r_z, typ. 5 … 30 Ω). Der **Vorwiderstand R_V** nimmt die Differenz `Ue − U_Z` auf. Sein Strom teilt sich auf:
 - `I_RV = (Ue − U_Z) / R_V = I_Z + I_L`
@@ -38,6 +40,12 @@ Die Z-Diode leitet in Sperrrichtung ab U_Z und hält dann ihre Spannung fast kon
 - Ue < U_Z: Z-Diode sperrt, Ua = belasteter Spannungsteiler aus R_V und R_L.
 - Kurzschluss am Ausgang: Strom `Ue / R_V` – nur R_V wird belastet, die Z-Diode ist stromlos.
 - U_Z ≈ 5.6 V hat fast keinen Temperaturkoeffizienten; darunter wird U_Z bei Wärme kleiner, darüber grösser.
+## 🔬 Genauer hingeschaut
+- **Schlechter Wirkungsgrad:** Beispiel 12 V → 5.1 V bei 10 mA Last mit Rv = 430 Ω: Insgesamt fliessen 16 mA. Die Last bekommt `5.1 V · 10 mA = 51 mW`, aus der Quelle kommen `12 V · 16 mA = 192 mW` – nur rund **27 %** kommen an. Für mehr Strom ist das unbrauchbar.
+- **Mit Transistor verstärkt:** Setzt man einen Emitterfolger hinter die Z-Diode, muss sie nur noch den kleinen Basisstrom liefern. Am Ausgang stehen dann `U_Z − 0.7 V` mit viel mehr Strom – das Grundprinzip des Längsreglers.
+- **Glättung mit Kondensator:** Ein Kondensator parallel zur Z-Diode senkt Rauschen und schnelle Störungen zusätzlich.
+## 💡 Wusstest du?
+- In fast jedem Schaltnetzteil steckt ein **TL431** – eine „einstellbare Z-Diode“ mit genauer interner Referenz. Zusammen mit einem Optokoppler meldet er die Ausgangsspannung auf die Netzseite zurück.
 """,
 
     "tipps": [

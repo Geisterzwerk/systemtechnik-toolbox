@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_darlington"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Flaschenzug mit zwei Rollen**: Die erste Rolle vervielfacht deine Kraft, die zweite vervielfacht sie noch einmal. Mit wenig Kraft hebst du eine grosse Last. Beim Darlington verstärkt der erste Transistor den Basisstrom, der zweite verstärkt das Ergebnis noch einmal – die Verstärkungen multiplizieren sich.
 ## Funktion
 Der Emitterstrom des ersten Transistors (T1) ist der Basisstrom des zweiten (T2), die Kollektoren sind verbunden:
 - Stromverstärkung `β ≈ β1 · β2` (genau β1·β2 + β1 + β2) – typisch 1000 … 30 000
@@ -40,6 +42,12 @@ Vorteil: ein µC-Pin (wenige mA) schaltet Ampere. Nachteil: mehr Verlust und lan
 - Hoher Strom: β sinkt, U_CE steigt – Datenblattkurven beachten.
 - 3.3-V-µC: Nach 1.4 V U_BE bleibt wenig Spannung für R_B → R_B klein, Strom aus dem Pin prüfen.
 - Hohe Temperatur: Leckströme werden mit β1·β2 verstärkt → Basis-Emitter-Widerstand nötig.
+## 🔬 Genauer hingeschaut
+- **Sziklai-Paar:** Eine Variante aus einem NPN- und einem PNP-Transistor (komplementärer Darlington). Sie verstärkt ebenso stark, braucht aber nur ≈ 0.7 V an der Basis statt 1.4 V.
+- **Ausschalten beschleunigen:** Ohne Hilfe fliesst die Ladung aus der Basis des zweiten Transistors nur langsam ab. Viele Darlington-Transistoren haben deshalb einen Widerstand zwischen Basis und Emitter des zweiten Transistors eingebaut.
+- **Hohe Stromverstärkung, hohe Empfindlichkeit:** Weil schon winzige Basisströme reichen, schalten Darlingtons auch durch Leckströme oder Einstreuungen ein. Ein Widerstand von der Basis nach Masse verhindert das.
+## 💡 Wusstest du?
+- Die Schaltung ist nach Sidney Darlington benannt, der sie 1953 in den Bell Labs patentierte.
 """,
 
     "tipps": [

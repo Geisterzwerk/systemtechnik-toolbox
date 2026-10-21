@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["schaltung_rc_filter"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Stossdämpfer** am Velo: Langsame Bewegungen, wie wenn du über eine sanfte Welle fährst, kommen voll durch. Schnelle Schläge von kleinen Steinen werden geschluckt. Das ist ein **Tiefpass**. Ein Hochpass ist das Gegenteil: Er lässt schnelle Änderungen durch und „vergisst“ langsame Verschiebungen, wie eine Tür, die nur bei einem schnellen Stoss aufschwingt.
 ## Funktion
 R und C bilden einen Spannungsteiler, dessen einer Teil – der Blindwiderstand `Xc = 1 / (2π · f · C)` – von der Frequenz abhängt.
 - **Tiefpass** (Ausgang am C): `|H| = 1 / √(1 + (f / fg)²)`, Phase `φ = −arctan(f / fg)`
@@ -43,6 +45,12 @@ Im Zeitbereich ist der Tiefpass ein **Integrierglied** (glättet, Rechteck → a
 - Last am Ausgang: liegt parallel zum C bzw. R → fg verschiebt sich, Verstärkung < 1 schon bei Gleichspannung (Tiefpass).
 - Quelle mit Innenwiderstand: R_i addiert sich zu R → fg kleiner.
 - Zwei RC-Glieder hintereinander ohne Puffer: belasten sich gegenseitig, die Gesamt-fg ist nicht einfach „2 × 1. Ordnung“ (Puffer mit OPV dazwischen).
+## 🔬 Genauer hingeschaut
+- **Dezibel lesen:** `Dämpfung in dB = 20 · log10(Ua / Ue)`. −3 dB ≈ 70.7 %, −20 dB = 1/10, −40 dB = 1/100. Ein RC-Glied fällt oberhalb der Grenzfrequenz mit **20 dB pro Dekade** (= 6 dB pro Oktave, also halbe Spannung bei doppelter Frequenz).
+- **Phase:** Bei der Grenzfrequenz ist die Phase genau 45° verschoben, weit darüber nähert sie sich 90°. Auch Signale im Durchlassbereich kommen also leicht verzögert heraus.
+- **Zwei RC-Glieder hintereinander:** Das zweite Glied belastet das erste – die Grenzfrequenz verschiebt sich und der Knick wird weicher. Mit einem Spannungsfolger (OPV) dazwischen arbeiten beide unabhängig.
+## 💡 Wusstest du?
+- Die Bass- und Höhenregler an alten Radios und Verstärkern sind nichts anderes als einstellbare RC-Tief- und Hochpässe.
 """,
 
     "tipps": [

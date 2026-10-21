@@ -10,6 +10,8 @@ THEMA = {
     "grafiken": ["mosfet_simulator"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Lichtschalter mit Fernbedienung**: Du drückst einmal kurz (Gate laden), und das Licht bleibt an, ohne dass du weiter drücken musst. Erst wenn du das Gate wieder entlädst, geht es aus. Darum braucht ein MOSFET im eingeschalteten Zustand praktisch keinen Steuerstrom – nur beim Umschalten.
 ## Funktion
 Der MOSFET wird über die **Gate-Source-Spannung** gesteuert, im eingeschalteten Zustand fliesst kein Gate-Strom. Der Kanal wirkt dann wie ein kleiner Widerstand R_DS(on).
 - **N-MOSFET Low-Side**: Source an GND, Last zwischen +U_B und Drain. `U_GS = U_Gate` → einfach mit einem µC-Pin anzusteuern.
@@ -37,6 +39,12 @@ Der MOSFET wird über die **Gate-Source-Spannung** gesteuert, im eingeschalteten
 - Gate offen (µC im Reset): Das Gate kann sich aufladen, der MOSFET schaltet halb ein → Pull-down-Widerstand.
 - U_GS über ±20 V: Gate-Oxid schlägt durch, MOSFET ist sofort defekt.
 - Sehr schnelle Flanken + lange Leitungen: Überschwinger am Drain → Snubber oder grösserer Gate-Widerstand.
+## 🔬 Genauer hingeschaut
+- **P-MOSFET an höherer Spannung:** Ist U_B grösser als die µC-Spannung (z.B. 12 V), kann der µC-Pin das Gate nicht bis auf U_B hochziehen – der P-MOSFET würde nie ganz ausschalten. Lösung: ein kleiner NPN- oder N-MOSFET zieht das Gate nach unten, ein Widerstand zieht es nach U_B (Pegelwandlung).
+- **Gate-Spannung begrenzen:** Liegt U_B über der erlaubten Ugs, braucht es einen Spannungsteiler oder eine Z-Diode am Gate.
+- **Induktive Lasten ohne Freilauf:** Manche MOSFETs vertragen eine begrenzte Abschaltenergie im Durchbruch (Avalanche). Darauf sollte man sich nicht verlassen – eine Freilaufdiode ist billiger als ein neuer MOSFET.
+## 💡 Wusstest du?
+- Das „L“ in Typen wie **IRLZ44N** steht für „Logic Level“ – er schaltet schon mit 5 V voll durch. Der ähnlich heissende IRFZ44N braucht dafür rund 10 V.
 """,
 
     "tipps": [

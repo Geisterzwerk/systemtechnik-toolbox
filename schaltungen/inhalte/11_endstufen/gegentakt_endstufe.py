@@ -12,6 +12,8 @@ THEMA = {
     "grafiken": ["schaltung_gegentakt"],
 
     "erklaerung": """
+## Stell dir vor …
+Zwei Leute an einer **Säge**: Der eine zieht, der andere stösst – jeder arbeitet nur in seine Richtung, aber zusammen bewegt sich die Säge gleichmässig hin und her. In der Gegentakt-Endstufe liefert der NPN-Transistor die positive und der PNP die negative Halbwelle. Wichtig ist nur die Übergabe in der Mitte – sonst ruckelt es (Übernahmeverzerrung).
 ## Funktion
 Ein NPN-Emitterfolger liefert die **positive** Halbwelle aus +U_B, ein PNP-Emitterfolger die **negative** aus −U_B. Beide Basen werden vom gleichen Signal angesteuert, die Emitter treiben gemeinsam die Last.
 - **Klasse B** (Basen direkt verbunden): Ein Transistor leitet erst ab |u_e| > 0.65 V. Um den Nulldurchgang entsteht eine Lücke – **Übernahmeverzerrung** (Crossover). Bei kleinen Signalen ist der Klirrfaktor sehr hoch.
@@ -48,6 +50,11 @@ Leistung (Klasse B, ±U_B, Amplitude û an R_L):
 - Last kurzgeschlossen: Strom nur durch die Transistoren begrenzt → Strombegrenzung vorsehen.
 - Zu grosse Vorspannung: Ruhestrom hoch, Transistoren werden warm, im Extremfall thermisches Weglaufen.
 - Einzelversorgung: Ausgang auf U_B/2 legen und Last über einen grossen Koppelkondensator anschliessen.
+## 🔬 Genauer hingeschaut
+- **Thermisches Weglaufen:** Wird ein Endtransistor warm, sinkt sein U_BE – bei gleicher Vorspannung steigt der Ruhestrom, und er wird noch wärmer. Darum bekommen die Emitter kleine Widerstände (oft 0.1 … 0.47 Ω), und die Vorspannungsschaltung (Dioden oder U_BE-Vervielfacher) wird auf den Kühlkörper montiert, damit sie mitwärmt.
+- **Kurzschlussschutz:** Ein Lautsprecherkabel ist schnell kurzgeschlossen. Endstufen haben deshalb eine Strombegrenzung, oft nach dem gleichen Prinzip wie beim Netzteil (Transistor über Emitterwiderstand).
+## 💡 Wusstest du?
+- Die meisten heutigen Audioverstärker, z.B. in Bluetooth-Lautsprechern, arbeiten in **Klasse D**: Die Endtransistoren schalten nur ganz ein oder ganz aus (PWM), ein LC-Filter glättet das Signal. Damit erreichen sie Wirkungsgrade von deutlich über 80 % – Klasse B schafft höchstens 78.5 %.
 """,
 
     "tipps": [

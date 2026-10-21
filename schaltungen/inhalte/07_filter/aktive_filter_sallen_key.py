@@ -11,6 +11,8 @@ THEMA = {
     "grafiken": ["schaltung_sallen_key"],
 
     "erklaerung": """
+## Stell dir vor …
+Ein **Auto mit Federung und Stossdämpfern**: Die Feder allein würde nachschwingen, der Dämpfer allein wäre hart. Zusammen bestimmen sie, ob das Auto nach einer Bodenwelle weich, straff oder schaukelnd reagiert. Beim Sallen-Key-Filter ist die **Güte Q** diese Abstimmung: Sie entscheidet, ob das Filter sanft abfällt, maximal flach ist oder leicht überschwingt.
 ## Funktion
 Zwei RC-Glieder hintereinander, dahinter ein OPV als Spannungsfolger (Verstärkung 1). Der Trick: Das **erste Bauteil** führt nicht nach Masse, sondern zum **Ausgang** (Mitkopplung). Damit lässt sich die Güte Q einstellen.
 - `f0 = 1 / (2π · √(R1 · R2 · C1 · C2))`
@@ -57,6 +59,11 @@ Höhere Ordnungen entstehen durch Hintereinanderschalten (z.B. 4. Ordnung = 2 St
 - Toleranzen: Q reagiert empfindlich auf die Verhältnisse – Kondensatoren mit 1 … 5 % (C0G/NP0) verwenden, keine Elkos oder X7R.
 - Tiefpass weit über f0: Der Ausgangswiderstand des OPV steigt, ein Teil des Signals kommt über C1 direkt durch – die Dämpfung bleibt bei einem endlichen Wert stehen.
 - Quelle mit Innenwiderstand: addiert sich zu R1 (Tiefpass) – f0 und Q verschieben sich.
+## 🔬 Genauer hingeschaut
+- **Die Alternative: Multiple Feedback (MFB):** Diese Filter-Grundschaltung arbeitet invertierend und ist bei hohen Frequenzen oft unempfindlicher gegenüber dem OPV. Sallen-Key ist dafür einfacher zu verstehen und hat Verstärkung 1 ohne Abgleich.
+- **Höhere Ordnung:** Ein Butterworth-Filter 4. Ordnung besteht aus zwei Stufen 2. Ordnung mit verschiedenen Gütewerten (aus Tabellen). Zwei gleiche Butterworth-Stufen hintereinander ergeben **kein** Butterworth-Filter, sondern einen weicheren Knick.
+## 💡 Wusstest du?
+- Das Butterworth-Filter ist nach dem britischen Ingenieur Stephen Butterworth benannt, der es **1930** beschrieb – damals noch mit Röhrenverstärkern.
 """,
 
     "tipps": [
