@@ -37,6 +37,7 @@ import customtkinter as ctk
 import config                                   # -> config.py
 from core import benutzerdaten                  # -> core/benutzerdaten.py (Zuletzt geöffnet, Favoriten, Einstellungen)
 from core import layout                         # -> core/layout.py (modus_gewechselt: Grafiken neu einfärben)
+from core import zoom                           # -> core/zoom.py (Ctrl + Mausrad / Plus / Minus / 0)
 from core.inhalte_index import BEREICH_ICON, BEREICH_TEXT    # -> core/inhalte_index.py
 from gui import (bauteile_gui, digitaltechnik_gui, messtechnik_gui,               # -> Ordner gui/
                  programmieren_gui, rechner_gui, schaltungen_gui, server_gui, startseite_gui)
@@ -71,6 +72,7 @@ class App(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        self.zoom = zoom.Zoom(self)                    # gemerkter Zoom VOR dem Bauen der Seiten (core/zoom.py)
         self.bereiche = BEREICHE
         self.module = {name: modul for name, modul, _, _ in BEREICHE}
         self.seiten = {}      # Name -> Objekt aus create() (erst nach dem 1. Öffnen)
@@ -105,6 +107,13 @@ class App(ctk.CTk):
             self.bind_all(folge, self.suche_oeffnen)
             for klasse in ("Entry", "Text"):
                 self.bind_class(klasse, folge, self.suche_oeffnen)
+        # Zoom: Ctrl + Mausrad, Ctrl + Plus/Minus (Tastatur und Ziffernblock, "=" für US-Tastaturen), Ctrl + 0
+        self.bind_all("<Control-MouseWheel>", self.zoom.mausrad)
+        for taste, funktion in (("plus", self.zoom.groesser), ("equal", self.zoom.groesser),
+                                ("KP_Add", self.zoom.groesser), ("minus", self.zoom.kleiner),
+                                ("KP_Subtract", self.zoom.kleiner), ("0", self.zoom.zuruecksetzen),
+                                ("KP_0", self.zoom.zuruecksetzen)):
+            self.bind_all(f"<Control-{taste}>", funktion)
 
     def suche_oeffnen(self, _event=None):
         """Ctrl+K: Startseite zeigen, ins grosse Suchfeld springen, alten Suchtext markieren."""

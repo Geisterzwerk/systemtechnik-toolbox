@@ -13,6 +13,8 @@
 #   │ ──●──┤R├──⏚                                                              │
 #   └─────────────────────────────────────────────────────────────────────────┘
 #
+#   - Die Strompunkte laufen als EIN geschlossener Stromkreis im Uhrzeigersinn (oben →, rechts ↓,
+#     unten ←, links ↑). Die Dioden zeigen jeweils in Durchlassrichtung (Anode -> Kathode = Stromrichtung).
 #   - Statisches (Hintergrund, Bahnen, Bauteile, Titel, Rahmen) wird nur bei Grössenänderung gezeichnet.
 #   - Bewegtes (Strompunkte, Kurven, Terminal- und Codezeilen) alle 70 ms neu (Tag "dyn").
 #   - Pausiert, solange die Startseite nicht sichtbar ist; endet, wenn das Banner zerstört wird.
@@ -126,6 +128,10 @@ class Banner(ctk.CTkFrame):
             c.create_line(x, h * 0.09, x, h * 0.95, fill=f["bahn"], width=dick)
             c.create_oval(x - dick * 2, h * 0.09 - dick * 2, x + dick * 2, h * 0.09 + dick * 2, fill=f["bahn"], outline="")
             c.create_oval(x - dick * 2, h * 0.95 - dick * 2, x + dick * 2, h * 0.95 + dick * 2, fill=f["bahn"], outline="")
+        # Stromkreis für die Strompunkte: EIN geschlossener Kreis im Uhrzeigersinn
+        # (oben nach rechts, rechts runter, unten nach links, links hoch) - technische Stromrichtung
+        xl, xr, yo, yu = w * 0.04, w * 0.96, h * 0.09, h * 0.95
+        kreis = [(xl, yo), (xr, yo), (xr, yu), (xl, yu), (xl, yo)]
         c.create_text(w / 2, h * 0.205, text=f"⚡ {config.APP_TITEL}", fill=f["titel"],
                       font=(config.SCHRIFT, max(14, int(g * 1.6)), "bold"))
         c.create_text(w / 2, h * 0.345, text="Verstehen · Berechnen · Simulieren · Messen · Programmieren",
@@ -161,8 +167,8 @@ class Banner(ctk.CTkFrame):
             for k in range(1, 4):
                 y = oy0 + (oy1 - oy0) * k / 4
                 c.create_line(ox0, y, ox1, y, fill=f["raster"])
-        self.bn_geo = {"c": c, "w": w, "h": h, "bahnen": bahnen, "schirme": schirme, "f": f, "dick": dick,
-                       "schrift": max(7, int(h / 30))}
+        self.bn_geo = {"c": c, "w": w, "h": h, "bahnen": bahnen, "kreis": kreis, "schirme": schirme, "f": f,
+                       "dick": dick, "schrift": max(7, int(h / 30))}
         self._bn_dynamisch()
 
     def _bn_bauteil(self, c, x, y, art, f, dick, h):
@@ -176,8 +182,10 @@ class Banner(ctk.CTkFrame):
             for dx in (-0.6 * s, 0.6 * s):
                 c.create_line(x + dx, y - 1.5 * s, x + dx, y + 1.5 * s, fill=f["bahn"], width=dick + 1)
         elif art == "D":
-            c.create_polygon(x - s, y - s, x - s, y + s, x + s, y, fill=bg, outline=f["bahn"], width=dick)
-            c.create_line(x + s, y - s, x + s, y + s, fill=f["bahn"], width=dick)
+            # Diode in Durchlassrichtung des Stroms: oben fliesst er nach rechts, unten nach links
+            r = 1 if y < h / 2 else -1                                  # Spitze (Kathode) zeigt in Stromrichtung
+            c.create_polygon(x - r * s, y - s, x - r * s, y + s, x + r * s, y, fill=bg, outline=f["bahn"], width=dick)
+            c.create_line(x + r * s, y - s, x + r * s, y + s, fill=f["bahn"], width=dick)
         elif art == "L":
             c.create_rectangle(x - 2.4 * s, y - 1.1 * s, x + 2.4 * s, y + 0.2 * s, fill=bg, outline="")
             for k in range(4):
@@ -214,12 +222,19 @@ class Banner(ctk.CTkFrame):
         c.delete("dyn")
         t = time.monotonic() - self.bn_start
         r = g["dick"] * 1.6
-        for k, ((x0, y), (x1, _)) in enumerate(g["bahnen"]):          # Strompunkte
-            richtung = 1 if k == 0 else -1
-            for n in range(7):
-                anteil = ((t * 0.06 * richtung + n / 7) % 1.0)
-                x = x0 + (x1 - x0) * anteil
-                c.create_oval(x - r, y - r, x + r, y + r, fill=f["punkt"], outline="", tags="dyn")
+        # Strompunkte laufen gleichmässig um den ganzen Stromkreis (im Uhrzeigersinn)
+        kreis = g["kreis"]
+        strecken = [((x0, y0), (x1, y1), math.hypot(x1 - x0, y1 - y0)) for (x0, y0), (x1, y1) in zip(kreis, kreis[1:])]
+        umfang = sum(s[2] for s in strecken)
+        anzahl = max(8, int(umfang / 120))
+        for n in range(anzahl):
+            weg = ((t * 0.035 + n / anzahl) % 1.0) * umfang
+            for (x0, y0), (x1, y1), laenge in strecken:
+                if weg <= laenge:
+                    x, y = x0 + (x1 - x0) * weg / laenge, y0 + (y1 - y0) * weg / laenge
+                    c.create_oval(x - r, y - r, x + r, y + r, fill=f["punkt"], outline="", tags="dyn")
+                    break
+                weg -= laenge
         if not g["schirme"]:
             return
         self._bn_oszi(c, g["schirme"][0], t, f)

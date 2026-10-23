@@ -9,7 +9,7 @@
 #   │  ⭐ Favoriten        🕘 Zuletzt geöffnet                       │  -> core/benutzerdaten.py
 #   │  🎲 Schaltung des Tages                                        │
 #   │  Bereiche: Kacheln mit Zahlen + Kategorie-Chips               │
-#   │  Dark Mode · Tipp                                             │
+#   │  Dark Mode · Tipp des Tages (core/tipps.py)                    │
 #   └─────────────────────────────────────────────────────────────┘
 #
 # create() gibt ein Objekt mit aktualisieren() zurück: main.py ruft es bei jedem Zurückkehren auf
@@ -18,28 +18,21 @@
 # =============================================================================
 
 import datetime
-import random
 
 import customtkinter as ctk
 
 import config                                                          # -> config.py
 from bauteile.rechner.rechner_info import RECHNER_INFO                 # -> bauteile/rechner/rechner_info.py
 from core import benutzerdaten                                         # -> core/benutzerdaten.py
+from core.tipps import tipp_des_tages                                  # -> core/tipps.py (Tipp des Tages)
+from core.widgets import Tooltip                                       # -> core/widgets.py
+from core.zoom import ZoomRegler                                       # -> core/zoom.py
 from core.layout import Karte, ResponsiveGrid, ScrollSeite, Stapel, WrapLabel   # -> core/layout.py
-from gui import gesamtsuche                                            # -> gui/gesamtsuche.py
+from gui import gesamtsuche, hilfe                                     # -> gui/gesamtsuche.py, gui/hilfe.py
 from gui.startseite_banner import Banner                               # -> gui/startseite_banner.py
 
-TIPPS = [
-    "P = U · I   (Leistung = Spannung × Strom)",
-    "τ = R · C   – nach 5τ ist ein Kondensator praktisch voll geladen",
-    "Python: Einrückung ist Teil der Syntax – 4 Leerzeichen pro Ebene",
-    "Ctrl+K springt von überall in die Suche auf der Startseite",
-    "Mit ⭐ in der Kopfleiste merkst du dir eine Seite als Favorit",
-    "Pt1000 statt Pt100: derselbe Leitungswiderstand macht 10× weniger Fehler",
-    "1 Byte = 8 Bit  →  Wertebereich 0 … 255 (unsigned)",
-    "Butterworth: Q = 0.707 – maximal flach, 4.3 % Überschwingen",
-]
 MAX_CHIPS = 6
+MAX_BREITE = 1800       # so breit wird die Startseite höchstens (füllt auch grosse Bildschirme)
 
 
 def create(master, app):
@@ -52,13 +45,19 @@ class Startseite:
     def __init__(self, master, app):
         self.app = app
         self.index = gesamtsuche.gesamtindex()
-        scroll = ScrollSeite(master, max_breite=1100)                  # -> core/layout.py
+        scroll = ScrollSeite(master, max_breite=MAX_BREITE)            # -> core/layout.py
         scroll.grid(row=0, column=0, sticky="nsew")
         body = scroll.body
         s = Stapel(body)
 
         s.add(Banner(body), pady=(14, 0))
-        self.suche = s.add(gesamtsuche.SuchLeiste(body, app), pady=(16, 18))     # Ctrl+K -> main.py suche_oeffnen
+        self.suche = s.add(gesamtsuche.SuchLeiste(body, app), pady=(16, 8))      # Ctrl+K -> main.py suche_oeffnen
+        bedienung = ctk.CTkButton(body, text="📖  So funktioniert SystemLab", height=30, fg_color="transparent",
+                                  border_width=1, border_color=config.FARBEN["rahmen"],
+                                  text_color=config.FARBEN["text"], hover_color=config.FARBEN["rahmen"],
+                                  command=lambda: hilfe.oeffnen(app))                   # -> gui/hilfe.py
+        s.add(bedienung, sticky="w", pady=(0, 16))
+        Tooltip(bedienung, "Bedienungsanleitung: Navigation, Suche, Rechner, Regler, Schaltungen, Zoom")
 
         self.persoenlich = s.add(ctk.CTkFrame(body, fg_color="transparent", corner_radius=0), pady=(0, 6))
         self.persoenlich.grid_columnconfigure(0, weight=1)
@@ -67,20 +66,44 @@ class Startseite:
         self.tages_versatz = 0
 
         s.add(self._ueberschrift(body, "🧭  Bereiche"), pady=(6, 8))
-        kacheln = s.add(ResponsiveGrid(body, min_spaltenbreite=300, max_spalten=3))
+        # bis zu 4 Kacheln nebeneinander -> nutzt auch ein maximiertes Fenster ganz aus
+        kacheln = s.add(ResponsiveGrid(body, min_spaltenbreite=340, max_spalten=4))
         for name, _modul, icon, beschreibung in app.bereiche:
             kacheln.add(self._kachel(kacheln, name, icon, beschreibung))
 
         unten = s.add(ctk.CTkFrame(body, fg_color="transparent"), pady=(18, 20))
         unten.grid_columnconfigure(0, weight=1)
-        schalter = ctk.CTkSwitch(unten, text="Dark Mode", font=config.FONT_TEXT,
+        anzeige = ctk.CTkFrame(unten, fg_color="transparent", corner_radius=0)      # Dark Mode + Zoom
+        anzeige.grid(row=0, column=0, pady=(0, 10))
+        schalter = ctk.CTkSwitch(anzeige, text="Dark Mode", font=config.FONT_TEXT,
                                  command=lambda: app.modus_wechseln(schalter.get() == 1))
         if ctk.get_appearance_mode() == "Dark":
             schalter.select()
-        schalter.grid(row=0, column=0, pady=(0, 10))
-        WrapLabel(unten, text=f"💡 Tipp: {random.choice(TIPPS)}", font=config.FONT_TEXT, anchor="center",
-                  justify="center", text_color=config.FARBEN["text_leise"]).grid(row=1, column=0, sticky="ew")
+        schalter.grid(row=0, column=0, padx=(0, 28))
+        zoom_regler = ZoomRegler(anzeige, app.zoom)                                # -> core/zoom.py
+        zoom_regler.grid(row=0, column=1)
+        Tooltip(zoom_regler, "Alles grösser oder kleiner – auch mit Ctrl + Mausrad, Ctrl + Plus / Minus, Ctrl + 0")
+        # ---- Tipp des Tages (wechselt täglich, core/tipps.py) ----
+        self.tipp_versatz = 0
+        tipp_zeile = ctk.CTkFrame(unten, fg_color="transparent", corner_radius=0)
+        tipp_zeile.grid(row=1, column=0)
+        self.tipp_text = WrapLabel(tipp_zeile, text="", font=config.FONT_TEXT, anchor="center", justify="center",
+                                   text_color=config.FARBEN["text_leise"])
+        self.tipp_text.grid(row=0, column=0, sticky="ew")
+        tipp_zeile.grid_columnconfigure(0, weight=1)
+        ctk.CTkButton(tipp_zeile, text="Nächster Tipp  ›", width=120, height=26, font=config.FONT_KLEIN,
+                      fg_color="transparent", text_color=config.FARBEN["akzent"], hover_color=config.FARBEN["rahmen"],
+                      command=self._tipp_weiter).grid(row=0, column=1, padx=(8, 0))
+        self._tipp_zeigen()
         self.aktualisieren()
+
+    def _tipp_zeigen(self):
+        titel = "💡 Tipp des Tages" if self.tipp_versatz == 0 else "💡 Tipp"
+        self.tipp_text.configure(text=f"{titel}: {tipp_des_tages(self.tipp_versatz)}")
+
+    def _tipp_weiter(self):
+        self.tipp_versatz += 1
+        self._tipp_zeigen()
 
     # =========================================================================
     def aktualisieren(self):

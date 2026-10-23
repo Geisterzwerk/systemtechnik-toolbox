@@ -161,8 +161,10 @@ class ZweierkomplementKarte(SchaltungsModell):
         mx, my = wb * 0.36, h * 0.5
         aussen = 1.68 if bits == 4 else 1.28
         r = min(wb * 0.27, (h * 0.5 - 10) / aussen)
-        schrift = (config.SCHRIFT_CODE, max(7, int(r / 13)))
-        klein = (config.SCHRIFT, max(7, int(r / 16)))
+        # Schriften gut lesbar (Feedback: Legende war zu klein) - wachsen mit dem Kreis
+        schrift = (config.SCHRIFT_CODE, max(9, int(r / 10)))
+        klein = (config.SCHRIFT, max(9, int(r / 11)))
+        legende = (config.SCHRIFT, max(11, min(int(h / 24), int(wb / 46))))
 
         def punkt(k, radius):                     # Muster k: 0 oben, im Uhrzeigersinn
             winkel = 2 * math.pi * k / n - math.pi / 2
@@ -192,11 +194,11 @@ class ZweierkomplementKarte(SchaltungsModell):
         for k, farbe in ((e["muster_a"], BLAU), (e["summe"], ROT if e["overflow"] or e["carry"] else GRUEN)):
             x, y = punkt(k, r)
             c.create_oval(x - 7, y - 7, x + 7, y + 7, fill=farbe, outline="")
-        lx, ly = wb * 0.72, h * 0.18                                        # Legende rechts
+        lx, ly = wb * 0.66, h * 0.2                                         # Legende rechts
         for i, (farbe, t) in enumerate(((leise, "aussen: unsigned"), (BLAU, "innen: signed"),
-                                         (ORANGE, "Grenze für C (unsigned)"), (ROT, "Grenze für V (signed)"))):
-            c.create_line(lx, ly + i * h * 0.1, lx + 18, ly + i * h * 0.1, fill=farbe, width=4)
-            c.create_text(lx + 24, ly + i * h * 0.1, text=t, anchor="w", fill=text, font=klein)
+                                         (ORANGE, "C-Grenze (unsigned)"), (ROT, "V-Grenze (signed)"))):
+            c.create_line(lx, ly + i * h * 0.12, lx + 22, ly + i * h * 0.12, fill=farbe, width=5)
+            c.create_text(lx + 30, ly + i * h * 0.12, text=t, anchor="w", fill=text, font=legende)
 
 
 # =============================================================================
