@@ -76,6 +76,7 @@ class PtLeitungSchaltung(_MitDiagramm):
         p.widerstand(4.6, y_u, 7.2, y_u, "R_L", _r(rl_b), seite="unten", farbe=STROM)
         p.leitung((7.2, y_o), (x_s, y_o), farbe=STROM)
         p.leitung((7.2, y_u), (x_s, y_u), farbe=STROM)
+        p.strom(x_q + 0.3, y_o, x_q + 1.5, y_o, f"I = {_i(w['i'])}")                 # Messstrom aus der Stromquelle
         sensor = "Pt1000" if w["pt1000"] else "Pt100"
         p.widerstand(x_s, y_o, x_s, y_u, sensor, f"{_r(e['r_t'])} bei {w['t']:g} °C", seite="links", farbe=AKTIV)
         if v == "2-Leiter":

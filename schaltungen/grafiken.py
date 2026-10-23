@@ -365,6 +365,10 @@ class BrueckeSchaltung(SchaltungsModell):
         p.messpunkt(x_r, y_m, "M2", seite="links")
         p.text(x_l + 0.3, y_m + 0.55, _u(e["u_links"]), "w", klein=True, farbe=SPANNUNG)
         p.text(x_r - 0.3, y_m + 0.55, _u(e["u_rechts"]), "e", klein=True, farbe=SPANNUNG)
+        # Ströme: gesamt aus der Quelle, dann je ein Zweigstrom durch die beiden Spannungsteiler
+        p.strom(x_q + 0.9, y_o, x_q + 2.4, y_o, f"I = {_i(e['i_links'] + e['i_rechts'])}")
+        p.strom(x_l + 0.6, y_o, x_l + 0.6, y_o + 1.0, f"I1 = {_i(e['i_links'])}")
+        p.strom(x_r - 0.6, y_o, x_r - 0.6, y_o + 1.0, f"I2 = {_i(e['i_rechts'])}", seite="links")
 
     def sk_info(self, w, e, v):
         zeilen = [f"U(M1) = {_u(e['u_links'])}   ·   U(M2) = {_u(e['u_rechts'])}   ·   "

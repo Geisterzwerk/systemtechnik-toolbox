@@ -103,9 +103,9 @@ class DarlingtonSchaltung(_MitDiagramm):
         p.knoten(x_t, y_g)
         p.text(x_t + 0.4, 4.6, f"U_CE = {_u(e['u_ce'])}", "w", fett=True,
                farbe=SPANNUNG if e["gesaettigt"] else FEHLER[1])
-        p.text(x_t - 0.4, 2.2, f"I = {_i(e['i_c'])}", "e", klein=True, farbe=STROM)
-        p.text(3.8, 7.2 if v == "Einzeltransistor" else 5.8, f"I_B = {_i(e['i_b'])}", "center", klein=True,
-               farbe=STROM)
+        p.strom(x_t - 0.6, 1.5, x_t - 0.6, 2.9, f"I = {_i(e['i_c'])}", seite="links")   # Laststrom durch R_L
+        y_basis, x_pfeil = (y_t, 2.2) if v == "Einzeltransistor" else (5.0, 1.5)    # Basisstrom aus dem µC
+        p.strom(x_pfeil, y_basis, x_pfeil + 0.9, y_basis, f"I_B = {_i(e['i_b'])}")
         if not getattr(self, "mit_diagramm", True):
             return
         gx0, gx1 = 14.6, 22.8
@@ -191,6 +191,8 @@ class GegentaktSchaltung(_MitDiagramm):
         p.wechselquelle(2.4, y_m, 8.2, "u_e", f"û = {_u(w['uh'])}")
         p.masse(2.4, 8.2)
         p.messpunkt(x_a, y_m, "M1", seite="rechts")
+        # Laststrom (Scheitelwert) in der positiven Halbwelle - in der negativen fliesst er umgekehrt (T2)
+        p.strom(x_t + 0.4, y_m, x_a - 0.5, y_m, f"î_L = {_i(e['u_hat_aus'] / w['rl'])}")
         if not getattr(self, "mit_diagramm", True):
             return
         gx0, gx1 = 14.0, 22.8

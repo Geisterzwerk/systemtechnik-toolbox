@@ -115,7 +115,9 @@ class LastTreiberSchaltung(SchaltungsModell):
         p.widerstand(5.4, y_t, 2.0, y_t, r_text, r_wert)
         p.anschluss(2.0, y_t, "")
         p.text(2.0, y_t + 0.45, "µC-Pin", "n", klein=True)
-        p.text(x + 0.35, y_k + 0.1, f"I = {_i(e['i'])}", "w", fett=True, farbe=STROM)
+        p.strom(x, y_k + 0.02, x, y_k + 0.5, f"I = {_i(e['i'])}")              # Laststrom (nach unten zum Transistor)
+        if not w["mosfet"]:
+            p.strom(5.6, y_t, 6.4, y_t, f"I_B = {_i(e['i_pin'])}")             # Basisstrom aus dem µC-Pin
         p.messpunkt(x, y_k, "M1", seite="links")
 
     def sk_info(self, w, e, v):
@@ -207,7 +209,9 @@ class EmitterSchaltung(_MitDiagramm):
         if e["zustand"] == "aktiv":
             p.text(x_t + 0.35, y_c + 0.55, f"U_C = {_u(e['u_c'])}", "w", klein=True, farbe=SPANNUNG)
             p.text(x_t + 0.35, y_b + 1.25, f"U_E = {_u(e['u_e'])}", "w", klein=True, farbe=SPANNUNG)
-            p.text(x_t - 0.25, y_o + 0.55, f"I_C = {_i(e['i_c'])}", "e", klein=True, farbe=STROM)
+            p.strom(x_t, y_o + 0.1, x_t, y_o + 0.75, f"I_C = {_i(e['i_c'])}", seite="links")
+            p.strom(x_b + 1.2, y_b, x_b + 2.0, y_b, f"I_B = {_i(e['i_b'])}")
+            p.strom(x_t, y_b + 0.95, x_t, y_b + 1.38, f"I_E = {_i(e['i_e'])}", seite="links")
             if getattr(self, "mit_diagramm", True):
                 # auf das SIGNAL skalieren; die Aussteuergrenzen nur zeigen, wenn sie im Bild liegen
                 g = max(abs(e["vu"]) * w["uh"] * 1.25, 1e-3)
@@ -282,8 +286,8 @@ class EmitterfolgerSchaltung(_MitDiagramm):
         p.leitung((2.0, y_u), (x_l, y_u))
         p.masse(4.5, y_u)
         p.text(x + 0.35, y_e + 0.45, f"U_a = {_u(e['u_a'])}", "w", fett=True, farbe=SPANNUNG)
-        p.text(x - 1.2, y_b - 0.45, f"I_B = {_i(e['i_b'])}", "e", klein=True, farbe=STROM)
-        p.text(x + 0.3, y_o + 1.0, f"I_E = {_i(e['i_e'])}", "w", klein=True, farbe=STROM)
+        p.strom(3.2, y_b, 4.4, y_b, f"I_B = {_i(e['i_b'])}")                   # Basisstrom (klein!)
+        p.strom(x, y_o + 0.5, x, y_o + 1.3, f"I_C ≈ I_E = {_i(e['i_e'])}")      # grosser Strom aus U_B
         p.messpunkt(x, y_e, "M1", seite="links")
         if getattr(self, "mit_diagramm", True):
             g = max(w["ue"] + w["uh"], w["ub"] * 0.3, 1.0) * 1.12
@@ -364,7 +368,7 @@ class KonstantstromSchaltung(_MitDiagramm):
             p.knoten(5.0, y_u)
         p.masse(6.2, y_u)
         farbe = STROM if e["regelt"] else FEHLER[1]
-        p.text(x + 0.35, y_t - 1.0 + 0.1, f"I = {_i(e['i'])}", "w", fett=True, farbe=farbe)
+        p.strom(x, y_o + 0.05, x, y_o + 0.7, f"I = {_i(e['i'])}", farbe=farbe)    # konstanter Strom durch die Last
         p.messpunkt(x, y_t - 1.0, "M1", seite="links")
         if getattr(self, "mit_diagramm", True):
             i_max = max(i for _, i in e["kurve"]) * 1.15 or 1e-3

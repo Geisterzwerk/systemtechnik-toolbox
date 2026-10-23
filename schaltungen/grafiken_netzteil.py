@@ -181,6 +181,7 @@ class LinearreglerSchaltung(_MitDiagramm):
         p.masse(5.0 if v == "LM317" else 4.6, y_u)
         p.messpunkt(x_c1, y_o, "M1", seite="rechts")
         p.messpunkt(x_l, y_o, "M2", seite="rechts")
+        p.strom(x_l, y_o + 0.1, x_l, y_o + 0.85, f"I = {_i(w['i'])}")                # Laststrom aus OUT in die Last
         farbe = FEHLER[1] if e.get("t_j", 0) > self.T_J_MAX else STROM
         p.text(x_m, y_o - 1.25, f"P = {_p(e['p'])}", "s", fett=True, farbe=farbe)
         if not getattr(self, "mit_diagramm", True):
@@ -265,7 +266,7 @@ class StrombegrenzungSchaltung(_MitDiagramm):
         p.masse(5.6, y_u)
         farbe = FEHLER[1] if e["begrenzt"] else SPANNUNG
         p.text(x_t1 + 0.3, y_a + 0.45, f"U_a = {_u(e['u_a'])}", "w", fett=True, farbe=farbe)
-        p.text(x_t1 + 0.3, y_a + 0.95, f"I = {_i(e['i'])}", "w", fett=True, farbe=STROM)
+        p.strom(x_t1 + 0.7, y_a, x_l - 0.5, y_a, f"I = {_i(e['i'])}")              # Laststrom (Strompfeil)
         p.messpunkt(x_t1, y_a, "M1", seite="links")
         if not getattr(self, "mit_diagramm", True):
             return
@@ -332,7 +333,7 @@ class StromquelleOpvSchaltung(_MitDiagramm):
         p.masse(5.4, y_u)
         p.messpunkt(x_m, y_s, "M1", seite="links")
         farbe = STROM if e["regelt"] else FEHLER[1]
-        p.text(x_m - 0.35, 3.0, f"I = {_i(e['i'])}", "e", fett=True, farbe=farbe)
+        p.strom(x_m, y_o + 0.1, x_m, y_o + 0.85, f"I = {_i(e['i'])}", seite="links", farbe=farbe)
         if not getattr(self, "mit_diagramm", True):
             return
         i_max = e["i_soll"] * 1.2
@@ -397,7 +398,7 @@ class VirtuelleMasseSchaltung(SchaltungsModell):
             p.leitung(pins["aus"], (x_l, y_m + 0.5))
             p.knoten(9.2, y_m + 0.5)
             y_mid = y_m + 0.5
-            p.text(7.6, 7.4, f"I_OPV = {_i(e['i_opv'])}", "n", klein=True, farbe=STROM)
+            p.strom(9.8, y_mid, 11.0, y_mid, f"I_OPV = {_i(e['i_opv'])}", seite="unten")   # Ausgleichsstrom
         else:
             p.leitung((x_t, y_m), (x_l, y_m))
             y_mid = y_m
@@ -408,6 +409,9 @@ class VirtuelleMasseSchaltung(SchaltungsModell):
         p.masse(10.4, y_mid)
         p.text(x_l + 0.4, (y_o + y_mid) / 2, f"+{_u(e['u_plus'])}", "w", fett=True, farbe=SPANNUNG)
         p.text(x_l + 0.4, (y_mid + y_u) / 2, _u(e["u_minus"]), "w", fett=True, farbe=SPANNUNG)
+        # Ströme durch die beiden Lasten (oben von +U_B zur Mitte, unten von der Mitte nach −)
+        p.strom(x_l, y_o + 0.1, x_l, y_o + 0.85, f"I1 = {_i(e['u_plus'] / w['rl1'])}")
+        p.strom(x_l, y_mid + 0.1, x_l, y_mid + 0.75, f"I2 = {_i(-e['u_minus'] / w['rl2'])}")
 
     def sk_info(self, w, e, v):
         zeilen = [f"Mitte M = {_u(e['u_m'])} (soll {_u(w['ub'] / 2)})   →   +U = {_u(e['u_plus'])},  −U = {_u(e['u_minus'])}",
@@ -484,6 +488,7 @@ class SchaltreglerSchaltung(_MitDiagramm):
         p.kondensator(x_out, y_o, y_u, "C", fmt(w["c"], "kapazitaet", 3), seite="rechts")
         p.knoten(x_out, y_u)
         p.widerstand(x_l, y_o, x_l, y_u, "Last", _i(w["ia"]))
+        p.strom(x_l, y_o + 0.1, x_l, y_o + 0.85, f"I_a = {_i(w['ia'])}", seite="links")   # Strom in die Last
         p.masse(3.2, y_u)
         p.text(x_out + 0.3, y_o - 0.5, f"U_a = {_u(w['ua'])}", "w", fett=True, farbe=SPANNUNG)
         p.text(x_q - 0.4, y_u + 1.0, f"D = {e['d'] * 100:.0f} %   ·   f = {_f(w['f'])}", "w", fett=True)

@@ -166,10 +166,14 @@ class EntprellSchaltung(_MitDiagramm):
             p.kasten(x_ic0, y_ic0, x_ic1, y_ic1, "74HC14")
             p.text((x_ic0 + x_ic1) / 2, y_a + 0.35, "⎍ ¬", "center")
             p.messpunkt(x_c, y_a, "M1", seite="rechts")
+            p.spannung(x_c - 0.8, y_a + 0.6, y_u - 0.6, "u_C", seite="links")           # Spannung am Kondensator
         else:
             p.leitung((x_a, y_a), (x_ic0, y_a))
             p.kasten(x_ic0, y_ic0, x_ic1, y_ic1, "µC-Pin")
             p.messpunkt(x_a + 1.6, y_a, "M1", seite="rechts")
+            p.spannung(x_a + 1.6, y_a + 0.6, y_u - 0.6, "u_ein")                       # Spannung am Eingang
+        # Strom durch R1, solange S1 geschlossen ist (Taster gedrückt): I = U_B / R1
+        p.strom(x_a, y_o + 0.1, x_a, y_o + 0.75, f"I (gedrückt) = {_i(w['ub'] / w['r1'])}")
         p.leitung((x_ic1, y_a), (x_ic1 + 0.5, y_a))
         p.anschluss(x_ic1 + 0.5, y_a)
         p.leitung((x_a, y_u), (x_c if mit_rc else x_a, y_u))

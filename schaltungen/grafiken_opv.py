@@ -96,6 +96,9 @@ class OpvVerstaerkerSchaltung(_MitDiagramm):
                 p.leitung((x_a, 6.0), (x_a, y_o))
                 p.widerstand(x_n, 6.0, x_n, y_u, "R1", _r(w["r1"]), seite="links")
                 p.knoten(x_n, y_u)
+                # Strom durch den Spannungsteiler der Gegenkopplung (Scheitelwert): î = û_a / (R1 + R2)
+                u_a_hat = max(abs(u) for _, u in e["kurve_aus"])
+                p.strom(x_n, y_u - 0.6, x_n, y_u - 0.05, f"î = {_i(u_a_hat / (w['r1'] + w['r2']))}")
             p.messpunkt(x_q + 1.2, y_o - 0.5, "M1", seite="rechts")
         p.messpunkt(x_a, y_o, "M2", seite="rechts")
         farbe = FEHLER[1] if e["begrenzt"] else SPANNUNG
@@ -160,7 +163,7 @@ class AddiererSchaltung(SchaltungsModell):
         for k, y in enumerate((3.0, 4.6, y_o - 0.5)):
             p.anschluss(x_e, y, f"U{k + 1} = {_u(u[k])}", seite="links")
             p.widerstand(x_e, y, x_n, y, f"R{k + 1}", _r(r[k]))
-            p.text(x_e - 0.25, y + 0.42, f"I{k + 1} = {_i(e['stroeme'][k])}", "e", klein=True, farbe=STROM)
+            p.strom(x_e + 0.15, y, x_e + 0.95, y, f"I{k + 1} = {_i(e['stroeme'][k])}", seite="unten")
             if k < 2:
                 p.knoten(x_n, y)
         p.leitung((x_n, 1.5), (x_n, pins["minus"][1]), pins["minus"])
@@ -174,7 +177,7 @@ class AddiererSchaltung(SchaltungsModell):
         p.masse(7.0, 8.2)
         farbe = FEHLER[1] if e["begrenzt"] else SPANNUNG
         p.text(x_a + 0.2, y_o + 0.55, f"U_a = {_u(e['u_a'])}", "w", fett=True, farbe=farbe)
-        p.text(x_n + 0.2, 2.15, f"I_f = {_i(e['i_f'])}", "w", klein=True, farbe=STROM)
+        p.strom(x_n + 0.2, 1.5, x_n + 1.1, 1.5, f"I_f = {_i(e['i_f'])}")                  # I_f = I1 + I2 + I3
         p.messpunkt(x_n, pins["minus"][1], "M1", seite="links")
 
     def sk_info(self, w, e, v):
@@ -463,6 +466,9 @@ class IntegratorSchaltung(_MitDiagramm):
         p.leitung((x_a, y_c), (x_a, y_o))
         if v == "Integrator":
             p.widerstand(x_q, y_m, x_n, y_m, "R", _r(w["r"]))
+            # Eingangsstrom (Scheitelwert) lädt C: î = û_e / R  (der − Eingang ist virtuelle Masse)
+            u_e_hat = max(abs(u) for _, u in e["kurve_ein"])
+            p.strom(x_q + 0.05, y_m, x_q + 0.75, y_m, f"î = {_i(u_e_hat / w['r'])}")
             p.kondensator_waagrecht(x_n, x_a, y_c)
             p.text((x_n + x_a) / 2, y_c + 0.5, f"C  {fmt(w['c'], 'kapazitaet', 3)}", "n", klein=True)
             if w["praxis"]:

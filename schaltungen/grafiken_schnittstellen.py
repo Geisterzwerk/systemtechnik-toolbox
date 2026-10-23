@@ -140,6 +140,12 @@ class PegelwandlerSchaltung(_MitDiagramm):
         p.text(10.4, 8.1, "Teilnehmer B", "e", klein=True, farbe=p.leise)
         p.text(4.0, y_a + 0.45, f"A = {_u(e['a'])}", "w", fett=True, farbe=SPANNUNG)
         p.text(7.0, y_b - 0.45, f"B = {_u(e['b'])}", "w", fett=True, farbe=SPANNUNG)
+        # Ströme durch die Pull-ups (fliessen nur, wenn eine Seite nach LOW gezogen wird)
+        i1, i2 = (w["ua"] - e["a"]) / w["r1"], (w["ub"] - e["b"]) / w["r2"]
+        if i1 > 1e-7:
+            p.strom(3.0, y_r + 0.2, 3.0, y_r + 1.0, f"I1 = {_i(i1)}")
+        if i2 > 1e-7:
+            p.strom(9.6, y_r + 0.2, 9.6, y_r + 0.9, f"I2 = {_i(i2)}", seite="links")
         _zustand_text(p, x_m - 0.2, y_m + 1.35, e["leitet"])
 
     def sk_info(self, w, e, v):
@@ -231,6 +237,10 @@ class OptokopplerSchaltung(_MitDiagramm):
         p.text(x_o + 0.3, 4.2, _u(e["u_aus"]), "w", fett=True,
                farbe=SPANNUNG if (e["gesaettigt"] or not an) else FEHLER[1])
         p.messpunkt(x_o, 3.6, "M1", seite="rechts")
+        if an:                                       # LED-Strom und Strom durch den Fototransistor
+            p.strom(x_q + 0.2, y_o, x_q + 1.0, y_o, "I_F")                       # Wert steht schon an der LED
+            i_c = max(0.0, (w["ub"] - e["u_aus"]) / w["rl"])
+            p.strom(x_o - 0.55, 1.7, x_o - 0.55, 3.0, f"I_C = {_i(i_c)}", seite="links")   # durch R_L zum Transistor
         if not getattr(self, "mit_diagramm", True):
             return
         gx0, gx1 = 14.6, 22.8
@@ -318,9 +328,13 @@ class HBrueckeSchaltung(_MitDiagramm):
         p.c.create_oval(a, b, c, d, outline=p.linie, width=p.dick, fill=p.bg)
         p.text(6.4, 5.1, "M", "center", fett=True)
         p.masse(6.4, 9.0)
-        richtung = "→" if e["i_motor"] > 1e-9 else ("←" if e["i_motor"] < -1e-9 else "")
-        p.text(6.4, 4.0, f"{richtung} {_i(abs(e['i_motor']))}" if richtung else "I = 0", "center", fett=True,
-               farbe=STROM)
+        # Motorstrom als Pfeil: zeigt in die echte Stromrichtung (vorwärts → / rückwärts ←)
+        if e["i_motor"] > 1e-9:
+            p.strom(4.3, 5.1, 5.6, 5.1, f"I_M = {_i(e['i_motor'])}")
+        elif e["i_motor"] < -1e-9:
+            p.strom(5.6, 5.1, 4.3, 5.1, f"I_M = {_i(-e['i_motor'])}")
+        else:
+            p.text(6.4, 4.0, "I_M = 0", "center", fett=True, farbe=STROM)
         p.text(6.4, 6.3, f"U_M = {_u(e['u_motor'])}", "center", klein=True, farbe=SPANNUNG)
         if v == "⚠ Kurzschluss":
             p.text(6.4, 2.2, f"Kurzschluss {_i(e['i_kurzschluss'])}!", "center", fett=True, farbe=FEHLER[1])
