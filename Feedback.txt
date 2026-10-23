@@ -1,0 +1,11 @@
+Feedback:
+
+- In passendes Icon für exe und starticon und Name ändern(ganz oben Links im programm) Name im ganzen Programm einheitlich machen
+- mit Pfeil eine seite zurück und mit dem Haus Icon button zum startmenu zurück (Die drei button mit zur Startseite, Übersicht und vorherige seite besser wählen. Beispiel: Zurück zum Hauptmenu = Hausicon, zurück zur übersicht das Icon der seit also bei Diode die lame bei Leistung & schalten den Blitz usw., Eine seite zurück kann ein Pfeil bleiben.)
+- Bei den Rechner besserer nachmen für Button leeren. Vielleicht löschen oder zurücksetzten 
+- Beim Kondensator eine möglichkeit einbauen mit knopf oder anderst zu Tau 1-5 zu springen.
+- Sensitivität der des scrollen bischen höher stellen, hoch und runterscrollen braucht viel zeit/ist sehr langsam
+- Bei startseite wird nicht der ganze platzt des Fenster genutzt. Eine Autofit to size funktion wäre cool, die automatisch scalliert. Besser gesagt wenn es kleiner wird funktioniert es aber nicht auf die gröste grösse.
+- Zuletzt geöffnet sehr cool.
+- Regler springen nicht schön mit jenachdem welche grösse ausgewählt wurde. Beispiel ich habe beim Transformator Primärspannung auf 230V und schalte auf mV um kommen dann 230mV was okay ist aber kann dann nur bis 400mV und nicht bis 1000mV was dan 1V wäre. Ist wahrscheinlich im ganzen programm so.
+- es gab keine fehlermeldung beim ersten öffnen(zwei versuchspersonen) Aber lieber dann in der orgnial doku zu instalieren behalten.

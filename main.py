@@ -131,7 +131,7 @@ class App(ctk.CTk):
 # WO das Programm gerade feststeckt -> Datei  haenger_log.txt  im Projektordner.
 # Diese Datei kannst du dann einfach an Copilot schicken.
 # -----------------------------------------------------------------------------
-HAENGER_LOG = os.path.join(config.BASIS_PFAD, "haenger_log.txt")
+HAENGER_LOG = os.path.join(config.DATEN_PFAD, "haenger_log.txt")
 
 
 def haenger_waechter_starten(app, grenze_s=5.0):

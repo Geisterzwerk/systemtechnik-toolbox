@@ -6,16 +6,29 @@
 # =============================================================================
 
 import os
+import sys
 
 # -----------------------------------------------------------------------------
 # PFADE (funktionieren egal von wo das Programm gestartet wird)
 # -----------------------------------------------------------------------------
-BASIS_PFAD = os.path.dirname(os.path.abspath(__file__))
+
+# Programmdateien (nur lesen) -> in der EXE der entpackte Ordner
+if getattr(sys, "frozen", False):
+    BASIS_PFAD = sys._MEIPASS
+else:
+    BASIS_PFAD = os.path.dirname(os.path.abspath(__file__))
+
+# Schreibbare Dateien (z.B. haenger_log.txt) -> EXE: %LOCALAPPDATA%\SystemLab
+if getattr(sys, "frozen", False):
+    DATEN_PFAD = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "SystemLab")
+else:
+    DATEN_PFAD = BASIS_PFAD
+os.makedirs(DATEN_PFAD, exist_ok=True)
+
 BILDER_PFAD = os.path.join(BASIS_PFAD, "images")
 BILDER_PROGRAMMIEREN = os.path.join(BILDER_PFAD, "programmieren")
 INHALTE_PROGRAMMIEREN = os.path.join(BASIS_PFAD, "programmieren", "inhalte")
 INHALTE_SERVER = os.path.join(BASIS_PFAD, "server", "inhalte")          # -> Tab "Server / Linux"
-
 # -----------------------------------------------------------------------------
 # APP
 # -----------------------------------------------------------------------------

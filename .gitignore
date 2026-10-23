@@ -25,3 +25,6 @@ web/staticfiles/
 
 # Webversion: Rückmeldungen der Testpersonen (lokal, nie ins Repo)
 web/daten/
+
+dist/
+build/

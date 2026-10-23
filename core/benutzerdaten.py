@@ -1,7 +1,7 @@
 # =============================================================================
 # core/benutzerdaten.py
 # -----------------------------------------------------------------------------
-# "ZULETZT GEÖFFNET" und "FAVORITEN" - werden in benutzerdaten.json im Projektordner gespeichert
+# "ZULETZT GEÖFFNET" und "FAVORITEN" - werden in benutzerdaten.json gespeichert (EXE: %LOCALAPPDATA%\SystemLab)
 # (steht in .gitignore, gehört also nur dir).
 #
 # Ein Eintrag ist ein kleines dict:
@@ -30,7 +30,7 @@ import customtkinter as ctk
 import config                                                          # -> config.py
 
 # Testläufe setzen SYSTEMLAB_BENUTZERDATEN auf eine eigene Datei -> deine echten Favoriten bleiben unberührt
-DATEI = os.environ.get("SYSTEMLAB_BENUTZERDATEN") or os.path.join(config.BASIS_PFAD, "benutzerdaten.json")
+DATEI = os.environ.get("SYSTEMLAB_BENUTZERDATEN") or os.path.join(config.DATEN_PFAD, "benutzerdaten.json")
 MAX_ZULETZT = 8
 _daten = None
 
