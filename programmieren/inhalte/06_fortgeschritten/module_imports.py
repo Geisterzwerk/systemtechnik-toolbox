@@ -111,7 +111,7 @@ print(elektro.leistung(230, 0.5))   # 115.0 (der Test oben läuft hier NICHT)'''
 
     "tipps": [
         "Python: In VS Code unten rechts den Interpreter der `.venv` auswählen, sonst findet VS Code die installierten Pakete nicht.",
-        "`requirements.txt` gehört zu jedem Python-Projekt. Auch für diese Toolbox: `customtkinter` und `pillow`.",
+        "`requirements.txt` gehört zu jedem Python-Projekt. Auch für SystemLab: `customtkinter` und `pillow`.",
     ],
     "fehler": [
         "`ModuleNotFoundError`: Das Paket ist nicht installiert oder in der falschen Python-Umgebung installiert. Mit `python -m pip install ...` installiert man es sicher in das richtige Python.",

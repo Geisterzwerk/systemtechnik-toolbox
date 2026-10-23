@@ -147,13 +147,40 @@ def regler_bereich(typ, von, bis, grenzen, start_einheit, einheit):
     """
     Bereich eines Schiebereglers in der GEWÄHLTEN Einheit (Desktop: WertRegler, Web: wiki/grafiken.py).
     Der Regler ist für start_einheit gebaut, z.B. 0 … 600 mV. Wählt man V, gilt dieselbe Zahl in V:
-    0 … 600 V. Wählt man µV: 0 … 600 µV.
+    0 … 600 V. Wählt man µV: 0 … 1000 µV (eine kleinere Einheit reicht immer bis zur nächsten: 1000 µV = 1 mV).
+    Beispiel Trafo: 0 … 400 V, Wahl mV -> 0 … 1000 mV (nicht nur 0 … 400 mV).
     Rückgabe: (von, bis, (unten, oben)) in Basiseinheit - unten/oben = erlaubt im Zahlenfeld.
     """
     stufen = dict(EINHEITEN[typ]["stufen"])
     k = float(f"{stufen[einheit] / stufen[start_einheit]:.12g}")     # 1000 statt 999.9999999
     unten, oben = grenzen or (von, bis)
-    return von * k, bis * k, (unten * k, oben * k)
+    neu_von, neu_bis, neu_unten, neu_oben = von * k, bis * k, unten * k, oben * k
+    if k < 1:
+        # KLEINERE Einheit: der Regler soll bis zur nächsten Einheit reichen (0 … 1000 mV = 1 V),
+        # aber nie über das hinaus, was der Regler ursprünglich erlaubt (bis / oben in Basiseinheit).
+        # Negative Bereiche (-100 … 100 mV) genauso nach unten: -1000 … 1000 µV.
+        naechste = min((f for f in stufen.values() if f > stufen[einheit]), default=None)
+        if naechste is not None:
+            neu_bis = max(neu_bis, min(naechste, bis))
+            neu_oben = max(neu_oben, min(naechste, oben), neu_bis)
+            if von < 0:
+                neu_von = min(neu_von, max(-naechste, von))
+            if unten < 0:
+                neu_unten = min(neu_unten, max(-naechste, unten), neu_von)
+    return neu_von, neu_bis, (neu_unten, neu_oben)
+
+
+def wert_bei_einheitenwechsel(wert, typ, alt_einheit, neu_einheit, von, bis):
+    """
+    Regler-Wert nach einem Einheitenwechsel (Desktop UND Web gleich):
+      passt der Wert in den neuen Bereich -> er bleibt (0.5 V bleibt 500 mV)
+      sonst bleibt die ZAHL im Feld (230 V -> 230 mV), höchstens bis an den Rand
+    """
+    if von <= wert <= bis or alt_einheit == neu_einheit:
+        return min(max(wert, von), bis)
+    stufen = dict(EINHEITEN[typ]["stufen"])
+    zahl = wert / stufen.get(alt_einheit, 1.0)
+    return min(max(zahl * stufen[neu_einheit], von), bis)
 
 
 def stufe_waehlen(wert, typ):

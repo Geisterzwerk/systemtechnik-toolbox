@@ -14,7 +14,7 @@ THEMA = {
 ## Stell dir vor …
 Zwei **Lichtschalter in Reihe**: Die Lampe brennt nur, wenn Schalter A UND Schalter B eingeschaltet sind. Zwei Schalter **parallel**: Die Lampe brennt, wenn A ODER B eingeschaltet ist. Die boolesche Algebra ist die Mathematik dahinter – nur mit 0 und 1 statt mit Schaltern.
 ## Grundlagen
-Schreibweise in der Toolbox: `¬A` (NICHT), `A·B` (UND), `A + B` (ODER), `A ⊕ B` (XOR). Rangfolge: NICHT vor UND vor ODER.
+Schreibweise in SystemLab: `¬A` (NICHT), `A·B` (UND), `A + B` (ODER), `A ⊕ B` (XOR). Rangfolge: NICHT vor UND vor ODER.
 
 Regeln mit einer Variable:
 - `A·0 = 0`, `A·1 = A`, `A + 0 = A`, `A + 1 = 1`

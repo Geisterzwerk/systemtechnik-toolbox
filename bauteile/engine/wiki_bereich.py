@@ -6,7 +6,7 @@
 # dreimal fast gleich kopiert, jetzt steht es nur noch hier.
 #
 #   ┌──────────────────────────────────────────────────────────────┐
-#   │ ⬅  🏠  ◀   🔍 [ Suche .... ]                                  │
+#   │ ☰  🏠  💡  ◀   🔍 [ Suche .... ]   (core/navigation.py)         │
 #   ├───────────────────┬──────────────────────────────────────────┤
 #   │ 🔌 Kategorie    ▾ │  Seite  [ 📖 Wissen | 🧮 Rechner ]        │
 #   │    Thema          │                                           │
@@ -30,6 +30,7 @@ import config                                                          # -> conf
 from bauteile.engine.seite import BauteilSeite                         # -> bauteile/engine/seite.py
 from core.benutzerdaten import FavoritKnopf                                     # -> core/benutzerdaten.py
 from core.layout import Karte, ResponsiveGrid, ScrollSeite, Stapel, seiten_kopf   # -> core/layout.py
+from core.navigation import KopfNavigation, Seitenleiste, listen_knopf           # -> core/navigation.py
 from core.widgets import Tooltip, info_box                             # -> core/widgets.py
 from programmieren.engine import lader                                 # -> programmieren/engine/lader.py
 from programmieren.engine.suche import Suchmaschine                    # -> programmieren/engine/suche.py
@@ -84,10 +85,11 @@ class WikiBereich(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
 
+        # Seitenliste links (einklappbar, Breite ziehbar) -> core/navigation.py
+        self.seitenleiste = Seitenleiste(self)
+        self.seitenleiste.grid(row=1, column=0, sticky="nsw")
+        self.navigation = self.seitenleiste.liste
         self._kopfleiste(suchtext)
-        self.navigation = ctk.CTkScrollableFrame(self, width=230, corner_radius=0, fg_color=config.FARBEN["sidebar"])
-        self.navigation.grid(row=1, column=0, sticky="nsw")
-        self.navigation.grid_columnconfigure(0, weight=1)
         self.inhalt = ScrollSeite(self)                                # -> core/layout.py
         self.inhalt.grid(row=1, column=1, sticky="nsew")
 
@@ -100,24 +102,20 @@ class WikiBereich(ctk.CTkFrame):
     def _kopfleiste(self, suchtext):
         leiste = ctk.CTkFrame(self, fg_color=config.FARBEN["sidebar"], corner_radius=0)
         leiste.grid(row=0, column=0, columnspan=2, sticky="ew")
-        leiste.grid_columnconfigure(3, weight=1)
-        rahmen = dict(fg_color="transparent", border_width=1, border_color=config.FARBEN["rahmen"],
-                      text_color=config.FARBEN["text"])
-        for spalte, (text, befehl, tipp, stil) in enumerate([
-                ("⬅", self.app.show_startseite, "Zur Startseite", {}),
-                ("🏠", self._uebersicht_zeigen, "Übersicht", rahmen),
-                ("◀", self._zurueck, "Vorherige Seite", rahmen)]):
-            knopf = ctk.CTkButton(leiste, text=text, width=40, height=36, command=befehl, **stil)
-            knopf.grid(row=0, column=spalte, padx=(10 if spalte == 0 else 4, 4), pady=10)
-            Tooltip(knopf, tipp)
+        # ☰ 🏠 [Kategorie-/Bereichs-Icon] ◀  -> core/navigation.py
+        icon, _, name = self.titel.partition(" ")
+        self.kopf = KopfNavigation(leiste, self.app, self.seitenleiste, icon, name.strip(),
+                                   uebersicht=self._uebersicht_knopf, zurueck=self._zurueck)
+        spalte = self.kopf.naechste_spalte
+        leiste.grid_columnconfigure(spalte, weight=1)
         self.suchfeld = ctk.CTkEntry(leiste, height=36, width=120, font=config.FONT_TEXT,
                                      placeholder_text=f"🔍  Suchen ... {suchtext}")
-        self.suchfeld.grid(row=0, column=3, sticky="ew", padx=(10, 12))
+        self.suchfeld.grid(row=0, column=spalte, sticky="ew", padx=(10, 12))
         self.suchfeld.bind("<KeyRelease>", self._suche)
         self.suchfeld.bind("<Return>", self._suche_enter)
         self.suchfeld.bind("<Escape>", lambda e: self._suche_leeren())
         self.favorit_knopf = FavoritKnopf(leiste, lambda: self.aktueller_eintrag)
-        self.favorit_knopf.grid(row=0, column=4, padx=(0, 12))
+        self.favorit_knopf.grid(row=0, column=spalte + 1, padx=(0, 12))
         Tooltip(self.favorit_knopf, "Als Favorit merken (erscheint auf der Startseite)")
 
     # =========================================================================
@@ -133,11 +131,10 @@ class WikiBereich(ctk.CTkFrame):
         zeile = 0
         for kat in self.kategorien:
             offen = kat.ordner in self.offene_kategorien
-            ctk.CTkButton(self.navigation, text=f"{kat.icon}  {kat.name}   {'▾' if offen else '▸'}", anchor="w",
-                          height=34, font=(config.SCHRIFT, 13, "bold"), fg_color="transparent",
-                          text_color=config.FARBEN["text"], hover_color=config.FARBEN["rahmen"],
-                          command=lambda k=kat: self._umschalten(k)).grid(row=zeile, column=0, sticky="ew",
-                                                                         padx=4, pady=(6, 0))
+            listen_knopf(self.navigation, f"{kat.icon}  {kat.name}   {'▾' if offen else '▸'}",
+                         lambda k=kat: self._umschalten(k), titel=kat.name, height=34,
+                         font=(config.SCHRIFT, 13, "bold"), fg_color="transparent", text_color=config.FARBEN["text"],
+                         hover_color=config.FARBEN["rahmen"]).grid(row=zeile, column=0, sticky="ew", padx=4, pady=(6, 0))
             zeile += 1
             if offen:
                 for thema in kat.themen:
@@ -146,9 +143,9 @@ class WikiBereich(ctk.CTkFrame):
 
     def _themen_knopf(self, thema, zeile, mit_kategorie=False):
         text = f"{thema.kategorie.icon}  {thema.titel}" if mit_kategorie else f"      {thema.titel}"
-        knopf = ctk.CTkButton(self.navigation, text=text, anchor="w", height=28, font=config.FONT_TEXT,
-                              fg_color="transparent", text_color=config.FARBEN["text"],
-                              hover_color=config.FARBEN["rahmen"], command=lambda t=thema: self.thema_oeffnen(t.id))
+        knopf = listen_knopf(self.navigation, text, lambda t=thema: self.thema_oeffnen(t.id), titel=thema.titel,
+                             height=28, font=config.FONT_TEXT, fg_color="transparent", text_color=config.FARBEN["text"],
+                             hover_color=config.FARBEN["rahmen"])
         knopf.grid(row=zeile, column=0, sticky="ew", padx=4, pady=1)
         self.themen_buttons[thema.id] = knopf
         return zeile + 1
@@ -198,13 +195,39 @@ class WikiBereich(ctk.CTkFrame):
     # =========================================================================
     # INHALT
     # =========================================================================
+    def _uebersicht_knopf(self):
+        """Übersicht-Knopf: auf einer Seite -> Übersicht ihrer Kategorie, sonst -> Übersicht des Bereichs."""
+        thema = self.themen.get(self.aktuelles_thema)
+        if thema is not None:
+            self.kategorie_zeigen(thema.kategorie)
+        else:
+            self._uebersicht_zeigen()
+
     def _uebersicht_zeigen(self):
         self.aktuelles_thema = None
         self.aktueller_eintrag = None
         self.favorit_knopf.aktualisieren()
+        self.kopf.uebersicht_zeigen()
         self._markieren()
         uebersicht_zeichnen(self.inhalt.neue_seite(), self.kategorien, self.thema_oeffnen,
                             self.titel, self.beschreibung, self.ladefehler)
+
+    def kategorie_zeigen(self, kategorie):
+        """Übersicht EINER Kategorie (z.B. alle Seiten zu Dioden). ◀ führt zurück zur Seite davor."""
+        if self.aktuelles_thema:
+            self.verlauf = (self.verlauf + [self.aktuelles_thema])[-30:]
+        self.aktuelles_thema = None
+        self.aktueller_eintrag = None
+        self.favorit_knopf.aktualisieren()
+        self.kopf.uebersicht_zeigen()                          # nächster Klick -> ganzer Bereich
+        self._markieren()
+        body = self.inhalt.neue_seite()
+        uebersicht_zeichnen(body, [kategorie], self.thema_oeffnen, f"{kategorie.icon} {kategorie.name}",
+                            kategorie.beschreibung or self.beschreibung)
+        ctk.CTkButton(body, text=f"{self.titel}  ·  alle Kategorien  →", height=32, fg_color="transparent",
+                      border_width=1, border_color=config.FARBEN["rahmen"], text_color=config.FARBEN["akzent"],
+                      hover_color=config.FARBEN["rahmen"], command=self._uebersicht_zeigen).grid(
+            row=99, column=0, sticky="w", pady=(4, 0))
 
     def thema_oeffnen(self, thema_id, verlauf_merken=True):
         thema = self.themen.get(thema_id)
@@ -217,6 +240,7 @@ class WikiBereich(ctk.CTkFrame):
             self.offene_kategorien.add(thema.kategorie.ordner)
             self._baum_zeichnen()
         self._markieren()
+        self.kopf.uebersicht_zeigen(thema.kategorie.icon, f"Übersicht {thema.kategorie.name}")
         # -> bauteile/engine/seite.py (dieselbe Seitendarstellung in allen Wiki-Bereichen)
         BauteilSeite(self.inhalt.neue_seite(), thema, self.ansicht, self.themen, self.thema_oeffnen,
                      self._ansicht_setzen)

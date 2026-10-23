@@ -4,7 +4,7 @@
 # Starten:  build_exe.bat   (oder: python -m PyInstaller SystemLab.spec --noconfirm --clean)
 #
 # KOMMT REIN:   main.py, config.py, die Desktop-Ordner unten (ORDNER), images/ (nur .png),
-#               customtkinter-Themes
+#               images/systemlab.ico (Icon), customtkinter-Themes
 # KOMMT NICHT:  web/, pruefung/, uebungen/, pruefen*.py, benutzerdaten.json,
 #               haenger_log.txt, datentypen_bits.json, .git, __pycache__, dist/
 # =============================================================================
@@ -41,7 +41,7 @@ def dateien_sammeln(ordner, nur_endungen=None):
 datas = collect_data_files("customtkinter")          # Themes/JSON von customtkinter
 for o in ORDNER:
     datas += dateien_sammeln(o)
-datas += dateien_sammeln("images", (".png",))
+datas += dateien_sammeln("images", (".png", ".ico"))      # .ico = Fenster-Icon (config.APP_ICON)
 
 # ---- Module, die nur per Name/Ordner geladen werden (Rechner-Registry, Inhalte) ----
 # Entwickler-Werkzeuge (z. B. Bilder erzeugen) nicht in die EXE
@@ -58,11 +58,12 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure)
+ICON = os.path.join(PROJEKT, "images", "systemlab.ico")       # EXE-Icon (Logo: gui/werkzeuge/icon_erstellen.py)
 
 if EINE_DATEI:
     exe = EXE(pyz, a.scripts, a.binaries, a.datas, [],
-              name="SystemLab", console=False, upx=False, icon=None)
+              name="SystemLab", console=False, upx=False, icon=ICON)
 else:
     exe = EXE(pyz, a.scripts, [], exclude_binaries=True,
-              name="SystemLab", console=False, upx=False, icon=None)
+              name="SystemLab", console=False, upx=False, icon=ICON)
     coll = COLLECT(exe, a.binaries, a.datas, name="SystemLab", upx=False)

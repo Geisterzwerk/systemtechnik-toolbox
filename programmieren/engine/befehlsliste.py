@@ -36,7 +36,7 @@ class BefehlsListe(Karte, Responsive):
         super().__init__(master, titel=titel)
         self.bl_zeilen = []                     # (knopf, befehl_label, erklaerung_label)
         self.bl_schmal = None                   # noch kein Layout gewählt
-        code = config.CODE_FARBEN[ctk.get_appearance_mode()]
+        paar = config.code_paar                 # Farbpaare (Light, Dark) -> wechseln beim Umschalten von selbst
         b = self.body
         b.grid_columnconfigure(0, weight=0)
         b.grid_columnconfigure(1, weight=0)
@@ -51,8 +51,8 @@ class BefehlsListe(Karte, Responsive):
             befehl_label = ctk.CTkLabel(
                 b, text=("⚠ " if gefahr else "") + befehl, anchor="w", justify="left",
                 font=(config.SCHRIFT_CODE, 13, "bold"), corner_radius=6,
-                fg_color=code["gefahr_bg"] if gefahr else code["hintergrund"],
-                text_color=code["gefahr"] if gefahr else code["text"])
+                fg_color=paar("gefahr_bg") if gefahr else paar("hintergrund"),
+                text_color=paar("gefahr") if gefahr else paar("text"))
             erklaerung_label = WrapLabel(b, text=erklaerung, font=config.FONT_TEXT,
                                          text_color=config.FARBEN["text"])
             self.bl_zeilen.append((knopf, befehl_label, erklaerung_label))

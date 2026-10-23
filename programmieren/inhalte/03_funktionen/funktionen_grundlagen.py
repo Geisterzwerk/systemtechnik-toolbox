@@ -39,7 +39,7 @@ Eine **Methode** ist eine Funktion, die zu einer **Klasse** gehört. In C# ist f
             "code": {
                 "Python": r'''# ---- Definition ----
 def begruessen():                        # keine Parameter, keine Rückgabe
-    print("Willkommen in der Toolbox!")
+    print("Willkommen bei SystemLab!")
 
 
 def leistung(spannung, strom):           # 2 Parameter
@@ -55,7 +55,7 @@ print(f"P = {leistung(230, 0.5)} W")     # direkt verwenden''',
 
 // ---- Definition ----
 void begruessen() {                          // void = keine Rückgabe
-    std::cout << "Willkommen in der Toolbox!\n";
+    std::cout << "Willkommen bei SystemLab!\n";
 }
 
 double leistung(double spannung, double strom) {   // Rückgabetyp double
@@ -77,7 +77,7 @@ Console.WriteLine($"P = {p} W");
 // ---- Definition ----
 static void Begruessen()                     // void = keine Rückgabe
 {
-    Console.WriteLine("Willkommen in der Toolbox!");
+    Console.WriteLine("Willkommen bei SystemLab!");
 }
 
 static double Leistung(double spannung, double strom)
@@ -85,7 +85,7 @@ static double Leistung(double spannung, double strom)
     return spannung * strom;
 }''',
             },
-            "ausgabe": "Willkommen in der Toolbox!\nP = 36 W",
+            "ausgabe": "Willkommen bei SystemLab!\nP = 36 W",
         },
         {
             "titel": "C++: Deklaration (Prototyp) vor main",

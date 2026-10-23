@@ -150,7 +150,7 @@ class GatterKarte(SchaltungsModell):
 class AusdruckKarte(SchaltungsModell):
     TITEL = "🧾 Ausdruck → Wahrheitstabelle und Normalformen (interaktiv)"
     UNTERTITEL = "Schreibweisen: ¬A !A /A A'   A·B A*B AB   A+B   A⊕B   Klammern ( )"
-    TEXTFELDER = [("ausdruck", "Ausdruck Y =", "A·B + ¬A·C", {"max": 120, "platzhalter": "z.B. A*B + !A*C"})]
+    TEXTFELDER = [("ausdruck", "Ausdruck Y =", "A·B + ¬A·C", {"max": 120, "platzhalter": "z.B. A*B + !A*C", "tastatur": "logik"})]
     SEITENVERHAELTNIS = 0.42
     MAX_HOEHE = 460
     ERKLAERUNG = ("Was zeigt das Werkzeug?  Jede Zeile der Wahrheitstabelle ist eine Belegung der Eingänge; die "
@@ -233,11 +233,15 @@ def _umbenennen(baum, abbild):
 
 class KVKarte(SchaltungsModell):
     TITEL = "🗺️ KV-Diagramm (interaktiv)"
-    UNTERTITEL = "Einsen und don't cares als Minterm-Nummern eintippen – oder einen Ausdruck"
+    UNTERTITEL = "Feld anklicken: 0 → 1 → X → 0  ·  oder Minterm-Nummern bzw. einen Ausdruck eintippen"
+    HILFE = ("- **Feld im Diagramm anklicken**: 0 → 1 → X (don't care) → 0. Die Felder Einsen / don't care darunter "
+             "werden automatisch mitgeführt.\n- Oder Minterm-Nummern eintippen, mit Komma getrennt (Enter übernimmt).\n"
+             "- Oder einen Ausdruck eingeben – er ersetzt die Einsen. Ein Klick ins Diagramm macht daraus wieder Nummern.")
     VARIANTEN = ["4 Variablen", "3 Variablen", "2 Variablen"]
     TEXTFELDER = [("einsen", "Einsen (Minterme)", "0, 1, 2, 3, 8, 10", {"max": 80, "platzhalter": "z.B. 0, 1, 2, 3, 8, 10"}),
                   ("dc", "don't care (X)", "", {"max": 80, "platzhalter": "optional, z.B. 5, 7"}),
-                  ("ausdruck", "oder Ausdruck", "", {"max": 120, "platzhalter": "z.B. A·B + C·¬D (ersetzt die Einsen)"})]
+                  ("ausdruck", "oder Ausdruck", "", {"max": 120, "platzhalter": "z.B. A·B + C·¬D (ersetzt die Einsen)",
+                                                          "tastatur": "logik"})]
     STARTWERTE = {"4 Variablen": {"einsen": "0, 1, 2, 3, 8, 10", "dc": ""},
                   "3 Variablen": {"einsen": "0, 1, 2, 5", "dc": "7"}, "2 Variablen": {"einsen": "0, 1", "dc": ""}}
     SEITENVERHAELTNIS = 0.55
@@ -283,6 +287,20 @@ class KVKarte(SchaltungsModell):
             zeilen.append(f"Variablen umbenannt: {e['hinweis']}")
         return zeilen, config.FARBEN["akzent"]
 
+    def sk_klick(self, aktion, w, e, v):
+        """KV-Feld angeklickt: 0 -> 1 -> X -> 0. Aus einem Ausdruck werden dabei Minterm-Nummern."""
+        _art, m = aktion
+        einsen, dc = set(e["einsen"]), set(e["dc"])
+        if m in einsen:
+            einsen.discard(m)
+            dc.add(m)
+        elif m in dc:
+            dc.discard(m)
+        else:
+            einsen.add(m)
+        liste = lambda menge: ", ".join(map(str, sorted(menge)))
+        return {"__variante__": f"{e['n']} Variablen", "einsen": liste(einsen), "dc": liste(dc), "ausdruck": ""}
+
     def sk_zeichnen(self, p, w, e, v):
         c, wb, h = p.c, p.breite, p.hoehe
         n, namen, terme = e["n"], e["namen"], e["f"]["terme"]
@@ -304,6 +322,7 @@ class KVKarte(SchaltungsModell):
             for s in range(len(s_codes)):
                 a, b = x0 + s * zellen, y0 + r * zellen
                 c.create_rectangle(a, b, a + zellen, b + zellen, outline=rahmen, width=1)
+                p.klickbereich(a, b, a + zellen, b + zellen, ("kv", zelle(r, s)))      # Klick: 0 -> 1 -> X
         for i, t in enumerate(terme):                                      # Blöcke, über den Rand -> mehrere Teile
             farbe = GRUPPEN_FARBEN[i % len(GRUPPEN_FARBEN)]
             rand = 4 + 3 * (i % 4)

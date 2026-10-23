@@ -61,7 +61,11 @@ class SuchLeiste(ctk.CTkFrame):
         self.gs_treffer = []
 
     def fokus(self):
+        """Ins Suchfeld springen; vorhandener Text wird markiert (gleich lostippen = ersetzen)."""
         self.gs_feld.focus_set()
+        if self.gs_feld.get():
+            self.gs_feld.select_range(0, "end")
+            self.gs_feld.icursor("end")
 
     def leeren(self):
         self.gs_feld.delete(0, "end")

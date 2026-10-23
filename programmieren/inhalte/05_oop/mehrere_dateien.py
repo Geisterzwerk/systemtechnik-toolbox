@@ -22,7 +22,7 @@ Objekte arbeiten zusammen, indem eines eine **Referenz auf ein anderes** besitzt
 - **Python:** `from sensor import Sensor`. Dateien sind **Module**, Ordner mit `__init__.py` sind **Pakete**.
 - **C++:** Aufteilung in **Header** (`.h` = Deklaration, das "Inhaltsverzeichnis") und **Quelldatei** (`.cpp` = Umsetzung). Andere Dateien binden den Header mit `#include "Sensor.h"` ein. Beim Kompilieren werden alle `.cpp` angegeben.
 - **C#:** Alle `.cs`-Dateien eines Projekts kennen sich **automatisch**. Mit `namespace` ordnet man sie, mit `using` greift man auf andere Namespaces zu.
-## Genau so ist diese Toolbox gebaut!
+## Genau so ist SystemLab gebaut!
 `main.py` erzeugt die `App`, die App ruft `programmieren_gui.create()` auf, und diese Funktion benutzt `lader.py`, `suche.py` und `seite.py`. Schau dir die Kommentare `# -> Datei.py` im Code an.
 ## 🔬 Genauer hingeschaut
 - **Zirkuläre Importe:** Importiert Datei A die Datei B und B wiederum A, kann Python beim Laden auf halbfertige Module stossen. Lösung: gemeinsame Teile in eine dritte Datei auslagern, oder den Import in die Funktion verschieben, die ihn braucht.

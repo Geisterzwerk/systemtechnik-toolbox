@@ -4,7 +4,7 @@
 # Die PROGRAMMIER-SEITE (Programmier-Wiki).
 #
 #   ┌──────────────────────────────────────────────────────────────────────┐
-#   │ ⬅  🏠  ◀   🔍 [ Suche ........ wächst mit ........ ]  [Py|C++|C#|Alle]│  <- Kopfleiste
+#   │ ☰ 🏠 💡 ◀  🔍 [ Suche ........ wächst mit ........ ]  [Py|C++|C#|Alle]│  <- Kopfleiste
 #   ├───────────────────┬──────────────────────────────────────────────────┤
 #   │ Navigation        │  Inhalt (ScrollSeite -> wächst mit, zentriert    │
 #   │ (feste Breite)    │  ab config.INHALT_MAX_BREITE)                    │
@@ -26,6 +26,7 @@ import customtkinter as ctk
 import config                                                            # -> config.py
 from core.benutzerdaten import FavoritKnopf                              # -> core/benutzerdaten.py
 from core.layout import ScrollSeite                                      # -> core/layout.py
+from core.navigation import KopfNavigation, Seitenleiste, listen_knopf   # -> core/navigation.py
 from core.widgets import Tooltip                                         # -> core/widgets.py
 from programmieren.engine import lader                                   # -> engine/lader.py
 from programmieren.engine.seite import ThemenSeite, uebersicht_zeichnen  # -> engine/seite.py
@@ -75,8 +76,8 @@ class ProgrammierSeite(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
 
+        self._navigation_erstellen()           # zuerst: der ☰-Knopf der Kopfleiste braucht die Seitenleiste
         self._kopfleiste_erstellen()
-        self._navigation_erstellen()
         # Inhalt -> core/layout.py ScrollSeite (EIN Objekt, Seiten werden darin getauscht)
         self.inhalt = ScrollSeite(self)
         self.inhalt.grid(row=1, column=1, sticky="nsew")
@@ -96,30 +97,24 @@ class ProgrammierSeite(ctk.CTkFrame):
     def _kopfleiste_erstellen(self):
         leiste = ctk.CTkFrame(self, fg_color=config.FARBEN["sidebar"], corner_radius=0)
         leiste.grid(row=0, column=0, columnspan=2, sticky="ew")
-        leiste.grid_columnconfigure(3, weight=1)          # NUR das Suchfeld wächst mit
-
-        rahmen = dict(fg_color="transparent", border_width=1, border_color=config.FARBEN["rahmen"],
-                      text_color=config.FARBEN["text"])
-        btn_start = ctk.CTkButton(leiste, text="⬅", width=40, height=36, command=self.app.show_startseite)
-        btn_start.grid(row=0, column=0, padx=(10, 4), pady=10)
-        Tooltip(btn_start, "Zur Startseite")
-        btn_home = ctk.CTkButton(leiste, text="🏠", width=40, height=36, command=self._uebersicht_zeigen, **rahmen)
-        btn_home.grid(row=0, column=1, padx=4)
-        Tooltip(btn_home, "Übersicht aller Themen")
-        btn_zurueck = ctk.CTkButton(leiste, text="◀", width=40, height=36, command=self._verlauf_zurueck, **rahmen)
-        btn_zurueck.grid(row=0, column=2, padx=4)
-        Tooltip(btn_zurueck, "Vorheriges Thema")
+        # ☰ 🏠 [Kategorie-/Bereichs-Icon] ◀  -> core/navigation.py
+        icon, _, name = self.titel.partition(" ")
+        self.kopf = KopfNavigation(leiste, self.app, self.seitenleiste, icon, name.strip(),
+                                   uebersicht=self._uebersicht_knopf, zurueck=self._verlauf_zurueck)
+        spalte = self.kopf.naechste_spalte
+        leiste.grid_columnconfigure(spalte, weight=1)          # NUR das Suchfeld wächst mit
 
         # ---- Suchfeld (sticky="ew" + weight=1 -> füllt den freien Platz) ----
         self.suchfeld = ctk.CTkEntry(leiste, height=36, width=120, font=config.FONT_TEXT,
                                      placeholder_text=self.such_platzhalter)
-        self.suchfeld.grid(row=0, column=3, sticky="ew", padx=10)
+        self.suchfeld.grid(row=0, column=spalte, sticky="ew", padx=10)
         self.suchfeld.bind("<KeyRelease>", self._suche_geaendert)
         self.suchfeld.bind("<Return>", self._suche_enter)
         self.suchfeld.bind("<Escape>", lambda e: self._suche_leeren())
-        self.winfo_toplevel().bind("<Control-f>", lambda e: self._suchfeld_fokus(), add="+")
+        for taste in ("f", "F"):                          # F = mit Caps Lock / Shift
+            self.winfo_toplevel().bind(f"<Control-{taste}>", lambda e: self._suchfeld_fokus(), add="+")
         self.favorit_knopf = FavoritKnopf(leiste, lambda: self.aktueller_eintrag)
-        self.favorit_knopf.grid(row=0, column=5, padx=(0, 12))
+        self.favorit_knopf.grid(row=0, column=spalte + 2, padx=(0, 12))
         Tooltip(self.favorit_knopf, "Als Favorit merken (erscheint auf der Startseite)")
 
         # ---- Sprachwahl (behält ihre Grösse) - nur wenn es etwas zu wählen gibt ----
@@ -129,16 +124,16 @@ class ProgrammierSeite(ctk.CTkFrame):
                                                  command=self._sprache_geaendert, height=36,
                                                  font=(config.SCHRIFT, 13, "bold"))
         self.sprachwahl.set(self.sprache)
-        self.sprachwahl.grid(row=0, column=4, padx=(4, 12))
+        self.sprachwahl.grid(row=0, column=spalte + 1, padx=(4, 12))
 
     # =========================================================================
     # NAVIGATION LINKS
     # =========================================================================
     def _navigation_erstellen(self):
-        self.navigation = ctk.CTkScrollableFrame(self, width=240, corner_radius=0,
-                                                 fg_color=config.FARBEN["sidebar"])
-        self.navigation.grid(row=1, column=0, sticky="nsw")
-        self.navigation.grid_columnconfigure(0, weight=1)
+        # Seitenliste links (einklappbar, Breite ziehbar) -> core/navigation.py
+        self.seitenleiste = Seitenleiste(self)
+        self.seitenleiste.grid(row=1, column=0, sticky="nsw")
+        self.navigation = self.seitenleiste.liste
 
     def _navigation_leeren(self):
         for kind in self.navigation.winfo_children():
@@ -150,11 +145,10 @@ class ProgrammierSeite(ctk.CTkFrame):
         zeile = 0
         for kat in self.kategorien:
             offen = kat.ordner in self.offene_kategorien
-            ctk.CTkButton(self.navigation, text=f"{kat.icon}  {kat.name}   {'▾' if offen else '▸'}",
-                          anchor="w", height=34, font=(config.SCHRIFT, 13, "bold"), fg_color="transparent",
-                          text_color=config.FARBEN["text"], hover_color=config.FARBEN["rahmen"],
-                          command=lambda k=kat: self._kategorie_umschalten(k)).grid(
-                row=zeile, column=0, sticky="ew", padx=4, pady=(6, 0))
+            listen_knopf(self.navigation, f"{kat.icon}  {kat.name}   {'▾' if offen else '▸'}",
+                         lambda k=kat: self._kategorie_umschalten(k), titel=kat.name, height=34,
+                         font=(config.SCHRIFT, 13, "bold"), fg_color="transparent", text_color=config.FARBEN["text"],
+                         hover_color=config.FARBEN["rahmen"]).grid(row=zeile, column=0, sticky="ew", padx=4, pady=(6, 0))
             zeile += 1
             if offen:
                 for thema in kat.themen:
@@ -163,10 +157,9 @@ class ProgrammierSeite(ctk.CTkFrame):
 
     def _themen_button(self, thema, zeile, mit_kategorie=False):
         text = f"{thema.kategorie.icon}  {thema.titel}" if mit_kategorie else f"      {thema.titel}"
-        button = ctk.CTkButton(self.navigation, text=text, anchor="w", height=28, font=config.FONT_TEXT,
-                               fg_color="transparent", text_color=config.FARBEN["text"],
-                               hover_color=config.FARBEN["rahmen"],
-                               command=lambda t=thema: self.thema_oeffnen(t.id))
+        button = listen_knopf(self.navigation, text, lambda t=thema: self.thema_oeffnen(t.id), titel=thema.titel,
+                              height=28, font=config.FONT_TEXT, fg_color="transparent", text_color=config.FARBEN["text"],
+                              hover_color=config.FARBEN["rahmen"])
         button.grid(row=zeile, column=0, sticky="ew", padx=4, pady=1)
         self.themen_buttons[thema.id] = button
         return zeile + 1
@@ -223,14 +216,39 @@ class ProgrammierSeite(ctk.CTkFrame):
     # =========================================================================
     # INHALT
     # =========================================================================
+    def _uebersicht_knopf(self):
+        """Übersicht-Knopf: auf einer Seite -> Übersicht ihrer Kategorie, sonst -> Übersicht des Bereichs."""
+        thema = self.themen.get(self.aktuelles_thema)
+        if thema is not None:
+            self.kategorie_zeigen(thema.kategorie)
+        else:
+            self._uebersicht_zeigen()
+
     def _uebersicht_zeigen(self):
         self.aktuelles_thema = None
         self.aktueller_eintrag = None
         self.favorit_knopf.aktualisieren()
+        self.kopf.uebersicht_zeigen()
         self._aktiv_markieren()
         body = self.inhalt.neue_seite()                      # -> core/layout.py
         uebersicht_zeichnen(body, self.kategorien, self.thema_oeffnen, self.ladefehler,   # -> engine/seite.py
                             titel=self.titel)
+
+    def kategorie_zeigen(self, kategorie):
+        """Übersicht EINER Kategorie. ◀ führt zurück zur Seite davor."""
+        if self.aktuelles_thema:
+            self.verlauf = (self.verlauf + [self.aktuelles_thema])[-30:]
+        self.aktuelles_thema = None
+        self.aktueller_eintrag = None
+        self.favorit_knopf.aktualisieren()
+        self.kopf.uebersicht_zeigen()                          # nächster Klick -> ganzer Bereich
+        self._aktiv_markieren()
+        body = self.inhalt.neue_seite()
+        uebersicht_zeichnen(body, [kategorie], self.thema_oeffnen, titel=f"{kategorie.icon} {kategorie.name}")
+        ctk.CTkButton(body, text=f"{self.titel}  ·  alle Kategorien  →", height=32, fg_color="transparent",
+                      border_width=1, border_color=config.FARBEN["rahmen"], text_color=config.FARBEN["akzent"],
+                      hover_color=config.FARBEN["rahmen"], command=self._uebersicht_zeigen).grid(
+            row=99, column=0, sticky="w", pady=(4, 0))
 
     def thema_oeffnen(self, thema_id, verlauf_merken=True):
         thema = self.themen.get(thema_id)
@@ -244,6 +262,7 @@ class ProgrammierSeite(ctk.CTkFrame):
             self.offene_kategorien.add(thema.kategorie.ordner)
             self._navigation_baum_zeichnen()
         self._aktiv_markieren()
+        self.kopf.uebersicht_zeigen(thema.kategorie.icon, f"Übersicht {thema.kategorie.name}")
 
         body = self.inhalt.neue_seite()                      # alte Seite weg, nach oben scrollen
         ThemenSeite(body, thema, self.sprache, self.themen, self.thema_oeffnen)   # -> engine/seite.py

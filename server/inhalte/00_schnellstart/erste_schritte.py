@@ -7,7 +7,7 @@
 THEMA = {
     "titel": "Erste Schritte: noch nie mit Linux gearbeitet?",
     "reihenfolge": 0,
-    "kurz": "Was ist ein Server, was ist das Terminal, wie verbinde ich mich – und wie lese ich die Beispiele in dieser Toolbox?",
+    "kurz": "Was ist ein Server, was ist das Terminal, wie verbinde ich mich – und wie lese ich die Beispiele in SystemLab?",
     "stichworte": ["einsteiger", "anfänger", "erste schritte", "einführung", "grundlagen", "was ist linux",
                    "was ist ein server", "terminal", "konsole", "platzhalter", "glossar", "begriffe", "start"],
 
@@ -27,7 +27,7 @@ Das Terminal (auch Konsole oder Shell) ist ein Fenster, in das man Befehle schre
 Mit `ssh` verbindest du dieses Fenster mit dem Server. Ab dann landet alles, was du tippst, auf dem Server.
 
 ## So liest du die Beispiele
-Alle Beispiele in dieser Toolbox verwenden **Platzhalter**. Ersetze sie durch deine eigenen Werte:
+Alle Beispiele in SystemLab verwenden **Platzhalter**. Ersetze sie durch deine eigenen Werte:
 - `benutzer` – dein Benutzername auf dem Server
 - `srv01` oder `server` – der Name deines Servers
 - `192.168.1.50` – die IP-Adresse deines Servers (findest du mit `ip a` oder im Router)
@@ -41,7 +41,7 @@ Der Text vor dem Befehl (z.B. `benutzer@srv01:~$`) ist der **Prompt** – den ti
 - Im Editor nano? **Ctrl + X** beendet.
 - Vom Server abmelden: `exit`
 - Lesende Befehle (`ls`, `pwd`, `cat`, `df -h`) können nichts kaputt machen – damit kannst du gefahrlos üben.
-- Vorsicht nur bei `sudo`, `rm` und allem, was in der Toolbox **rot mit ⚠** markiert ist.
+- Vorsicht nur bei `sudo`, `rm` und allem, was in SystemLab **rot mit ⚠** markiert ist.
 
 ## Wie geht es weiter?
 1. Diese Seite lesen, dann den **Spickzettel** öffnen.

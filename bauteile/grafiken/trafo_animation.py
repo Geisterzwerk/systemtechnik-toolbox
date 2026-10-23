@@ -24,15 +24,21 @@ import config                                                   # -> config.py
 from bauteile.grafiken.trafo_modell import TrafoModell          # -> bauteile/grafiken/trafo_modell.py
 from bauteile.rechner.basis import WertRegler                   # -> bauteile/rechner/basis.py
 from core.layout import Karte, ResponsiveCanvas, WrapLabel      # -> core/layout.py
+from core.widgets import Tooltip, WerteAnzeige                  # -> core/widgets.py
 
 FRAME_MS = 40           # 25 Bilder pro Sekunde
+HILFE = """## Bedienung
+- **Regler ziehen** oder rechts eine Zahl eintippen (Enter übernimmt), **Einheit** rechts wählen
+- **AC / DC** umschalten: Bei Gleichspannung ändert sich das Magnetfeld nicht – es wird nichts übertragen
+- **⏸ Pause** hält die Animation an, **↺ Zurücksetzen** stellt alle Werte wie beim Öffnen ein
+- Die Punkte zeigen den Strom, die drei kleinen Oszilloskope U1, das Magnetfeld Φ und U2"""
 
 
 class TrafoAnimation(Karte):
 
     def __init__(self, master):
         m = self.ta_modell = TrafoModell()
-        super().__init__(master, titel=m.TITEL, untertitel=m.UNTERTITEL)
+        super().__init__(master, titel=m.TITEL, untertitel=m.UNTERTITEL, hilfe=HILFE)     # ❓ (core/layout.py)
         b = self.body
 
         # ---- Zustand (VOR dem Canvas setzen - der Canvas kann sofort zeichnen) ----
@@ -64,9 +70,14 @@ class TrafoAnimation(Karte):
         self.ta_art.grid(row=0, column=0)
         self.ta_pause = ctk.CTkButton(knoepfe, text="⏸ Pause", width=90, command=self._ta_pause_umschalten)
         self.ta_pause.grid(row=0, column=1, padx=(10, 0))
+        zurueck = ctk.CTkButton(knoepfe, text=config.TEXT_ZURUECKSETZEN, width=120, fg_color="transparent",
+                                border_width=1, border_color=config.FARBEN["rahmen"], text_color=config.FARBEN["text"],
+                                hover_color=config.FARBEN["rahmen"], command=self.ta_zuruecksetzen)
+        zurueck.grid(row=0, column=2, padx=(10, 0))
+        Tooltip(zurueck, "Alle Regler und den Umschalter wieder auf die Startwerte")
 
         # ---- Ergebnis + Legende ----
-        self.ta_info = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"), text_color=config.FARBEN["akzent"])
+        self.ta_info = WerteAnzeige(b)                                 # Ergebnis als Tabelle (core/widgets.py)
         self.ta_info.grid(row=3, column=0, sticky="ew", pady=(10, 0))
         WrapLabel(b, font=config.FONT_KLEIN, text_color=config.FARBEN["text_leise"], text=m.ERKLAERUNG).grid(
             row=4, column=0, sticky="ew", pady=(6, 0))
@@ -82,11 +93,17 @@ class TrafoAnimation(Karte):
         werte = {k: r.wert() for k, r in self.ta_regler.items()}
         self.ta_modell.setzen(werte, self.ta_art.get(), self.ta_zeit)
         zeilen, warnung = self.ta_modell.info()
-        self.ta_info.configure(text="\n".join(zeilen),
-                               text_color=("#B45309", "#F59E0B") if warnung else config.FARBEN["akzent"])
+        self.ta_info.zeigen(zeilen, ("#B45309", "#F59E0B") if warnung else config.FARBEN["akzent"])
         if self.ta_geo:
             self.ta_canvas.delete("all")
             self._ta_statisch(self.ta_canvas, self.ta_geo["w"], self.ta_geo["h"])
+
+    def ta_zuruecksetzen(self):
+        """↺ Zurücksetzen: Regler (mit Einheit) und AC/DC wie beim Öffnen."""
+        for regler in self.ta_regler.values():
+            regler.zuruecksetzen()
+        self.ta_art.set(self.ta_modell.VARIANTEN[0])
+        self._ta_neu()
 
     def _ta_pause_umschalten(self):
         self.ta_laeuft = not self.ta_laeuft

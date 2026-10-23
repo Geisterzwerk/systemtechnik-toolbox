@@ -72,6 +72,16 @@ def pil_laden(pfad):
     return _pil_cache[echt]
 
 
+def hell_laden(pfad):
+    """Helle Variante für den Light Mode: 'bild.png' -> 'bild_hell.png' (oder None, ohne Warnung).
+    Erzeugt von programmieren/werkzeuge/bilder_hell.py."""
+    echt = pfad_finden(pfad)
+    if echt is None:
+        return None
+    hell = os.path.splitext(echt)[0] + "_hell.png"
+    return pil_laden(hell) if os.path.exists(hell) else None
+
+
 def bild_laden(pfad, groesse=None, max_breite=None):
     """
     Lädt ein Bild als CTkImage mit FESTER Grösse.

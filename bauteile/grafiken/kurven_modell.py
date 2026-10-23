@@ -48,6 +48,16 @@ class _KurvenModell(SchaltungsModell):
     SEITENVERHAELTNIS = 0.78
     MAX_HOEHE = 560
     RASTER = (12, 8)
+    # Knöpfe unter den Reglern: Zeitpunkt direkt auf n · τ setzen (schaltung_karte.py -> sk_knopf)
+    KNOEPFE = [(f"{n}τ", f"tau{n}") for n in range(1, 6)]
+    HILFE = ("- **R**, **C** (bzw. **L**) und die Quellenspannung einstellen – die Zeitachse passt sich τ an.\n"
+             "- **Zeitpunkt**: Regler ziehen oder mit den Knöpfen **1τ … 5τ** direkt hinspringen.\n"
+             "- Oben zwischen den Vorgängen umschalten (z.B. Laden / Entladen).")
+
+    def sk_knopf(self, aktion, w, e, v):
+        """Knopf "nτ": Zeitpunkt-Regler auf t = n · τ (als Anteil der Zeitachse, höchstens das Ende)."""
+        n = int(aktion[3:])
+        return {"t": min(n * e["tau"], e["t_ende"]) / e["t_ende"]}
 
     def _modell(self, w, v):
         raise NotImplementedError

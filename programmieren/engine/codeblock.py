@@ -27,7 +27,8 @@ class CodeBlock(ctk.CTkFrame):
         self.farben = config.CODE_FARBEN[modus]
         self.code = code.strip("\n")
 
-        super().__init__(master, corner_radius=10, fg_color=self.farben["hintergrund"],
+        # Farbpaar -> der Rahmen wechselt beim Umschalten Dark/Light von selbst (tk.Text: modus_gewechselt)
+        super().__init__(master, corner_radius=10, fg_color=config.code_paar("hintergrund"),
                          border_width=1, border_color=config.FARBEN["rahmen"])
         self.grid_columnconfigure(0, weight=1)
 
@@ -72,6 +73,13 @@ class CodeBlock(ctk.CTkFrame):
             self.xscroll.grid_remove()
         self._xscroll_sichtbar = noetig
 
+    def modus_gewechselt(self):
+        """Dark/Light umgeschaltet (core/layout.py -> modus_gewechselt): tk.Text neu einfärben."""
+        self.farben = config.CODE_FARBEN[ctk.get_appearance_mode()]
+        self.text.configure(bg=self.farben["hintergrund"], fg=self.farben["text"],
+                            insertbackground=self.farben["text"])
+        self._farben_definieren()
+
     def _farben_definieren(self):
         f = self.farben
         for tag in ("keyword", "typ", "string", "kommentar", "zahl", "funktion"):
@@ -107,7 +115,10 @@ class CodeBlock(ctk.CTkFrame):
             self.text.tag_raise("gefahr")
 
     def _nur_lesen(self, event):
-        if event.state & 0x4 and event.keysym.lower() in ("c", "a"):    # Ctrl+C / Ctrl+A erlaubt
+        # Ctrl+C / Ctrl+A (kopieren, alles markieren) und die App-Kürzel Ctrl+K, Ctrl+F, Zoom (Ctrl + / - / 0)
+        # dürfen durch - alles andere würde den Code verändern
+        if event.state & 0x4 and event.keysym.lower() in ("c", "a", "k", "f", "plus", "minus", "equal", "0",
+                                                          "kp_add", "kp_subtract", "kp_0"):
             return None
         return "break"
 

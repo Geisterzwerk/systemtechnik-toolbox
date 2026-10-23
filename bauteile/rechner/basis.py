@@ -27,6 +27,7 @@ import customtkinter as ctk
 import config                                            # -> config.py
 from bauteile import einheiten                           # -> bauteile/einheiten.py
 from core.layout import Karte, WrapLabel                 # -> core/layout.py
+from core.widgets import LogikTastatur, WerteAnzeige     # -> core/widgets.py (Tastenleiste, Ergebnis-Tabelle)
 
 # Der Kern ohne Oberfläche liegt in kern.py (auch fürs Web nutzbar). Hier nur weitergereicht,
 # damit alte Imports wie "from bauteile.rechner.basis import RechnerFehler, fmt" weiter gehen.
@@ -88,6 +89,14 @@ class EinheitenEingabe(ctk.CTkFrame):
     def leeren(self):
         self.ee_feld.delete(0, "end")
 
+    def startzustand(self):
+        """Gewählte Einheit merken (für ↺ Zurücksetzen)."""
+        return self.ee_menue.get() if self.ee_menue is not None else None
+
+    def zustand_setzen(self, einheit):
+        if self.ee_menue is not None and einheit:
+            self.ee_menue.set(einheit)
+
     def bei_enter(self, funktion):
         self.ee_feld.bind("<Return>", lambda e: funktion())
 
@@ -103,6 +112,12 @@ class TextEingabe(ctk.CTkEntry):
 
     def leeren(self):
         self.delete(0, "end")
+
+    def startzustand(self):
+        return None
+
+    def zustand_setzen(self, _zustand):
+        pass
 
     def bei_enter(self, funktion):
         self.bind("<Return>", lambda e: funktion())
@@ -121,6 +136,12 @@ class Auswahl(ctk.CTkOptionMenu):
 
     def leeren(self):
         pass
+
+    def startzustand(self):
+        return self.get()
+
+    def zustand_setzen(self, wert):
+        self.set(wert)
 
     def bei_enter(self, funktion):
         pass
@@ -142,8 +163,8 @@ class FormelRechner(Karte):
     formel    kleiner grauer Text unter dem Ergebnis, z.B. "R = U / I"
     """
 
-    def __init__(self, master, titel, untertitel, felder, berechnen, formel=None):
-        super().__init__(master, titel=titel, untertitel=untertitel)
+    def __init__(self, master, titel, untertitel, felder, berechnen, formel=None, hilfe=None):
+        super().__init__(master, titel=titel, untertitel=untertitel, hilfe=hilfe)     # hilfe -> ❓ (core/layout.py)
         self.fr_funktion = berechnen
         self.fr_definition = felder                       # für formel_auswerten()
         self.fr_felder = {}
@@ -153,33 +174,38 @@ class FormelRechner(Karte):
         b.grid_columnconfigure(1, weight=1)
 
         # ---- Eingabefelder ----
-        for zeile, eintrag in enumerate(felder):
+        zeile = 0
+        for eintrag in felder:
             schluessel, beschriftung, typ = eintrag[:3]
             opt = eintrag[3] if len(eintrag) > 3 else {}
             ctk.CTkLabel(b, text=beschriftung, anchor="w").grid(row=zeile, column=0, sticky="w", padx=(0, 12), pady=3)
             if typ == "auswahl":
                 feld = Auswahl(b, opt["werte"], opt.get("standard"))
             elif typ == "text":
-                feld = TextEingabe(b, opt.get("platzhalter", ""))
+                feld = TextEingabe(b, opt.get("platzhalter", ""), breite=280 if opt.get("tastatur") else 220)
             else:
                 feld = EinheitenEingabe(b, typ, opt.get("platzhalter", ""), opt.get("einheit"),
                                         liste=opt.get("liste", False))
             feld.grid(row=zeile, column=1, sticky="w", pady=3)
             feld.bei_enter(self.fr_rechnen)               # Enter im Feld = Berechnen
             self.fr_felder[schluessel] = feld
+            zeile += 1
+            if opt.get("tastatur") == "logik":            # Tastenleiste A B C D ¬ · + … (core/widgets.py)
+                LogikTastatur(b, feld).grid(row=zeile, column=1, sticky="w", pady=(0, 4))
+                zeile += 1
 
-        n = len(felder)
+        n = zeile
         # ---- Knöpfe ----
         knoepfe = ctk.CTkFrame(b, fg_color="transparent", corner_radius=0)
         knoepfe.grid(row=n, column=0, columnspan=2, sticky="w", pady=(10, 6))
         ctk.CTkButton(knoepfe, text="Berechnen", width=110, command=self.fr_rechnen).grid(row=0, column=0)
-        ctk.CTkButton(knoepfe, text="Leeren", width=80, fg_color="transparent", border_width=1,
+        ctk.CTkButton(knoepfe, text=config.TEXT_ZURUECKSETZEN, width=120, fg_color="transparent", border_width=1,
                       border_color=config.FARBEN["rahmen"], text_color=config.FARBEN["text"],
-                      command=self.fr_leeren).grid(row=0, column=1, padx=(8, 0))
+                      hover_color=config.FARBEN["rahmen"], command=self.fr_leeren).grid(row=0, column=1, padx=(8, 0))
+        self.fr_start = {k: f.startzustand() for k, f in self.fr_felder.items()}     # für Zurücksetzen
 
-        # ---- Ergebnis + Formel ----
-        self.fr_ergebnis = WrapLabel(b, text="", font=(config.SCHRIFT_CODE, 13, "bold"),
-                                     text_color=config.FARBEN["akzent"])
+        # ---- Ergebnis (als Tabelle -> core/widgets.py WerteAnzeige) + Formel ----
+        self.fr_ergebnis = WerteAnzeige(b)
         self.fr_ergebnis.grid(row=n + 1, column=0, columnspan=2, sticky="ew")
         if formel:
             WrapLabel(b, text=f"Formel: {formel}", font=config.FONT_KLEIN,
@@ -194,17 +220,19 @@ class FormelRechner(Karte):
             return
         text, ok = formel_auswerten(self.fr_definition, self.fr_funktion, werte)
         if ok:
-            self.fr_ergebnis.configure(text=text, text_color=config.FARBEN["akzent"])
+            self.fr_ergebnis.zeigen(text.split("\n"))
         else:
             self._fr_fehler(text)
 
     def _fr_fehler(self, text):
-        self.fr_ergebnis.configure(text=f"⚠ {text}", text_color=("#B45309", "#F59E0B"))
+        self.fr_ergebnis.fehler(text)
 
     def fr_leeren(self):
-        for feld in self.fr_felder.values():
+        """↺ Zurücksetzen: Felder leer, Einheiten und Auswahlfelder wieder wie beim Öffnen."""
+        for schluessel, feld in self.fr_felder.items():
             feld.leeren()
-        self.fr_ergebnis.configure(text="")
+            feld.zustand_setzen(self.fr_start[schluessel])
+        self.fr_ergebnis.leeren()
 
 
 # =============================================================================
@@ -277,6 +305,8 @@ class WertRegler(ctk.CTkFrame):
 
         self.wr_slider.set(self._wr_s(self._wr_im_slider(start)))
         self._wr_feld_schreiben()
+        self.wr_anfang = (von, bis, self.wr_grenzen, self.wr_basis[3], start)     # für zuruecksetzen()
+        self.wr_einheit_alt = self.wr_basis[3]
 
     # ---- von aussen ---------------------------------------------------------
     def wert(self):
@@ -296,6 +326,7 @@ class WertRegler(ctk.CTkFrame):
         self.wr_slider.configure(from_=self._wr_s(von), to=self._wr_s(bis), number_of_steps=self._wr_stufen())
         if self.wr_feld.ee_menue is not None and bis > 0:      # Einheit passend zum Bereich (5 s statt 5000 ms)
             self.wr_feld.ee_menue.set(einheiten.stufe_waehlen(bis, self.wr_typ)[0])
+            self.wr_einheit_alt = self.wr_feld.ee_menue.get()
         self._wr_basis_merken()
         self.setzen(min(max(self.wr_wert if wert is None else wert, von), bis))
 
@@ -308,19 +339,35 @@ class WertRegler(ctk.CTkFrame):
 
     def _wr_einheit_gewechselt(self):
         """Neue Einheit -> der Slider-Bereich gilt in DIESER Einheit (0 … 600 mV -> 0 … 600 V).
-        Der Wert bleibt gleich, wenn er in den neuen Bereich passt, sonst rückt er an den Rand."""
+        Eine KLEINERE Einheit reicht bis zur nächsten (V -> mV: 0 … 1000 mV, einheiten.regler_bereich).
+        Der Wert bleibt gleich, wenn er in den neuen Bereich passt - sonst bleibt die ZAHL (230 V -> 230 mV)."""
         von, bis, grenzen, start_einheit = self.wr_basis
+        neue_einheit = self.wr_feld.ee_menue.get()
         self.wr_von, self.wr_bis, self.wr_grenzen = einheiten.regler_bereich(
-            self.wr_typ, von, bis, grenzen, start_einheit, self.wr_feld.ee_menue.get())
+            self.wr_typ, von, bis, grenzen, start_einheit, neue_einheit)
         self.wr_slider.configure(from_=self._wr_s(self.wr_von), to=self._wr_s(self.wr_bis),
                                  number_of_steps=self._wr_stufen())
-        alt = self.wr_wert
-        self.wr_wert = self._wr_im_slider(alt)
+        vorher = self.wr_wert
+        # passt der Wert nicht in den neuen Bereich -> dieselbe ZAHL in der neuen Einheit (230 V -> 230 mV)
+        self.wr_wert = einheiten.wert_bei_einheitenwechsel(vorher, self.wr_typ, self.wr_einheit_alt or neue_einheit,
+                                                           neue_einheit, self.wr_von, self.wr_bis)
+        self.wr_einheit_alt = neue_einheit
         self.wr_slider.set(self._wr_s(self.wr_wert))
         self._wr_feld_schreiben()
         self._wr_ok()
-        if self.wr_wert != alt and self.wr_funktion:
+        if self.wr_wert != vorher and self.wr_funktion:
             self.wr_funktion()
+
+    def zuruecksetzen(self):
+        """Wie beim Öffnen: Startwert, Start-Einheit, Start-Bereich (↺ Zurücksetzen der Schaltungen)."""
+        von, bis, grenzen, einheit, start = self.wr_anfang
+        if self.wr_feld.ee_menue is not None and einheit:
+            self.wr_feld.ee_menue.set(einheit)
+        self.wr_einheit_alt = einheit
+        self.wr_von, self.wr_bis, self.wr_grenzen = von, bis, grenzen
+        self.wr_slider.configure(from_=self._wr_s(von), to=self._wr_s(bis), number_of_steps=self._wr_stufen())
+        self._wr_basis_merken()
+        self.setzen(start)
 
     def _wr_s(self, wert):
         """Wert -> Slider-Position (bei log: Zehnerlogarithmus)."""

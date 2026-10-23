@@ -43,11 +43,11 @@ class SymbolReihe(ResponsiveGrid):
     def __init__(self, master, varianten):
         breiteste = max(v.min_breite for v in varianten)
         super().__init__(master, min_spaltenbreite=breiteste, max_spalten=len(varianten), abstand=16)
-        farbe = _symbolfarbe()
         for variante in varianten:
             zelle = ctk.CTkFrame(self, fg_color="transparent", corner_radius=0)
             zelle.grid_columnconfigure(0, weight=1)
-            ResponsiveCanvas(zelle, lambda c, w, h, f=variante.zeichnen: f(c, w, h, farbe),
+            # Farbe erst beim ZEICHNEN holen -> stimmt auch nach dem Umschalten Dark/Light
+            ResponsiveCanvas(zelle, lambda c, w, h, f=variante.zeichnen: f(c, w, h, _symbolfarbe()),
                              seitenverhaeltnis=variante.seitenverhaeltnis, max_hoehe=MAX_HOEHE).grid(
                 row=0, column=0, sticky="ew")
             WrapLabel(zelle, text=variante.text, font=config.FONT_KLEIN, anchor="center", justify="center",

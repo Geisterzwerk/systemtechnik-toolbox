@@ -32,8 +32,20 @@ INHALTE_SERVER = os.path.join(BASIS_PFAD, "server", "inhalte")          # -> Tab
 # -----------------------------------------------------------------------------
 # APP
 # -----------------------------------------------------------------------------
-APP_TITEL = "Systemtechnik HF Toolbox"
+APP_NAME = "SystemLab"               # EINZIGE Stelle für den Namen (Fenstertitel, Banner, Hilfe ...)
+APP_VERSION = "0.2 Beta"            # bei neuer Version hier UND in der Tester-Anleitung anpassen
+APP_TITEL = APP_NAME                # alter Name der Konstante (wird noch an einigen Stellen gelesen)
 APP_UNTERTITEL = "Dein Begleiter für Studium und Praxis"
+APP_ICON = os.path.join(BASIS_PFAD, "images", "systemlab.ico")       # Fenster-Icon (Windows)
+APP_LOGO = os.path.join(BASIS_PFAD, "images", "systemlab.png")       # dasselbe Logo als PNG
+
+TEXT_ZURUECKSETZEN = "↺ Zurücksetzen"   # Knopf bei Rechnern und Schaltungen: alles auf die Startwerte
+
+# Mausrad: so viele Pixel pro Raststufe (Windows: 1 Raststufe = delta 120). customtkinter allein: 20 px
+SCROLL_PIXEL_PRO_RAST = 60
+
+# Zoom (Ctrl + Mausrad, Ctrl + Plus / Minus, Ctrl + 0) - Stufen in Prozent
+ZOOM_STUFEN = (50, 67, 75, 90, 100, 110, 125, 150, 175, 200)
 FENSTER_GROESSE = "1300x820"
 FENSTER_MIN = (900, 600)          # kleiner wird das Fenster nicht
 
@@ -79,6 +91,11 @@ CODE_FARBEN = {
         "gefahr": "#B42318", "gefahr_bg": "#FEE4E2",
     },
 }
+
+def code_paar(name):
+    """Code-Farbe als Paar (Light, Dark) -> customtkinter wechselt sie beim Umschalten selbst."""
+    return (CODE_FARBEN["Light"][name], CODE_FARBEN["Dark"][name])
+
 
 # Fliesstexte (FormatText)
 TEXT_FARBEN = {

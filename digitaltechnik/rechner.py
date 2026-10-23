@@ -239,7 +239,7 @@ def _wahrheitstabelle(w):
 
 wahrheitstabelle = FormelDaten(
     "Wahrheitstabelle und Normalformen", "Schreibweisen: ¬A !A /A A'  ·  A·B A*B AB  ·  A+B  ·  A⊕B",
-    felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + /A·C"})],
+    felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + /A·C", "tastatur": "logik"})],
     berechnen=_wahrheitstabelle, formel="DNF = ODER der Minterme (1-Zeilen)     KNF = UND der Maxterme (0-Zeilen)")
 
 
@@ -260,8 +260,8 @@ def _ausdruck_vergleichen(w):
 
 ausdruck_vergleichen = FormelDaten(
     "Zwei Ausdrücke vergleichen", "Umformung prüfen (z.B. De Morgan) – alle Belegungen werden durchprobiert",
-    felder=[("a", "Ausdruck 1", "text", {"platzhalter": "z.B. ¬(A·B)"}),
-            ("b", "Ausdruck 2", "text", {"platzhalter": "z.B. ¬A + ¬B"})],
+    felder=[("a", "Ausdruck 1", "text", {"platzhalter": "z.B. ¬(A·B)", "tastatur": "logik"}),
+            ("b", "Ausdruck 2", "text", {"platzhalter": "z.B. ¬A + ¬B", "tastatur": "logik"})],
     berechnen=_ausdruck_vergleichen, formel="De Morgan: ¬(A·B) = ¬A + ¬B     ¬(A + B) = ¬A·¬B")
 
 
@@ -347,7 +347,7 @@ def _mux_funktion(w):
 
 mux_funktion = FormelDaten(
     "Logikfunktion mit Multiplexer", "Auswahl = erste Variablen, an D_i kommt die Restfunktion",
-    felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + ¬A·C"}),
+    felder=[("ausdruck", "Ausdruck Y =", "text", {"platzhalter": "z.B. A·B + ¬A·C", "tastatur": "logik"}),
             ("k", "Auswahlleitungen", "auswahl", {"werte": ["automatisch (n − 1)", "1", "2", "3", "4"]})],
     berechnen=_mux_funktion, formel="Y = Σ (Auswahl = i) · D_i     (Shannon-Zerlegung)")
 

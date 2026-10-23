@@ -138,6 +138,48 @@ def texte_lesen(felder, texte, einheiten_wahl=None):
     return werte
 
 
+def formel_hilfe(felder, berechnen, formel=None, eigene=None):
+    """
+    Hilfetext für einen Formel-Rechner (❓-Knopf), im Format von FormatText (## Überschrift, - Punkt).
+    Ohne eigenen Text entsteht er automatisch aus der Definition:
+      - "Nötig": die Meldung, die der Rechner bei LEEREN Feldern zeigt (z.B. "Genau DREI von U1, U2, N1, N2")
+      - die Eingabefelder mit Einheit
+      - die Formel
+    """
+    zeilen = ["## Was muss rein?"]
+    leer = {}
+    for eintrag in felder:
+        opt = feld_optionen(eintrag)
+        leer[eintrag[0]] = (opt.get("standard") or opt["werte"][0]) if eintrag[2] == "auswahl" else None
+    meldung, ok = formel_auswerten(felder, berechnen, leer)
+    if eigene:
+        zeilen.append(eigene)
+    elif not ok and "Division durch 0" not in meldung:
+        zeilen.append(f"**{meldung.rstrip('.!')}.** Leere Felder bleiben leer – der Rechner nimmt nur, was du eingibst.")
+    else:
+        zeilen.append("Die Felder ausfüllen, die du kennst. Leere Felder bleiben leer.")
+    zeilen.append("## Eingaben")
+    for eintrag in felder:
+        schluessel, beschriftung, typ = eintrag[:3]
+        opt = feld_optionen(eintrag)
+        if typ == "auswahl":
+            zeilen.append(f"- **{beschriftung}**: Auswahl ({', '.join(opt['werte'][:5])}{' …' if len(opt['werte']) > 5 else ''})")
+        elif typ == "text":
+            zeilen.append(f"- **{beschriftung}**: Text" + (f", z.B. `{opt['platzhalter']}`" if opt.get("platzhalter") else ""))
+        else:
+            einheiten_liste = [n for n, _ in einheiten.EINHEITEN[typ]["stufen"] if n.strip()]
+            mehrere = "  ·  mehrere Werte mit Leerzeichen getrennt" if opt.get("liste") else ""
+            in_einheit = f" in {' / '.join(einheiten_liste[:5])}" if einheiten_liste else ""
+            zeilen.append(f"- **{beschriftung}**{in_einheit}{mehrere}")
+    if formel:
+        zeilen.append("## Formel")
+        zeilen.append(f"`{formel}`")
+    zeilen.append("## Bedienung")
+    zeilen.append("- Einheit rechts im Feld wählen – oder direkt tippen: `4k7`, `2.2M`, `470m`, `100n` (getippte Einheit gilt)")
+    zeilen.append("- **Enter** oder **Berechnen** rechnet, **↺ Zurücksetzen** leert alle Felder")
+    return "\n".join(zeilen)
+
+
 # =============================================================================
 # FORMEL-RECHNER ALS DATEN
 # =============================================================================
@@ -154,21 +196,27 @@ class FormelDaten:
     formel    kleiner grauer Text unter dem Ergebnis, z.B. "R = U / I"
     """
 
-    def __init__(self, titel, untertitel, felder, berechnen, formel=None):
+    def __init__(self, titel, untertitel, felder, berechnen, formel=None, hilfe=None):
         self.titel = titel
         self.untertitel = untertitel
         self.felder = felder
         self.berechnen = berechnen
         self.formel = formel
+        self.hilfe = hilfe                    # eigener Hilfetext (optional) - sonst entsteht er automatisch
 
     def __call__(self, master):
         """Karte im Fenster bauen. basis.py (mit customtkinter) wird erst JETZT geladen."""
         from bauteile.rechner.basis import FormelRechner          # -> rechner/basis.py
-        return FormelRechner(master, self.titel, self.untertitel, self.felder, self.berechnen, self.formel)
+        return FormelRechner(master, self.titel, self.untertitel, self.felder, self.berechnen, self.formel,
+                             hilfe=self.hilfetext)
 
     def auswerten(self, werte):
         """Rechnen ohne Fenster -> (text, ok)"""
         return formel_auswerten(self.felder, self.berechnen, werte)
+
+    def hilfetext(self):
+        """Text für den ❓-Knopf: was muss rein, welche Felder, welche Formel (siehe formel_hilfe)."""
+        return formel_hilfe(self.felder, self.berechnen, self.formel, self.hilfe)
 
     def __repr__(self):
         return f"FormelDaten({self.titel!r})"

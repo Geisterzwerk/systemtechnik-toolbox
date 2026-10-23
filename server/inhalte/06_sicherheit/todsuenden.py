@@ -51,7 +51,7 @@ Ein Server im Internet wird **innerhalb von Minuten** nach dem Einschalten von B
 
     "beispiele": [
         {"titel": "So sehen die gefährlichen Befehle aus (rot markiert – NICHT ausführen)",
-         "text": "Diese Befehle erkennt die Toolbox automatisch und hinterlegt sie rot – auch auf allen anderen Seiten.",
+         "text": "Diese Befehle erkennt SystemLab automatisch und hinterlegt sie rot – auch auf allen anderen Seiten.",
          "code": {"Bash": r'''rm -rf /$ORDNER             # ist $ORDNER leer: löscht alles
 sudo chmod -R 777 /var/www  # jeder darf alles
 sudo ufw disable            # Firewall aus

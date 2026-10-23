@@ -1,7 +1,7 @@
 # =============================================================================
 # main.py   <-  DIESE DATEI STARTEN  (F5 in VS Code  oder  "python main.py")
 # -----------------------------------------------------------------------------
-# Das Hauptfenster der Systemtechnik HF Toolbox.
+# Das Hauptfenster von SystemLab (Name und Version: config.APP_NAME / APP_VERSION).
 #
 # ORDNERSTRUKTUR:
 #   main.py                  <- Hauptfenster + Umschalten der Bereiche
@@ -35,24 +35,26 @@ from datetime import datetime
 import customtkinter as ctk
 
 import config                                   # -> config.py
-from core import benutzerdaten                  # -> core/benutzerdaten.py (Zuletzt geöffnet, Favoriten)
+from core import benutzerdaten                  # -> core/benutzerdaten.py (Zuletzt geöffnet, Favoriten, Einstellungen)
+from core import layout                         # -> core/layout.py (modus_gewechselt: Grafiken neu einfärben)
 from core.inhalte_index import BEREICH_ICON, BEREICH_TEXT    # -> core/inhalte_index.py
 from gui import (bauteile_gui, digitaltechnik_gui, messtechnik_gui,               # -> Ordner gui/
                  programmieren_gui, rechner_gui, schaltungen_gui, server_gui, startseite_gui)
 
-ctk.set_appearance_mode("Dark")        # "Dark", "Light" oder "System"
+ctk.set_appearance_mode(benutzerdaten.einstellung("modus", "Dark"))   # zuletzt gewählter Modus (Standard: Dark)
 ctk.set_default_color_theme("blue")
 
 # (Name, Datei mit create(), Icon, Beschreibung) -> neue Zeile = neuer Bereich
 # Icon und Beschreibung stehen in core/inhalte_index.py (die Webversion braucht sie auch)
+# Die Reihenfolge hier = Reihenfolge der Tabs (und der Kacheln auf der Startseite). Rechner ganz rechts.
 BEREICHE = [(name, modul, BEREICH_ICON[name], BEREICH_TEXT[name]) for name, modul in [
     ("Bauteile", bauteile_gui),
     ("Schaltungen", schaltungen_gui),
     ("Digitaltechnik", digitaltechnik_gui),
-    ("Rechner", rechner_gui),
     ("Programmieren", programmieren_gui),
     ("Messtechnik", messtechnik_gui),
     ("Server / Linux", server_gui),
+    ("Rechner", rechner_gui),
 ]]
 
 
@@ -61,7 +63,8 @@ class App(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        self.title(config.APP_TITEL)
+        self.title(f"{config.APP_NAME} {config.APP_VERSION}")
+        self._icon_setzen()
         self.geometry(config.FENSTER_GROESSE)
         self.minsize(*config.FENSTER_MIN)
         self.configure(fg_color=config.FARBEN["hintergrund"])
@@ -83,7 +86,39 @@ class App(ctk.CTk):
         self.startseite = ctk.CTkFrame(self, fg_color=config.FARBEN["hintergrund"], corner_radius=0)
         self.startseite_inhalt = startseite_gui.create(self.startseite, self)
 
+        self._tastenkuerzel()
         self.show_startseite()
+
+    # =========================================================================
+    # TASTENKÜRZEL (einmal zentral, gelten überall)
+    # =========================================================================
+    def _tastenkuerzel(self):
+        """
+        Ctrl+K   Suche auf der Startseite (von überall, auch mit Caps Lock / Shift = "K")
+        Ctrl+Mausrad, Ctrl+Plus/Minus, Ctrl+0   Zoom (core/zoom.py)
+        bind_all  -> gilt in jedem Widget.
+        bind_class Entry/Text -> ERSETZT die eingebaute Tk-Belegung (Ctrl+K löscht dort sonst bis Zeilenende)
+                     und "break" verhindert, dass der Befehl doppelt läuft.
+        """
+        for taste in ("k", "K"):
+            folge = f"<Control-{taste}>"
+            self.bind_all(folge, self.suche_oeffnen)
+            for klasse in ("Entry", "Text"):
+                self.bind_class(klasse, folge, self.suche_oeffnen)
+
+    def suche_oeffnen(self, _event=None):
+        """Ctrl+K: Startseite zeigen, ins grosse Suchfeld springen, alten Suchtext markieren."""
+        self.show_startseite()
+        self.startseite_inhalt.suche.fokus()
+        return "break"
+
+    def _icon_setzen(self):
+        """Fenster-Icon (Titelleiste + Taskleiste). Fehlt die Datei, bleibt das Standard-Icon - kein Absturz."""
+        if os.path.exists(config.APP_ICON):
+            try:
+                self.iconbitmap(config.APP_ICON)       # customtkinter setzt danach kein eigenes Icon mehr
+            except Exception as fehler:                # z.B. auf Linux (kein .ico) -> egal
+                print("[Icon]", fehler)
 
     def _bereich_erstellen(self, name):
         """Bereich beim ersten Öffnen bauen -> gui/<bereich>_gui.py create(parent, app)."""
@@ -115,12 +150,15 @@ class App(ctk.CTk):
         return eintrag
 
     def modus_wechseln(self, dunkel):
-        """Dark/Light Mode (Schalter auf der Startseite)."""
-        ctk.set_appearance_mode("Dark" if dunkel else "Light")
-        # tk.Text / tk.Canvas passen sich nicht automatisch an -> Programmier-Seite neu zeichnen
-        seite = self.seiten.get("Programmieren")
-        if seite is not None and seite.aktuelles_thema:
-            seite.thema_oeffnen(seite.aktuelles_thema, verlauf_merken=False)
+        """Dark/Light Mode (Schalter auf der Startseite).
+        customtkinter wechselt alle Farbpaare selbst. tk.Canvas (Grafiken, Schaltpläne, Banner, Symbole)
+        und tk.Text (Fliesstext, Code) können das nicht -> core/layout.py modus_gewechselt() geht ALLE
+        Widgets durch (offene Seite, versteckte Tabs, Startseite) und zeichnet sie neu.
+        Bilder mit heller Variante (bild_hell.png) wechselt customtkinter ebenfalls selbst."""
+        modus = "Dark" if dunkel else "Light"
+        ctk.set_appearance_mode(modus)
+        layout.modus_gewechselt(self)
+        benutzerdaten.einstellung_setzen("modus", modus)
 
 
 # -----------------------------------------------------------------------------

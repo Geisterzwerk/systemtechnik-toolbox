@@ -1,7 +1,8 @@
 # =============================================================================
 # core/benutzerdaten.py
 # -----------------------------------------------------------------------------
-# "ZULETZT GEÖFFNET" und "FAVORITEN" - werden in benutzerdaten.json gespeichert (EXE: %LOCALAPPDATA%\SystemLab)
+# "ZULETZT GEÖFFNET", "FAVORITEN" und EINSTELLUNGEN (Dark Mode, Zoom, Breite der Seitenliste)
+# - werden in benutzerdaten.json gespeichert (EXE: %LOCALAPPDATA%\SystemLab)
 # (steht in .gitignore, gehört also nur dir).
 #
 # Ein Eintrag ist ein kleines dict:
@@ -49,11 +50,27 @@ def _laden():
 
 
 def _speichern():
+    """Sicher speichern: erst in eine Zwischendatei, dann in EINEM Schritt ersetzen.
+    Stürzt das Programm beim Schreiben ab, bleibt die alte Datei ganz (nie eine halbe Datei)."""
+    zwischen = DATEI + ".tmp"
     try:
-        with open(DATEI, "w", encoding="utf-8") as f:
+        with open(zwischen, "w", encoding="utf-8") as f:
             json.dump(_laden(), f, ensure_ascii=False, indent=1)
+        os.replace(zwischen, DATEI)
     except OSError as fehler:                                         # z.B. schreibgeschützter Ordner
         print("[Benutzerdaten] konnte nicht speichern:", fehler)
+
+
+# ---- Einstellungen (Dark Mode, Zoom, Breite der Seitenliste ...) ----
+def einstellung(name, standard=None):
+    return _laden().get("einstellungen", {}).get(name, standard)
+
+
+def einstellung_setzen(name, wert):
+    daten = _laden()
+    if daten.setdefault("einstellungen", {}).get(name) != wert:
+        daten["einstellungen"][name] = wert
+        _speichern()
 
 
 def _schluessel(eintrag):

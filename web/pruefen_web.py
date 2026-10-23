@@ -141,12 +141,14 @@ else:
     ok += 1
 
 # ---- 2c) Einheit wechseln: der Slider-Bereich gilt in der neuen Einheit ---------
-#   Messreihe "syst": -100 … 100 mV. Mit V: -100 … 100 V, mit µV: -100 … 100 µV.
+#   Messreihe "syst": -100 … 100 mV. Mit V: -100 … 100 V. Mit µV (kleinere Einheit): bis zur nächsten
+#   Einheit, also -1000 … 1000 µV. Passt der Wert nicht, bleibt die ZAHL (50 mV -> 50 µV).
 EINHEIT_FAELLE = [
     # (Adresse-Teil, muss enthalten, darf nicht enthalten)
     ("syst=30&messreihe-syst-e=V&messreihe-syst-ea=mV", ['value="0.03"', 'max="100.0"'], ["⚠"]),   # Wert bleibt
     ("syst=50&messreihe-syst-e=V&messreihe-syst-ea=V", ['value="50"'], ["⚠"]),                    # 50 V erlaubt
-    ("syst=50&messreihe-syst-e=µV&messreihe-syst-ea=mV", ['value="100"', 'max="0.0001"'], ["⚠"]),  # an den Rand
+    ("syst=50&messreihe-syst-e=µV&messreihe-syst-ea=mV", ['value="50"', 'max="0.001"', 'min="-0.001"'], ["⚠"]),
+    ("syst=0.5&messreihe-syst-e=µV&messreihe-syst-ea=mV", ['value="500"'], ["⚠"]),                # passt -> bleibt
     ("syst=5000&messreihe-syst-e=V&messreihe-syst-ea=V", ["⚠"], []),                              # > Grenze 1000 V
 ]
 for teil, muss, nicht in EINHEIT_FAELLE:

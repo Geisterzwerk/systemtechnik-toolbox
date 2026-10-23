@@ -33,6 +33,7 @@
 # =============================================================================
 
 import math
+import sys
 import time
 import tkinter as tk
 
@@ -150,9 +151,51 @@ class Responsive:
 
 
 # =============================================================================
+# SCROLL-BEREICH: schnelleres Mausrad + sauberes Ziehen der Scrollleiste
+# =============================================================================
+class Scrollbereich(ctk.CTkScrollableFrame):
+    """
+    Wie ctk.CTkScrollableFrame, aber:
+      - Mausrad: config.SCROLL_PIXEL_PRO_RAST Pixel pro Raststufe (customtkinter allein: nur 20 px
+        auf Windows -> sehr langsam). Touchpads liefern kleine Schritte - die werden aufsummiert,
+        damit auch langsames Wischen ankommt.
+      - Ctrl + Mausrad scrollt NICHT (das ist der Zoom, main.py)
+      - Scrollleiste ziehen: nach jedem Schritt sofort neu zeichnen (update_idletasks). Vorher kam
+        Windows beim schnellen Ziehen nicht nach und zeigte Reste der alten Bilder ("Doppeleffekt").
+      - Mittlere Maustaste auf der Scrollleiste: Standard von tkinter (springt an die Stelle) - bleibt.
+    WER BENUTZT DAS?  ScrollSeite (unten) und die Seitenlisten links (core/navigation.py)
+    """
+
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self._sb_rest = 0.0                                           # angefangene Touchpad-Schritte
+        self._scrollbar.configure(command=self._sb_gezogen)
+
+    def _sb_gezogen(self, *args):
+        self._parent_canvas.yview(*args)
+        self._parent_canvas.update_idletasks()
+
+    def _mouse_wheel_all(self, event):
+        # (Name von customtkinter vorgegeben - wird für JEDES Mausrad-Ereignis im Fenster aufgerufen)
+        if event.state & 0x4:                                         # Ctrl gedrückt -> Zoom, nicht scrollen
+            return
+        if not sys.platform.startswith("win") or self._shift_pressed:
+            return super()._mouse_wheel_all(event)
+        if not self._check_if_valid_scroll(event.widget) or self._parent_canvas.yview() == (0.0, 1.0):
+            return
+        # Windows: yscrollincrement = 1 -> "units" sind Pixel. 1 Raststufe = delta 120.
+        self._sb_rest += -event.delta / 120 * config.SCROLL_PIXEL_PRO_RAST * self._get_widget_scaling()
+        schritte = int(self._sb_rest)
+        if schritte:
+            self._sb_rest -= schritte
+            self._parent_canvas.yview("scroll", schritte, "units")
+            self._parent_canvas.update_idletasks()
+
+
+# =============================================================================
 # SCROLL-SEITE
 # =============================================================================
-class ScrollSeite(ctk.CTkScrollableFrame):
+class ScrollSeite(Scrollbereich):
     """
     Scrollbarer Inhaltsbereich. EIN Objekt pro Bereich, die Seiten werden darin
     ausgetauscht:
@@ -252,15 +295,20 @@ class Karte(ctk.CTkFrame):
     """
     Kasten mit Rahmen, optionalem Titel/Untertitel. Inhalt kommt in karte.body
     (Spalte 0 von body hat weight=1 -> Inhalt kann mitwachsen).
+
+    hilfe   Text (oder Funktion, die den Text liefert) -> kleiner ❓-Knopf oben rechts:
+            Maus darüber = Tooltip, Klick = Hilfe in der Karte auf- und zuklappen.
     """
 
-    def __init__(self, master, titel=None, untertitel=None, **kwargs):
+    def __init__(self, master, titel=None, untertitel=None, hilfe=None, **kwargs):
         kwargs.setdefault("fg_color", config.FARBEN["flaeche"])
         kwargs.setdefault("border_color", config.FARBEN["rahmen"])
         kwargs.setdefault("border_width", 1)
         kwargs.setdefault("corner_radius", 10)
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
+        self.karte_hilfe = hilfe
+        self.karte_hilfe_feld = None
 
         zeile = 0
         if titel:
@@ -271,11 +319,37 @@ class Karte(ctk.CTkFrame):
             WrapLabel(self, text=untertitel, font=config.FONT_KLEIN, text_color=config.FARBEN["text_leise"]) \
                 .grid(row=zeile, column=0, sticky="ew", padx=16, pady=(2, 0))
             zeile += 1
+        if hilfe:
+            from core.widgets import Tooltip                     # -> core/widgets.py (erst hier: kein Kreis-Import)
+            knopf = ctk.CTkButton(self, text="❓", width=30, height=28, corner_radius=14, fg_color="transparent",
+                                  border_width=1, border_color=config.FARBEN["rahmen"],
+                                  text_color=config.FARBEN["text"], hover_color=config.FARBEN["rahmen"],
+                                  command=self.hilfe_umschalten)
+            knopf.grid(row=0, column=1, sticky="ne", padx=(4, 12), pady=(12, 0))
+            Tooltip(knopf, "So funktioniert das (Klick = Hilfe ein-/ausblenden)")
+            self.karte_hilfe_zeile = zeile
+            zeile += 1
 
         self.grid_rowconfigure(zeile, weight=1)
         self.body = ctk.CTkFrame(self, fg_color="transparent", corner_radius=0)
-        self.body.grid(row=zeile, column=0, sticky="nsew", padx=16, pady=(8 if zeile else 14, 14))
+        self.body.grid(row=zeile, column=0, columnspan=2, sticky="nsew", padx=16, pady=(8 if zeile else 14, 14))
         self.body.grid_columnconfigure(0, weight=1)
+
+    def hilfe_umschalten(self):
+        """❓ geklickt: Hilfetext in der Karte zeigen oder wieder verstecken."""
+        if self.karte_hilfe_feld is not None:
+            self.karte_hilfe_feld.destroy()
+            self.karte_hilfe_feld = None
+            return
+        text = self.karte_hilfe() if callable(self.karte_hilfe) else self.karte_hilfe
+        from core.widgets import FormatText                      # -> core/widgets.py
+        rahmen = ctk.CTkFrame(self, fg_color=config.FARBEN["tipp"], corner_radius=8)
+        rahmen.grid(row=self.karte_hilfe_zeile, column=0, columnspan=2, sticky="ew", padx=16, pady=(8, 0))
+        rahmen.grid_columnconfigure(0, weight=1)
+        feld = FormatText(rahmen, hintergrund="tipp")
+        feld.setze_text(text)
+        feld.grid(row=0, column=0, sticky="ew", padx=10, pady=8)
+        self.karte_hilfe_feld = rahmen
 
 
 # =============================================================================
@@ -372,14 +446,19 @@ class ResponsiveBild(ctk.CTkLabel, Responsive):
         super().__init__(master, text=text, text_color=config.FARBEN["text_leise"], **kwargs)
         self._max = min(max_breite or 10_000, pil.width if pil else 0)
         self._pil = None
+        self._pil_hell = None
         self._cache = {}
         self._aktuell = None
         if pil:
             # einmal verkleinern (max. 2x Anzeigebreite -> scharf auch bei 200 % Skalierung)
             ziel = min(pil.width, int(self._max * 2))
+            hell = bilder.hell_laden(pfad)                     # 'bild_hell.png' für den Light Mode (falls es sie gibt)
             if ziel < pil.width:
                 pil = pil.resize((ziel, int(pil.height * ziel / pil.width)))
+            if hell is not None and ziel < hell.width:
+                hell = hell.resize((ziel, int(hell.height * ziel / hell.width)))
             self._pil = pil
+            self._pil_hell = hell
             self.responsive_starten()
 
     def anpassen(self, breite):
@@ -390,7 +469,8 @@ class ResponsiveBild(ctk.CTkLabel, Responsive):
         self._aktuell = b
         if b not in self._cache:
             h = max(1, int(b * self._pil.height / self._pil.width))
-            self._cache[b] = ctk.CTkImage(self._pil, self._pil, size=(b, h))
+            # light_image / dark_image -> customtkinter wechselt beim Umschalten des Modus selbst
+            self._cache[b] = ctk.CTkImage(light_image=self._pil_hell or self._pil, dark_image=self._pil, size=(b, h))
         self.configure(image=self._cache[b])
 
 
@@ -410,19 +490,58 @@ class ResponsiveCanvas(tk.Canvas, Responsive):
     """
 
     def __init__(self, master, zeichnen, seitenverhaeltnis=0.4, max_hoehe=460, **kwargs):
-        hell, dunkel = config.FARBEN["flaeche"]
-        super().__init__(master, width=1, height=200, highlightthickness=0,
-                         bg=dunkel if ctk.get_appearance_mode() == "Dark" else hell, **kwargs)
+        super().__init__(master, width=1, height=200, highlightthickness=0, bg=self._rc_hintergrund(), **kwargs)
         self.zeichnen = zeichnen
         self.verhaeltnis = seitenverhaeltnis
         self.max_hoehe = max_hoehe
+        self.rc_groesse = None                 # (breite, hoehe) der letzten Zeichnung
         self.responsive_starten()
+
+    @staticmethod
+    def _rc_hintergrund():
+        hell, dunkel = config.FARBEN["flaeche"]
+        return dunkel if ctk.get_appearance_mode() == "Dark" else hell
 
     def anpassen(self, breite):
         hoehe = min(int(breite * self.verhaeltnis), self.max_hoehe)
         self.configure(height=hoehe)           # nur Höhe -> löst keine neue Breite aus
+        self.rc_groesse = (breite, hoehe)
         self.delete("all")
         self.zeichnen(self, breite, hoehe)
+
+    def modus_gewechselt(self):
+        """Dark/Light gewechselt (main.py -> modus_gewechselt): Hintergrund neu + alles neu zeichnen.
+        tk.Canvas kennt keine Farbpaare - darum muss das von Hand passieren."""
+        self.configure(bg=self._rc_hintergrund())
+        if self.rc_groesse:
+            self.delete("all")
+            self.zeichnen(self, *self.rc_groesse)
+
+
+# =============================================================================
+# MODUS-WECHSEL (Dark / Light) für Widgets, die keine Farbpaare kennen
+# =============================================================================
+def modus_gewechselt(wurzel):
+    """
+    Nach ctk.set_appearance_mode(...): JEDES Widget unter 'wurzel' (auch Unterfenster), das eine
+    Methode modus_gewechselt() hat, passt sich an - die gerade offene Seite, versteckte Tabs und
+    die Startseite. customtkinter-Widgets mit Farbpaaren (hell, dunkel) wechseln von selbst;
+    tk.Canvas (Grafiken, Schaltpläne, Banner) und tk.Text (Fliesstext, Code) brauchen das hier.
+    WER RUFT DAS AUF?  main.py -> App.modus_wechseln()
+    """
+    stapel = [wurzel]
+    while stapel:
+        widget = stapel.pop()
+        funktion = getattr(widget, "modus_gewechselt", None)
+        if callable(funktion) and widget is not wurzel:
+            try:
+                funktion()
+            except Exception as fehler:                       # ein Widget darf nicht alles stoppen
+                print(f"[modus] {type(widget).__name__}: {fehler}")
+        try:
+            stapel.extend(widget.winfo_children())
+        except Exception:
+            pass
 
 
 # =============================================================================
@@ -436,33 +555,44 @@ class Tabelle(ctk.CTkFrame, Responsive):
         Tabelle(body, kopf=["Typ", "Bit"], zeilen=[["int", "32"], ["char", "8"]])
     """
 
+    # Zellen sind einfache tk.Label (nicht CTkLabel): eine Tabelle hat schnell 100+ Zellen, und jedes
+    # CTkLabel bringt eine eigene Zeichenfläche mit -> Scrollen wird träge. Farben: modus_gewechselt().
+
     def __init__(self, master, kopf, zeilen, **kwargs):
         super().__init__(master, fg_color="transparent", corner_radius=0, **kwargs)
         self.n = max([len(kopf)] + [len(z) for z in zeilen] + [1])
         for s in range(self.n):
             self.grid_columnconfigure(s, weight=1, uniform="tabelle")
-        self._zellen = []
+        self._zellen = []                    # (label, farb_name)
         self._wl = 150
 
         for s, text in enumerate(kopf):
-            self._zelle(0, s, text, (config.SCHRIFT, 12, "bold"), config.FARBEN["tabelle_kopf"])
+            self._zelle(0, s, text, (config.SCHRIFT, 12, "bold"), "tabelle_kopf")
         for z, zeile in enumerate(zeilen, start=1):
-            farbe = config.FARBEN["tabelle_zeile"] if z % 2 == 0 else "transparent"
+            farbe = "tabelle_zeile" if z % 2 == 0 else "flaeche"
             for s, text in enumerate(zeile):
                 schrift = (config.SCHRIFT_CODE, 12, "bold") if s == 0 else config.FONT_KLEIN
                 self._zelle(z, s, text, schrift, farbe)
+        self.modus_gewechselt()
         self.responsive_starten()
 
-    def _zelle(self, zeile, spalte, text, schrift, farbe):
-        label = ctk.CTkLabel(self, text=f" {text}", font=schrift, fg_color=farbe, corner_radius=0,
-                             text_color=config.FARBEN["text"], anchor="w", justify="left",
-                             wraplength=self._wl)
+    def _zelle(self, zeile, spalte, text, schrift, farb_name):
+        label = tk.Label(self, text=f" {text}", font=schrift, anchor="w", justify="left", wraplength=self._wl,
+                         borderwidth=0, padx=2, pady=3)
         label.grid(row=zeile, column=spalte, sticky="nsew", padx=1, pady=0)
-        self._zellen.append(label)
+        self._zellen.append((label, farb_name))
+
+    def modus_gewechselt(self):
+        """Farben für Dark/Light (beim Erstellen und nach jedem Umschalten, siehe modus_gewechselt() oben)."""
+        i = 1 if ctk.get_appearance_mode() == "Dark" else 0
+        text = config.FARBEN["text"][i]
+        for label, farb_name in self._zellen:
+            label.configure(bg=config.FARBEN[farb_name][i], fg=text)
 
     def anpassen(self, breite):
-        wl = max(50, int(breite / self._skalierung() / self.n) - 14)
+        # tk.Label rechnet in echten Pixeln (inkl. Windows-Skalierung)
+        wl = max(50, int(breite / self.n - 14 * self._skalierung()))
         if abs(wl - self._wl) > 3:
             self._wl = wl
-            for label in self._zellen:
+            for label, _farbe in self._zellen:
                 label.configure(wraplength=wl)

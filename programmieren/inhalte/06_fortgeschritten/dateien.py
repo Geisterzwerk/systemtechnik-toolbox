@@ -183,7 +183,7 @@ class Einstellungen
 
     "tipps": [
         "Pfade in Python mit `os.path.join()` oder `pathlib.Path` zusammenbauen, das funktioniert unter Windows UND Linux.",
-        "Relative Pfade (`\"log.txt\"`) beziehen sich auf den Ordner, aus dem das Programm GESTARTET wird, und nicht auf den Ordner des Skripts. Deshalb nutzt diese Toolbox `config.BASIS_PFAD`.",
+        "Relative Pfade (`\"log.txt\"`) beziehen sich auf den Ordner, aus dem das Programm GESTARTET wird, und nicht auf den Ordner des Skripts. Deshalb nutzt SystemLab `config.BASIS_PFAD`.",
     ],
     "fehler": [
         "Modus `\"w\"` statt `\"a\"`: Die ganze bisherige Messreihe ist weg!",

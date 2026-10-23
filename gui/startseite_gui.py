@@ -58,8 +58,7 @@ class Startseite:
         s = Stapel(body)
 
         s.add(Banner(body), pady=(14, 0))
-        self.suche = s.add(gesamtsuche.SuchLeiste(body, app), pady=(16, 18))
-        app.bind("<Control-k>", lambda _e: self._suche_fokus(), add="+")
+        self.suche = s.add(gesamtsuche.SuchLeiste(body, app), pady=(16, 18))     # Ctrl+K -> main.py suche_oeffnen
 
         self.persoenlich = s.add(ctk.CTkFrame(body, fg_color="transparent", corner_radius=0), pady=(0, 6))
         self.persoenlich.grid_columnconfigure(0, weight=1)
@@ -84,10 +83,6 @@ class Startseite:
         self.aktualisieren()
 
     # =========================================================================
-    def _suche_fokus(self):
-        self.app.show_startseite()
-        self.suche.fokus()
-
     def aktualisieren(self):
         """Favoriten, Zuletzt geöffnet und Schaltung des Tages neu zeichnen (main.py -> show_startseite)."""
         self._persoenlich_zeichnen()

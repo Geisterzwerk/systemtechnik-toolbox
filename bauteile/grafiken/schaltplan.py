@@ -74,10 +74,13 @@ def ist_dunkel(c):
 class Schaltplan:
     """Zeichnet auf ein Canvas (tk.Canvas oder SvgCanvas) in Raster-Einheiten. Siehe Beispiel oben."""
 
-    def __init__(self, c, w, h, spalten, zeilen, rand=0.7):
+    def __init__(self, c, w, h, spalten, zeilen, rand=0.7, pfeile=True):
         self.c = c
         self.breite, self.hoehe = w, h                        # Pixel - für Modelle, die frei zeichnen (Diagramme)
         self.dunkel = ist_dunkel(c)
+        self.pfeile = pfeile                                  # False -> Strom-/Spannungspfeile weglassen (Schalter)
+        self.pfeil_anzahl = 0                                 # wie viele Pfeile der Plan zeichnen WOLLTE
+        self.klickbereiche = []                               # [(x0, y0, x1, y1, aktion)] in Pixel (klickbereich())
         # rand: zusätzlicher Platz links UND rechts (für Beschriftungen, die über den Plan hinausgehen)
         self.u = min(w / (spalten + 2 * rand), h / zeilen)    # Pixel pro Raster-Einheit
         self.x0 = (w - spalten * self.u) / 2                  # zentrieren
@@ -548,8 +551,16 @@ class Schaltplan:
         dx = 0.28 if seite == "rechts" else -0.28
         self.text(x + dx, y - 0.28, name, "sw" if seite == "rechts" else "se", farbe=MESSPUNKT, fett=True)
 
+    def klickbereich(self, x0, y0, x1, y1, aktion):
+        """Rechteck in PIXEL, das man anklicken kann (z.B. ein KV-Feld). Im Fenster ruft ein Klick
+        Modell.sk_klick(aktion, ...) auf (bauteile/grafiken/schaltung_karte.py). Im Web/SVG ohne Wirkung."""
+        self.klickbereiche.append((min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1), aktion))
+
     def spannung(self, x, y1, y2, text, seite="rechts", farbe=SPANNUNG):
         """Spannungspfeil senkrecht von y1 (+) nach y2 (−), Text daneben."""
+        self.pfeil_anzahl += 1
+        if not self.pfeile:
+            return
         (px, a), (_, b) = self.p(x, y1), self.p(x, y2)
         self.c.create_line(px, a, px, b, fill=farbe, width=self.dick, arrow="last",
                            arrowshape=(self.u * 0.3, self.u * 0.34, self.u * 0.12))
@@ -558,6 +569,9 @@ class Schaltplan:
 
     def strom(self, x1, y1, x2, y2, text, seite=None, farbe=STROM):
         """Strompfeil auf einer Leitung von (x1,y1) Richtung (x2,y2), Text daneben."""
+        self.pfeil_anzahl += 1
+        if not self.pfeile:
+            return
         (a, b), (c, d) = self.p(x1, y1), self.p(x2, y2)
         self.c.create_line(a, b, c, d, fill=farbe, width=self.dick + 1, arrow="last",
                            arrowshape=(self.u * 0.3, self.u * 0.34, self.u * 0.13))
@@ -608,12 +622,21 @@ class SchaltungsModell:
       sk_zeichnen(p, w, e, v)  zeichnet den Plan mit Schaltplan p
       sk_info(w, e, v)      -> (zeilen, farbe) für das Ergebnis unter der Grafik
 
+    OPTIONAL:
+      HILFE                 eigener Text für den ❓-Knopf (sonst: allgemeine Bedienung)
+      KNOEPFE               [(text, aktion), ...] kleine Knöpfe unter den Reglern, z.B. ("2τ", "tau2").
+                            Klick -> sk_knopf(aktion, w, e, v) gibt {schluessel: neuer_wert} zurück.
+      sk_klick(aktion, w, e, v)  Klick in einen Bereich, den sk_zeichnen mit p.klickbereich(...) markiert hat
+                            (z.B. KV-Feld 0 -> 1 -> X). Rückgabe wie sk_knopf. Nur im Fenster.
+      TEXTFELDER-Option {"tastatur": "logik"}  -> Tastenleiste A B C D ¬ · + ( ) ⌫ unter dem Feld
+
     Im Fenster:  SchaltungsKarte(master, Modell())   -> bauteile/grafiken/schaltung_karte.py
                  (oder kurz: Modell.karte_bauen(master), so ruft es GrafikVerweis auf)
     Im Web:      schaltung_svg(Modell, werte, variante) -> bauteile/grafiken/svg_canvas.py
     """
 
-    TITEL = UNTERTITEL = ERKLAERUNG = ""
+    TITEL = UNTERTITEL = ERKLAERUNG = HILFE = ""
+    KNOEPFE = []
     VARIANTEN = []
     STARTWERTE = {}
     SCHALTER = []
@@ -651,3 +674,11 @@ class SchaltungsModell:
 
     def sk_info(self, w, e, v):
         return [], config.FARBEN["akzent"]
+
+    def sk_knopf(self, aktion, w, e, v):
+        """Knopf aus KNOEPFE geklickt -> {schluessel: neuer_wert} (leer = nichts ändern)."""
+        return {}
+
+    def sk_klick(self, aktion, w, e, v):
+        """Klickbereich angeklickt -> {schluessel: neuer_wert} (leer = nichts ändern)."""
+        return {}

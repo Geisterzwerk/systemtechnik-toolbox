@@ -4,7 +4,7 @@
 # Der Bereich RECHNER: alle Rechner an einem Ort - suchen, nach Thema oder A–Z.
 #
 #   ┌──────────────────────────────────────────────────────────────────────┐
-#   │ ⬅  🏠  ◀   🔍 [ Suche ... z.B. Tiefpass, Pt100, LED ]  [Thema | A–Z] │
+#   │ ☰ 🏠 📘 ◀  🔍 [ Suche ... z.B. Tiefpass, Pt100, LED ]  [Thema | A–Z] │
 #   ├───────────────────────┬──────────────────────────────────────────────┤
 #   │ 📘 Grundlagen       ▾ │  📘 Grundlagen › Gleichstrom                 │
 #   │   GLEICHSTROM         │  Ohm'sches Gesetz & Leistung                 │
@@ -32,6 +32,7 @@ from bauteile.rechner.rechner_info import (KATEGORIEN, RECHNER_INFO,   # -> baut
                                            seiten_mit_rechner, wissensseiten_laden)
 from core.benutzerdaten import FavoritKnopf                            # -> core/benutzerdaten.py
 from core.layout import Karte, ResponsiveGrid, ScrollSeite, Stapel, WrapLabel, seiten_kopf   # -> core/layout.py
+from core.navigation import KopfNavigation, Seitenleiste, listen_knopf  # -> core/navigation.py
 from core.widgets import Tooltip, info_box                             # -> core/widgets.py
 from programmieren.engine.suche import Suchmaschine                    # -> programmieren/engine/suche.py
 
@@ -95,10 +96,11 @@ class RechnerBereich(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
 
+        # Seitenliste links (einklappbar, Breite ziehbar) -> core/navigation.py
+        self.seitenleiste = Seitenleiste(self)
+        self.seitenleiste.grid(row=1, column=0, sticky="nsw")
+        self.navigation = self.seitenleiste.liste
         self._kopfleiste()
-        self.navigation = ctk.CTkScrollableFrame(self, width=250, corner_radius=0, fg_color=config.FARBEN["sidebar"])
-        self.navigation.grid(row=1, column=0, sticky="nsw")
-        self.navigation.grid_columnconfigure(0, weight=1)
         self.inhalt = ScrollSeite(self)                    # -> core/layout.py
         self.inhalt.grid(row=1, column=1, sticky="nsew")
 
@@ -111,28 +113,23 @@ class RechnerBereich(ctk.CTkFrame):
     def _kopfleiste(self):
         leiste = ctk.CTkFrame(self, fg_color=config.FARBEN["sidebar"], corner_radius=0)
         leiste.grid(row=0, column=0, columnspan=2, sticky="ew")
-        leiste.grid_columnconfigure(3, weight=1)
-        rahmen = dict(fg_color="transparent", border_width=1, border_color=config.FARBEN["rahmen"],
-                      text_color=config.FARBEN["text"])
-        for spalte, (text, befehl, tipp, stil) in enumerate([
-                ("⬅", self.app.show_startseite, "Zur Startseite", {}),
-                ("🏠", self._uebersicht_zeigen, "Übersicht aller Rechner", rahmen),
-                ("◀", self._zurueck, "Vorheriger Rechner", rahmen)]):
-            knopf = ctk.CTkButton(leiste, text=text, width=40, height=36, command=befehl, **stil)
-            knopf.grid(row=0, column=spalte, padx=(10 if spalte == 0 else 4, 4), pady=10)
-            Tooltip(knopf, tipp)
+        # ☰ 🏠 [Kategorie-/Bereichs-Icon] ◀  -> core/navigation.py
+        self.kopf = KopfNavigation(leiste, self.app, self.seitenleiste, "🧮", "Rechner",
+                                   uebersicht=self._uebersicht_knopf, zurueck=self._zurueck)
+        spalte = self.kopf.naechste_spalte
+        leiste.grid_columnconfigure(spalte, weight=1)
         self.suchfeld = ctk.CTkEntry(leiste, height=36, width=120, font=config.FONT_TEXT,
                                      placeholder_text="🔍  Rechner suchen ... z.B. Tiefpass, Pt100, LED, Kühlkörper")
-        self.suchfeld.grid(row=0, column=3, sticky="ew", padx=(10, 8))
+        self.suchfeld.grid(row=0, column=spalte, sticky="ew", padx=(10, 8))
         self.suchfeld.bind("<KeyRelease>", self._suche)
         self.suchfeld.bind("<Return>", self._suche_enter)
         self.suchfeld.bind("<Escape>", lambda e: self._suche_leeren())
         self.sortierschalter = ctk.CTkSegmentedButton(leiste, values=[THEMATISCH, ALPHABETISCH], height=36,
                                                       command=self._sortierung_setzen)
         self.sortierschalter.set(THEMATISCH)
-        self.sortierschalter.grid(row=0, column=4, padx=(0, 8))   # (kein Tooltip: CTkSegmentedButton kann kein bind)
+        self.sortierschalter.grid(row=0, column=spalte + 1, padx=(0, 8))   # (kein Tooltip: CTkSegmentedButton kann kein bind)
         self.favorit_knopf = FavoritKnopf(leiste, lambda: self.aktueller_eintrag)
-        self.favorit_knopf.grid(row=0, column=5, padx=(0, 12))
+        self.favorit_knopf.grid(row=0, column=spalte + 2, padx=(0, 12))
         Tooltip(self.favorit_knopf, "Rechner als Favorit merken (erscheint auf der Startseite)")
 
     # =========================================================================
@@ -150,10 +147,9 @@ class RechnerBereich(ctk.CTkFrame):
         return zeile + 1
 
     def _rechner_knopf(self, eintrag, zeile, einzug="      "):
-        knopf = ctk.CTkButton(self.navigation, text=f"{einzug}{eintrag.titel}", anchor="w", height=28,
-                              font=config.FONT_TEXT, fg_color="transparent", text_color=config.FARBEN["text"],
-                              hover_color=config.FARBEN["rahmen"],
-                              command=lambda e=eintrag: self.rechner_oeffnen(e.id))
+        knopf = listen_knopf(self.navigation, f"{einzug}{eintrag.titel}", lambda e=eintrag: self.rechner_oeffnen(e.id),
+                             titel=eintrag.titel, height=28, font=config.FONT_TEXT, fg_color="transparent",
+                             text_color=config.FARBEN["text"], hover_color=config.FARBEN["rahmen"])
         knopf.grid(row=zeile, column=0, sticky="ew", padx=4, pady=1)
         self.knoepfe[eintrag.id] = knopf
         return zeile + 1
@@ -244,21 +240,42 @@ class RechnerBereich(ctk.CTkFrame):
     # =========================================================================
     # INHALT (rechts)
     # =========================================================================
-    def _uebersicht_zeigen(self):
+    def _uebersicht_knopf(self):
+        """Übersicht-Knopf: bei einem Rechner -> Übersicht seiner Kategorie, sonst -> alle Rechner."""
+        eintrag = self.eintraege.get(self.aktueller)
+        if eintrag is not None:
+            self.kategorie_zeigen(eintrag.info["kategorie"])
+        else:
+            self._uebersicht_zeigen()
+
+    def kategorie_zeigen(self, kategorie):
+        """Nur die Rechner EINER Kategorie. ◀ führt zurück zum Rechner davor."""
+        if self.aktueller:
+            self.verlauf = (self.verlauf + [self.aktueller])[-30:]
+        self._uebersicht_zeigen(nur=kategorie)
+
+    def _uebersicht_zeigen(self, nur=None):
         self.aktueller = None
         self.aktueller_eintrag = None
         self.favorit_knopf.aktualisieren()
+        self.kopf.uebersicht_zeigen()
         self._markieren()
         body = self.inhalt.neue_seite()
         s = Stapel(body)
-        seiten_kopf(s, "🧮 Rechner", f"{len(self.eintraege)} Rechner in {len(KATEGORIEN)} Kategorien  ·  "
-                                     "dieselben Rechner wie auf den Wissensseiten – mit Link zur Erklärung")
+        if nur:
+            icon, beschreibung = KATEGORIEN[nur]
+            seiten_kopf(s, f"{icon} {nur}", beschreibung)
+        else:
+            seiten_kopf(s, "🧮 Rechner", f"{len(self.eintraege)} Rechner in {len(KATEGORIEN)} Kategorien  ·  "
+                                         "dieselben Rechner wie auf den Wissensseiten – mit Link zur Erklärung")
         fehlend = sorted(set(rechner.registry()) - set(self.eintraege))
-        if fehlend:
+        if fehlend and not nur:
             s.add(info_box(body, "⚠️ Rechner ohne Eintrag in rechner_info.py (erscheinen hier nicht)",
                            [", ".join(fehlend)], art="warnung"))
         grid = s.add(ResponsiveGrid(body, min_spaltenbreite=340, max_spalten=2))
         for kategorie, (icon, beschreibung) in KATEGORIEN.items():
+            if nur and kategorie != nur:
+                continue
             eintraege = [e for e in self.eintraege.values() if e.info["kategorie"] == kategorie]
             if not eintraege:
                 continue
@@ -276,6 +293,11 @@ class RechnerBereich(ctk.CTkFrame):
                               command=lambda e=eintrag: self.rechner_oeffnen(e.id)).grid(row=zeile, column=0,
                                                                                          sticky="ew", pady=1)
                 zeile += 1
+        if nur:
+            s.add(ctk.CTkButton(body, text="🧮 Rechner  ·  alle Kategorien  →", height=32, fg_color="transparent",
+                                border_width=1, border_color=config.FARBEN["rahmen"],
+                                text_color=config.FARBEN["akzent"], hover_color=config.FARBEN["rahmen"],
+                                command=self._uebersicht_zeigen), sticky="w")
 
     def rechner_oeffnen(self, rechner_id, verlauf_merken=True):
         eintrag = self.eintraege.get(rechner_id)
@@ -290,6 +312,7 @@ class RechnerBereich(ctk.CTkFrame):
             self.offene_kategorien.add(info["kategorie"])
             self._liste_zeichnen()
         self._markieren()
+        self.kopf.uebersicht_zeigen(KATEGORIEN[info["kategorie"]][0], f"Übersicht {info['kategorie']}")
 
         body = self.inhalt.neue_seite()
         s = Stapel(body)

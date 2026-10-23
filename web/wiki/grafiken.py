@@ -124,8 +124,9 @@ def _bedienung(klasse, rechner_id, eingaben):
         if eingabe not in (None, "") and not (gewechselt and schluessel in klasse.STARTWERTE.get(variante, {})):
             try:
                 neu = einheiten.text_zu_zahl(eingabe, typ, stufen[alt_einheit])
-                if neu is not None and alt_einheit != einheit:          # Wert bleibt, rückt höchstens an den Rand
-                    neu = min(max(neu, lo_s), hi_s)
+                if neu is not None and alt_einheit != einheit:
+                    # passt der Wert -> bleibt; sonst bleibt die Zahl (230 V -> 230 mV) - wie im Fenster
+                    neu = einheiten.wert_bei_einheitenwechsel(neu, typ, alt_einheit, einheit, lo_s, hi_s)
                 if neu is None:
                     fehler = "Bitte einen Wert eingeben"
                 elif not unten <= neu <= oben:
