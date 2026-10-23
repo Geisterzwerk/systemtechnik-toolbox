@@ -44,8 +44,6 @@ TEXT_ZURUECKSETZEN = "↺ Zurücksetzen"   # Knopf bei Rechnern und Schaltungen:
 # Mausrad: so viele Pixel pro Raststufe (Windows: 1 Raststufe = delta 120). customtkinter allein: 20 px
 SCROLL_PIXEL_PRO_RAST = 60
 
-# Zoom (Ctrl + Mausrad, Ctrl + Plus / Minus, Ctrl + 0) - Stufen in Prozent
-ZOOM_STUFEN = (50, 67, 75, 90, 100, 110, 125, 150, 175, 200)
 FENSTER_GROESSE = "1300x820"
 FENSTER_MIN = (900, 600)          # kleiner wird das Fenster nicht
 

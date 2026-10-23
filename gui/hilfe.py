@@ -58,7 +58,6 @@ ABSCHNITTE = [
 """),
     ("🖥️ Anzeige", """
 - **Dark Mode** ein/aus: Schalter unten auf der Startseite (wird gemerkt)
-- **Zoom**: **Ctrl + Mausrad** oder **Ctrl + Plus / Minus**, **Ctrl + 0** = 100 %. Die aktuelle Grösse steht kurz oben rechts
 - Das Fenster kann beliebig gross gezogen werden – Seiten und Grafiken passen sich an
 """),
 ]

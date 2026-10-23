@@ -219,7 +219,9 @@ class SchaltungsKarte(Karte):
         gut = self.sk_gut[0] if self.sk_gut else {}
         for schluessel, feld in self.sk_texte.items():
             falsch = werte is not None and werte.get(schluessel) != gut.get(schluessel)
-            feld.configure(border_color=ROT if falsch else self.sk_rand)
+            if getattr(feld, "sk_rot", False) != falsch:          # nur bei Änderung (configure zeichnet neu)
+                feld.configure(border_color=ROT if falsch else self.sk_rand)
+                feld.sk_rot = falsch
 
     def _sk_zeichnen(self, c, w, h):
         self.sk_groesse = (w, h)

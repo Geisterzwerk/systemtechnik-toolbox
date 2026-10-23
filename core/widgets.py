@@ -74,7 +74,7 @@ class Tooltip:
 # =============================================================================
 # WERTE-ANZEIGE: Ergebnisse als Tabelle  (Rechner, Schaltungen, Kurven, Trafo)
 # =============================================================================
-class WerteAnzeige(ctk.CTkFrame):
+class WerteAnzeige(ctk.CTkFrame, Responsive):
     """
     Zeigt Ergebniszeilen übersichtlich an:
 
@@ -98,6 +98,7 @@ class WerteAnzeige(ctk.CTkFrame):
         self.grid_columnconfigure(2, weight=1)
         self.wa_zeilen = []           # [(art, [widgets])]
         self.wa_text = None
+        self.responsive_starten()     # -> anpassen(): Zeilenumbruch nach der Breite (core/layout.py)
 
     def leeren(self):
         self.zeigen([])
@@ -121,34 +122,91 @@ class WerteAnzeige(ctk.CTkFrame):
                 for w in widgets:
                     w.destroy()
             self.wa_zeilen = [(art, self._wa_zeile(nummer, art)) for nummer, art in enumerate(arten)]
+            self.neu_berechnen()                                      # Umbruch für die neuen Zeilen
         erster_wert = True
+        nur_text = not any(a == "wert" for a in arten)
         for (art, name, wert, notiz), (_a, widgets) in zip(teile, self.wa_zeilen):
             if art == "wert":
                 n, w, z = widgets
-                n.configure(text=name)
-                w.configure(text=wert, text_color=farbe if erster_wert else config.FARBEN["text"],
-                            font=(config.SCHRIFT_CODE, 15 if erster_wert else 13, "bold"))
-                z.configure(text=notiz)
+                self._wa_setzen(n, text=name)
+                self._wa_setzen(w, text=wert, text_color=farbe if erster_wert else config.FARBEN["text"],
+                                font=(config.SCHRIFT_CODE, 15 if erster_wert else 13, "bold"))
+                self._wa_setzen(z, text=notiz)
                 erster_wert = False
             else:
                 (t,) = widgets
-                t.configure(text=name, text_color=self.WARN if art == "warnung" else
-                            (farbe if not any(a == "wert" for a in arten) else config.FARBEN["text_leise"]),
-                            font=(config.SCHRIFT_CODE, 13, "bold") if not any(a == "wert" for a in arten)
-                            else (config.SCHRIFT_CODE, 12))
+                self._wa_setzen(t, text=name, text_color=self.WARN if art == "warnung" else
+                                (farbe if nur_text else config.FARBEN["text_leise"]),
+                                font=(config.SCHRIFT_CODE, 13, "bold") if nur_text else (config.SCHRIFT_CODE, 12))
+
+    # Zellen sind einfache tk.Label (nicht CTkLabel): Beim Ziehen eines Reglers ändern sich die Werte
+    # viele Male pro Sekunde - ein CTkLabel zeichnet dabei jedes Mal seine eigene Fläche neu (zu langsam).
+    # Farben: Paare (hell, dunkel) werden selbst gewählt, beim Umschalten -> modus_gewechselt().
+
+    def _wa_setzen(self, widget, **optionen):
+        """Nur ändern, was sich wirklich geändert hat (text, text_color als Paar, font)."""
+        alt = getattr(widget, "wa_stand", {})
+        neu = {k: v for k, v in optionen.items() if alt.get(k) != v}
+        if neu:
+            widget.wa_stand = {**alt, **neu}
+            self._wa_anwenden(widget, neu)
+
+    @staticmethod
+    def _wa_anwenden(widget, optionen):
+        i = 1 if ctk.get_appearance_mode() == "Dark" else 0
+        tk_opt = {}
+        for k, v in optionen.items():
+            if k == "text_color":
+                tk_opt["fg"] = v[i] if isinstance(v, (tuple, list)) else v
+            else:
+                tk_opt[k] = v
+        widget.configure(**tk_opt)
+
+    def modus_gewechselt(self):
+        """Dark/Light umgeschaltet (core/layout.py): Hintergrund und Schriftfarben neu setzen."""
+        hintergrund = self._wa_hintergrund()
+        for _art, widgets in self.wa_zeilen:
+            for w in widgets:
+                w.configure(bg=hintergrund)
+                self._wa_anwenden(w, {"text_color": w.wa_stand.get("text_color", config.FARBEN["text"])})
+
+    def _wa_hintergrund(self):
+        """Farbe der Fläche dahinter (die Anzeige selbst ist durchsichtig)."""
+        i = 1 if ctk.get_appearance_mode() == "Dark" else 0
+        farbe = self.master.cget("fg_color") if hasattr(self.master, "cget") else "transparent"
+        stufe = self.master
+        while farbe == "transparent" and stufe is not None:              # bis zur ersten farbigen Fläche
+            stufe = stufe.master
+            try:
+                farbe = stufe.cget("fg_color")
+            except Exception:
+                farbe = config.FARBEN["flaeche"]
+        return farbe[i] if isinstance(farbe, (tuple, list)) else farbe
+
+    def anpassen(self, breite):
+        """Breite bekannt -> Zeilenumbruch der Text- und Notizzeilen setzen (tk.Label: echte Pixel)."""
+        for art, widgets in self.wa_zeilen:
+            ziel = widgets[0] if art != "wert" else widgets[2]
+            ziel.configure(wraplength=max(120, breite - (ziel.winfo_x() if art == "wert" else 0) - 10))
 
     def _wa_zeile(self, nummer, art):
-        from core.layout import WrapLabel                             # -> core/layout.py
+        import tkinter as tk
+        bg = self._wa_hintergrund()
+        def label(**kw):
+            l = tk.Label(self, text="", bg=bg, anchor="w", justify="left", borderwidth=0, padx=0, pady=1, **kw)
+            l.wa_stand = {}
+            return l
         if art == "wert":
-            name = ctk.CTkLabel(self, text="", anchor="w", font=(config.SCHRIFT_CODE, 12),
-                                text_color=config.FARBEN["text_leise"])
-            name.grid(row=nummer, column=0, sticky="nw", padx=(0, 14), pady=1)
-            wert = ctk.CTkLabel(self, text="", anchor="w", justify="left")
-            wert.grid(row=nummer, column=1, sticky="nw", padx=(0, 12), pady=1)
-            notiz = WrapLabel(self, text="", font=config.FONT_KLEIN, text_color=config.FARBEN["text_leise"])
-            notiz.grid(row=nummer, column=2, sticky="ew", pady=1)
+            name = label(font=(config.SCHRIFT_CODE, 12))
+            self._wa_setzen(name, text_color=config.FARBEN["text_leise"])
+            name.grid(row=nummer, column=0, sticky="nw", padx=(0, 14))
+            wert = label()
+            wert.grid(row=nummer, column=1, sticky="nw", padx=(0, 12))
+            notiz = label(font=config.FONT_KLEIN, wraplength=360)
+            self._wa_setzen(notiz, text_color=config.FARBEN["text_leise"])
+            notiz.grid(row=nummer, column=2, sticky="ew")
             return [name, wert, notiz]
-        text = WrapLabel(self, text="", font=(config.SCHRIFT_CODE, 12))
+        text = label(font=(config.SCHRIFT_CODE, 12), wraplength=600)
         text.grid(row=nummer, column=0, columnspan=3, sticky="ew", pady=(3, 1))
         return [text]
 

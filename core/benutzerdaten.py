@@ -1,7 +1,7 @@
 # =============================================================================
 # core/benutzerdaten.py
 # -----------------------------------------------------------------------------
-# "ZULETZT GEÖFFNET", "FAVORITEN" und EINSTELLUNGEN (Dark Mode, Zoom, Breite der Seitenliste)
+# "ZULETZT GEÖFFNET", "FAVORITEN" und EINSTELLUNGEN (Dark Mode, Breite der Seitenliste)
 # - werden in benutzerdaten.json gespeichert (EXE: %LOCALAPPDATA%\SystemLab)
 # (steht in .gitignore, gehört also nur dir).
 #
@@ -61,7 +61,7 @@ def _speichern():
         print("[Benutzerdaten] konnte nicht speichern:", fehler)
 
 
-# ---- Einstellungen (Dark Mode, Zoom, Breite der Seitenliste ...) ----
+# ---- Einstellungen (Dark Mode, Breite der Seitenliste ...) ----
 def einstellung(name, standard=None):
     return _laden().get("einstellungen", {}).get(name, standard)
 

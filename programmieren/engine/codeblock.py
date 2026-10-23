@@ -115,10 +115,9 @@ class CodeBlock(ctk.CTkFrame):
             self.text.tag_raise("gefahr")
 
     def _nur_lesen(self, event):
-        # Ctrl+C / Ctrl+A (kopieren, alles markieren) und die App-Kürzel Ctrl+K, Ctrl+F, Zoom (Ctrl + / - / 0)
+        # Ctrl+C / Ctrl+A (kopieren, alles markieren) und die App-Kürzel Ctrl+K, Ctrl+F
         # dürfen durch - alles andere würde den Code verändern
-        if event.state & 0x4 and event.keysym.lower() in ("c", "a", "k", "f", "plus", "minus", "equal", "0",
-                                                          "kp_add", "kp_subtract", "kp_0"):
+        if event.state & 0x4 and event.keysym.lower() in ("c", "a", "k", "f"):
             return None
         return "break"
 

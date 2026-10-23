@@ -23,7 +23,6 @@ TIPPS = [
     "↺ Zurücksetzen stellt bei Schaltungen alle Regler, Schalter und Felder wieder auf die Startwerte.",
     "☰ oben links blendet die Seitenliste aus – mehr Platz für Schaltpläne und Diagramme.",
     "Die Seitenliste kannst du am Rand mit der Maus breiter ziehen – Doppelklick stellt die Standardbreite her.",
-    "Ctrl + Mausrad oder Ctrl + Plus / Minus vergrössert alles, Ctrl + 0 stellt 100 % wieder her.",
     "Das Kategorie-Icon oben (z.B. 💡 bei Dioden) führt zur Übersicht dieser Kategorie, ◀ eine Seite zurück.",
     "Im KV-Diagramm kannst du die Felder direkt anklicken: 0 → 1 → X → 0.",
     "Bei Lade- und Entladekurven springen die Knöpfe 1τ … 5τ direkt zum gewünschten Zeitpunkt.",

@@ -26,7 +26,6 @@ from bauteile.rechner.rechner_info import RECHNER_INFO                 # -> baut
 from core import benutzerdaten                                         # -> core/benutzerdaten.py
 from core.tipps import tipp_des_tages                                  # -> core/tipps.py (Tipp des Tages)
 from core.widgets import Tooltip                                       # -> core/widgets.py
-from core.zoom import ZoomRegler                                       # -> core/zoom.py
 from core.layout import Karte, ResponsiveGrid, ScrollSeite, Stapel, WrapLabel   # -> core/layout.py
 from gui import gesamtsuche, hilfe                                     # -> gui/gesamtsuche.py, gui/hilfe.py
 from gui.startseite_banner import Banner                               # -> gui/startseite_banner.py
@@ -57,7 +56,7 @@ class Startseite:
                                   text_color=config.FARBEN["text"], hover_color=config.FARBEN["rahmen"],
                                   command=lambda: hilfe.oeffnen(app))                   # -> gui/hilfe.py
         s.add(bedienung, sticky="w", pady=(0, 16))
-        Tooltip(bedienung, "Bedienungsanleitung: Navigation, Suche, Rechner, Regler, Schaltungen, Zoom")
+        Tooltip(bedienung, "Bedienungsanleitung: Navigation, Suche, Rechner, Regler, Schaltungen")
 
         self.persoenlich = s.add(ctk.CTkFrame(body, fg_color="transparent", corner_radius=0), pady=(0, 6))
         self.persoenlich.grid_columnconfigure(0, weight=1)
@@ -73,27 +72,22 @@ class Startseite:
 
         unten = s.add(ctk.CTkFrame(body, fg_color="transparent"), pady=(18, 20))
         unten.grid_columnconfigure(0, weight=1)
-        anzeige = ctk.CTkFrame(unten, fg_color="transparent", corner_radius=0)      # Dark Mode + Zoom
-        anzeige.grid(row=0, column=0, pady=(0, 10))
-        schalter = ctk.CTkSwitch(anzeige, text="Dark Mode", font=config.FONT_TEXT,
+        schalter = ctk.CTkSwitch(unten, text="Dark Mode", font=config.FONT_TEXT,
                                  command=lambda: app.modus_wechseln(schalter.get() == 1))
         if ctk.get_appearance_mode() == "Dark":
             schalter.select()
-        schalter.grid(row=0, column=0, padx=(0, 28))
-        zoom_regler = ZoomRegler(anzeige, app.zoom)                                # -> core/zoom.py
-        zoom_regler.grid(row=0, column=1)
-        Tooltip(zoom_regler, "Alles grösser oder kleiner – auch mit Ctrl + Mausrad, Ctrl + Plus / Minus, Ctrl + 0")
+        schalter.grid(row=0, column=0, pady=(0, 10))
         # ---- Tipp des Tages (wechselt täglich, core/tipps.py) ----
         self.tipp_versatz = 0
         tipp_zeile = ctk.CTkFrame(unten, fg_color="transparent", corner_radius=0)
-        tipp_zeile.grid(row=1, column=0)
+        tipp_zeile.grid(row=1, column=0, sticky="ew")          # volle Breite, sonst bricht der Text nach jedem Wort um
+        tipp_zeile.grid_columnconfigure(0, weight=1)
         self.tipp_text = WrapLabel(tipp_zeile, text="", font=config.FONT_TEXT, anchor="center", justify="center",
                                    text_color=config.FARBEN["text_leise"])
         self.tipp_text.grid(row=0, column=0, sticky="ew")
-        tipp_zeile.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(tipp_zeile, text="Nächster Tipp  ›", width=120, height=26, font=config.FONT_KLEIN,
                       fg_color="transparent", text_color=config.FARBEN["akzent"], hover_color=config.FARBEN["rahmen"],
-                      command=self._tipp_weiter).grid(row=0, column=1, padx=(8, 0))
+                      command=self._tipp_weiter).grid(row=1, column=0, pady=(4, 0))       # unter dem Tipp, mittig
         self._tipp_zeigen()
         self.aktualisieren()
 

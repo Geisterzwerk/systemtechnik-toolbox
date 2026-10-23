@@ -159,7 +159,6 @@ class Scrollbereich(ctk.CTkScrollableFrame):
       - Mausrad: config.SCROLL_PIXEL_PRO_RAST Pixel pro Raststufe (customtkinter allein: nur 20 px
         auf Windows -> sehr langsam). Touchpads liefern kleine Schritte - die werden aufsummiert,
         damit auch langsames Wischen ankommt.
-      - Ctrl + Mausrad scrollt NICHT (das ist der Zoom, main.py)
       - Scrollleiste ziehen: nach jedem Schritt sofort neu zeichnen (update_idletasks). Vorher kam
         Windows beim schnellen Ziehen nicht nach und zeigte Reste der alten Bilder ("Doppeleffekt").
       - Mittlere Maustaste auf der Scrollleiste: Standard von tkinter (springt an die Stelle) - bleibt.
@@ -177,8 +176,6 @@ class Scrollbereich(ctk.CTkScrollableFrame):
 
     def _mouse_wheel_all(self, event):
         # (Name von customtkinter vorgegeben - wird für JEDES Mausrad-Ereignis im Fenster aufgerufen)
-        if event.state & 0x4:                                         # Ctrl gedrückt -> Zoom, nicht scrollen
-            return
         if not sys.platform.startswith("win") or self._shift_pressed:
             return super()._mouse_wheel_all(event)
         if not self._check_if_valid_scroll(event.widget) or self._parent_canvas.yview() == (0.0, 1.0):
